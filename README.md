@@ -7,7 +7,7 @@ TODO: Project Description
 
 ## How to Run
 
-For Development Evironment: ```npm run dev```
+For local development server: ```npm run dev```
 
 ## How to Use
 
