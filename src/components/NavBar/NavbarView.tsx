@@ -7,7 +7,9 @@ export function NavigationBarView() {
             <Image width={25} src="/plattform-logo.webp" preview={false} />
             <span style={{marginLeft: 10, marginRight: 20, fontWeight: 700}}>RepMiner</span>
             <Menu.Item key="home">Home</Menu.Item>
+            {/* Displays information about the repo  */}
             <Menu.Item key="repository">Repository</Menu.Item>
+            {/* Displays information about the analysis and graphs  */}
             <Menu.Item key="analysis">Analysis</Menu.Item>
         </Menu>
     );
