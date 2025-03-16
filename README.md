@@ -1,4 +1,5 @@
 # Master Thesis Project: Creating an Ubiquitous Platform for Mining and Visualizing Software Repositories Using WebAssembly in the Browser
+
 Author: Christoph Dethloff (11712604), e11712604@student.tuwien.ac.at
 
 TODO: Project Description
@@ -7,10 +8,8 @@ TODO: Project Description
 
 ## How to Run
 
-For local development server: ```npm run dev```
+For local development server: `npm run dev`
 
 ## How to Use
 
-
 ## About the thesis
-
