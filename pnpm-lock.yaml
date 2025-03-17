@@ -29,6 +29,9 @@ importers:
       tailwindcss:
         specifier: ^4.0.14
         version: 4.0.14
+      wasm-lib:
+        specifier: link:wasm-lib/pkg
+        version: link:wasm-lib/pkg
     devDependencies:
       '@eslint/compat':
         specifier: ^1.2.7

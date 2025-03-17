@@ -1,6 +1,16 @@
+import { useEffect, useState } from "react";
 import { Button } from "../button/ButtonPresenter";
+import init, { add } from "wasm-lib";
 
 export function LoadPageView() {
+
+  const [ans, setAns] = useState(0);
+  useEffect(() => {
+    init().then(() => {
+      setAns(add(1, 1));
+    }).catch(console.error);
+  }, [])
+
   return (
     <div className="p-5 pb-14 my-10 mx-0">
       <div className="max-w-3xl mx-auto">
@@ -22,6 +32,7 @@ export function LoadPageView() {
             <br />
             <br />
             <Button text={"Test WASM"} />
+            <p>1 + 1 = {ans}</p>
           </div>
         </div>
       </div>

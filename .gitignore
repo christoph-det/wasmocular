@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# wasm
+wasm-lib/target
+wasm-lib/pkg
