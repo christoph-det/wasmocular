@@ -4,7 +4,7 @@ export function NavigationBarView() {
       {/* Logo and brand name positioned absolutely to the left */}
       <div className="absolute left-4 flex items-center">
         <img
-          src="/plattform-logo.webp"
+          src="./plattform-logo.webp"
           alt="RepMiner Logo"
           className="w-6 h-6"
         />
