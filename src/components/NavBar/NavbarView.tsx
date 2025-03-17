@@ -14,15 +14,15 @@ export function NavigationBarView() {
       {/* Navigation links centered in the entire navbar */}
       <div className="w-full flex justify-center">
         <div className="flex space-x-30 text-lg">
-          <a href="#" className="hover:text-gray-500 py-2">
+          <a href="#/" className="hover:text-gray-500 py-2">
             LOAD
           </a>
           {/* Displays information about the repo */}
-          <a href="#" className="hover:text-gray-500 py-2">
+          <a href="#index" className="hover:text-gray-500 py-2">
             INDEX
           </a>
           {/* Displays information about the analysis and graphs */}
-          <a href="#" className="hover:text-gray-500 py-2">
+          <a href="#explore" className="hover:text-gray-500 py-2">
             EXPLORE
           </a>
         </div>

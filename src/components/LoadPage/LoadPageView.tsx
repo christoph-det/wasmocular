@@ -1,4 +1,6 @@
-export function WelcomePageView() {
+import { Button } from "../button/ButtonPresenter";
+
+export function LoadPageView() {
   return (
     <div className="p-5 pb-14 my-10 mx-0">
       <div className="max-w-3xl mx-auto">
@@ -16,9 +18,10 @@ export function WelcomePageView() {
               Select the folder containing your Git repository. Your data will
               remain on your device and will not be uploaded to any server.
             </p>
-            <button className="bg-primary py-1.5 px-4 hover:bg-primary-700 text-white font-bold rounded cursor-pointer">
-              Select Repository
-            </button>
+            <Button text={"Select Repository"} />
+            <br />
+            <br />
+            <Button text={"Test WASM"} />
           </div>
         </div>
       </div>

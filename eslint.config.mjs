@@ -11,51 +11,58 @@ import { FlatCompat } from "@eslint/eslintrc";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const compat = new FlatCompat({
-    baseDirectory: __dirname,
-    recommendedConfig: js.configs.recommended,
-    allConfig: js.configs.all
+  baseDirectory: __dirname,
+  recommendedConfig: js.configs.recommended,
+  allConfig: js.configs.all
 });
 
-export default defineConfig([globalIgnores(["**/dist", "**/.eslintrc.cjs"]), {
-    extends: fixupConfigRules(compat.extends(
+export default defineConfig([
+  globalIgnores(["**/dist", "**/.eslintrc.cjs"]),
+  {
+    extends: fixupConfigRules(
+      compat.extends(
         "eslint:recommended",
         "plugin:@typescript-eslint/recommended-type-checked",
         "plugin:@typescript-eslint/stylistic-type-checked",
         "plugin:react-hooks/recommended",
         "plugin:react/recommended",
-        "plugin:react/jsx-runtime",
-    )),
+        "plugin:react/jsx-runtime"
+      )
+    ),
 
     plugins: {
-        "react-refresh": reactRefresh,
+      "react-refresh": reactRefresh
     },
 
     files: ["**/*.ts", "**/*.tsx"],
     languageOptions: {
-        globals: {
-            ...globals.browser,
-        },
+      globals: {
+        ...globals.browser
+      },
 
-        parser: tsParser,
-        ecmaVersion: "latest",
-        sourceType: "module",
+      parser: tsParser,
+      ecmaVersion: "latest",
+      sourceType: "module",
 
-        parserOptions: {
-            project: ["./tsconfig.json", "./tsconfig.node.json"],
-            tsconfigRootDir: __dirname,
-        },
+      parserOptions: {
+        project: ["./tsconfig.json", "./tsconfig.node.json"],
+        tsconfigRootDir: __dirname
+      }
     },
 
-
     settings: {
-        react: {
-            version: "detect",
-        },
+      react: {
+        version: "detect"
+      }
     },
 
     rules: {
-        "react-refresh/only-export-components": ["warn", {
-            allowConstantExport: true,
-        }],
-    },
-}]);
+      "react-refresh/only-export-components": [
+        "warn",
+        {
+          allowConstantExport: true
+        }
+      ]
+    }
+  }
+]);

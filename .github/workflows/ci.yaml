@@ -5,15 +5,15 @@ on: [push]
 jobs:
   lint-and-typecheck:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Install dependencies
-      run: npm install -g pnpm && pnpm install
-    
-    - name: Run ESLint
-      run: pnpm run lint
-      
-    - name: Run TypeScript type checking
-      run: pnpm run typecheck
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm install -g pnpm && pnpm install
+
+      - name: Run ESLint
+        run: pnpm run lint
+
+      - name: Run TypeScript type checking
+        run: pnpm run typecheck
