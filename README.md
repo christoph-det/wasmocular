@@ -8,7 +8,9 @@ TODO: Project Description
 
 ## How to Run
 
-For local development server: `npm run dev`
+For local development server: `pnpm run dev`
+
+To deploy run `pnpm run build` and find the files to deploy a static stite in the `dist` folder.
 
 ## How to Use
 
