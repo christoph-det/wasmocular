@@ -1,10 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../button/ButtonPresenter";
-import { sum } from "wasm-lib";
-
+import { sum_rs } from "wasm-lib";
 
 export function LoadPageView() {
-  const [ans, setAns] = useState(0); 
+  const [ans, setAns] = useState(0);
+  const [worker, setWorker] = useState<Worker | null>(null);
+
+  useEffect(() => {
+    const newWorker = new Worker(new URL('./sumWorker.js', import.meta.url));
+    newWorker.onmessage = (event) => {
+      setAns(event.data);
+    };
+    setWorker(newWorker);
+    return () => {
+      newWorker.terminate();
+    };
+  }, []);
 
   return (
     <div className="p-5 pb-14 my-10 mx-0">
@@ -42,28 +53,20 @@ export function LoadPageView() {
 
   function clickButtonCB_WASM() {
     const startTS = Date.now();
-    setAns(sum(1,11));
+    setAns(sum_rs(1,11));
     console.log("WASM Button clicked, time: ", Date.now() - startTS);
   }
 
   function clickButtonCB_JS() {
     const startTS = Date.now();
-    setAns(sum_JS(1,11));
+    if (worker) {
+      worker.postMessage({ a: 1, b: 11 });
+    }
     console.log("JS Button clicked, time: ", Date.now() - startTS);
   }
 
   function resetCB() {
     setAns(0);
   }
-  
-  function sum_JS(a: number, b: number) {
-    if (b === 0) {
-      return 0;
-    }
-    let sum = 0;
-    for (let i = 0; i < b; i++) {
-      sum += a + sum_JS(a, b - 1);
-    }
-    return sum;
-  }
+
 }
