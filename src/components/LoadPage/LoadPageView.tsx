@@ -1,17 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "../button/ButtonPresenter";
-import init, { add } from "wasm-lib";
+import { sum } from "wasm-lib";
 
 
 export function LoadPageView() {
-  const [ans, setAns] = useState(0);
-  useEffect(() => {
-    init()
-      .then(() => {
-        setAns(add(1, 1));
-      })
-      .catch(console.error);
-  }, []);
+  const [ans, setAns] = useState(0); 
 
   return (
     <div className="p-5 pb-14 my-10 mx-0">
@@ -33,11 +26,44 @@ export function LoadPageView() {
             <Button text={"Select Repository"} />
             <br />
             <br />
-            <Button text={"Test WASM"} />
-            <p>1 + 1 = {ans}</p>
+            <Button text={"Test WASM"} onClick={() => clickButtonCB_WASM()} />
+            <br />
+            <br />
+            <Button text={"Test JS"} onClick={() => clickButtonCB_JS()} />
+            <br />
+            <br />
+            <Button text={"Reset"} onClick={() => resetCB()} />
+            <p>Summe: {ans}</p>
           </div>
         </div>
       </div>
     </div>
   );
+
+  function clickButtonCB_WASM() {
+    const startTS = Date.now();
+    setAns(sum(1,11));
+    console.log("WASM Button clicked, time: ", Date.now() - startTS);
+  }
+
+  function clickButtonCB_JS() {
+    const startTS = Date.now();
+    setAns(sum_JS(1,11));
+    console.log("JS Button clicked, time: ", Date.now() - startTS);
+  }
+
+  function resetCB() {
+    setAns(0);
+  }
+  
+  function sum_JS(a: number, b: number) {
+    if (b === 0) {
+      return 0;
+    }
+    let sum = 0;
+    for (let i = 0; i < b; i++) {
+      sum += a + sum_JS(a, b - 1);
+    }
+    return sum;
+  }
 }
