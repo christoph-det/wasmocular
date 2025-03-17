@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "../button/ButtonPresenter";
 import init, { add } from "wasm-lib";
 
+
 export function LoadPageView() {
   const [ans, setAns] = useState(0);
   useEffect(() => {
