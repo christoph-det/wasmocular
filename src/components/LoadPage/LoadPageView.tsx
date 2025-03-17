@@ -3,13 +3,14 @@ import { Button } from "../button/ButtonPresenter";
 import init, { add } from "wasm-lib";
 
 export function LoadPageView() {
-
   const [ans, setAns] = useState(0);
   useEffect(() => {
-    init().then(() => {
-      setAns(add(1, 1));
-    }).catch(console.error);
-  }, [])
+    init()
+      .then(() => {
+        setAns(add(1, 1));
+      })
+      .catch(console.error);
+  }, []);
 
   return (
     <div className="p-5 pb-14 my-10 mx-0">

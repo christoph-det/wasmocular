@@ -19,7 +19,7 @@ const compat = new FlatCompat({
 export default defineConfig([
   globalIgnores(["**/dist", "**/.eslintrc.cjs"]),
   {
-    ignores: ["wasm-lib/"], 
+    ignores: ["wasm-lib/"]
   },
   {
     extends: fixupConfigRules(
