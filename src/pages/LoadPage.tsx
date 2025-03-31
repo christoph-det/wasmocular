@@ -7,13 +7,15 @@ const LoadPage = () => {
   const [worker, setWorker] = useState<Worker | null>(null);
 
   useEffect(() => {
-    init().then(() => {
-      setAns(0);
-    }).catch(console.error);
-  }, [])
+    init()
+      .then(() => {
+        setAns(0);
+      })
+      .catch(console.error);
+  }, []);
 
   useEffect(() => {
-    const newWorker = new Worker(new URL('./sumWorker.js', import.meta.url));
+    const newWorker = new Worker(new URL("./sumWorker.js", import.meta.url));
     newWorker.onmessage = (event) => {
       setAns(event.data);
     };
@@ -59,7 +61,7 @@ const LoadPage = () => {
 
   function clickButtonCB_WASM() {
     const startTS = Date.now();
-    setAns(sum_rs(1,11));
+    setAns(sum_rs(1, 11));
     console.log("WASM Button clicked, time: ", Date.now() - startTS);
   }
 
@@ -72,7 +74,6 @@ const LoadPage = () => {
   function resetCB() {
     setAns(0);
   }
-
-}
+};
 
 export default LoadPage;

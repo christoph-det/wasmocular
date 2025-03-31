@@ -8,7 +8,7 @@ TODO: Project Description
 
 ## How to Run
 
-First, build the WASM module that is used as a package by React: `pnpm run build:wasm`  
+First, build the WASM module that is used as a package by React: `pnpm run build:wasm`
 
 For local development server: `pnpm run dev`
 

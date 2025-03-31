@@ -1,4 +1,4 @@
-self.onmessage = function(event) {
+self.onmessage = function (event) {
   const { a, b } = event.data;
   self.postMessage(sum_JS(a, b));
 };
