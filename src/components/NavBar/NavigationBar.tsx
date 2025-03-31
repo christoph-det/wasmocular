@@ -1,4 +1,4 @@
-export function NavigationBarView() {
+const NavigationBar = () => {
   return (
     <nav className="relative flex items-center p-4 border-b">
       {/* Logo and brand name positioned absolutely to the left */}
@@ -30,3 +30,4 @@ export function NavigationBarView() {
     </nav>
   );
 }
+export default NavigationBar;

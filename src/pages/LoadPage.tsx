@@ -1,10 +1,16 @@
 import { useState, useEffect } from "react";
-import { Button } from "../button/ButtonPresenter";
-import { sum_rs } from "wasm-lib";
+import Button from "../components/button/Button";
+import init, { sum_rs } from "wasm-lib";
 
-export function LoadPageView() {
+const LoadPage = () => {
   const [ans, setAns] = useState(0);
   const [worker, setWorker] = useState<Worker | null>(null);
+
+  useEffect(() => {
+    init().then(() => {
+      setAns(0);
+    }).catch(console.error);
+  }, [])
 
   useEffect(() => {
     const newWorker = new Worker(new URL('./sumWorker.js', import.meta.url));
@@ -58,11 +64,9 @@ export function LoadPageView() {
   }
 
   function clickButtonCB_JS() {
-    const startTS = Date.now();
     if (worker) {
       worker.postMessage({ a: 1, b: 11 });
     }
-    console.log("JS Button clicked, time: ", Date.now() - startTS);
   }
 
   function resetCB() {
@@ -70,3 +74,5 @@ export function LoadPageView() {
   }
 
 }
+
+export default LoadPage;

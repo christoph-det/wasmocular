@@ -1,4 +1,4 @@
-export function IndexPageView() {
+const IndexPage = () => {
   return (
     <div className="p-5 pb-14 my-10 mx-0">
       <div className="max-w-3xl mx-auto">
@@ -14,3 +14,5 @@ export function IndexPageView() {
     </div>
   );
 }
+
+export default IndexPage;
