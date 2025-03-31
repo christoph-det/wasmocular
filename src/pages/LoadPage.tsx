@@ -15,9 +15,11 @@ const LoadPage = () => {
   }, []);
 
   useEffect(() => {
-    const newWorker = new Worker(new URL("./sumWorker.js", import.meta.url));
-    newWorker.onmessage = (event) => {
-      setAns(event.data);
+    const newWorker = new Worker(
+      new URL("../containers/sumWorker.js", import.meta.url)
+    );
+    newWorker.onmessage = (event: MessageEvent) => {
+      setAns(Number(event.data));
     };
     setWorker(newWorker);
     return () => {
