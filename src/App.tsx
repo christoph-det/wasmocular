@@ -1,9 +1,10 @@
 import { HashRouter as Router, Route, Routes } from "react-router-dom";
 import "./App.css";
-import NavigationBar from "./components/NavBar/NavigationBar";
+import NavigationBar from "./components/NavigationBar";
 import IndexPage from "./pages/IndexPage";
 import LoadPage from "./pages/LoadPage";
 import ExplorePage from "./pages/ExplorePage";
+import Footer from "./components/Footer";
 
 const App: React.FC = () => {
   // const [count, setCount] = useState(0)
@@ -15,9 +16,7 @@ const App: React.FC = () => {
         <Route path="/index" element={<IndexPage />} />
         <Route path="/explore" element={<ExplorePage />} />
       </Routes>
-      <div className="text-center text-gray-500 text-sm mt-5">
-        TU Wien - Christoph Dethloff (11712604)
-      </div>
+      <Footer />
     </Router>
   );
 };
