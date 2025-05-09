@@ -5,10 +5,11 @@ import IndexPage from "./pages/IndexPage";
 import LoadPage from "./pages/LoadPage";
 import ExplorePage from "./pages/ExplorePage";
 import Footer from "./components/Footer";
+import { StoreContext, rootStore } from './store/StoreContext';
 
 const App: React.FC = () => {
   // const [count, setCount] = useState(0)
-  return (
+  return (<StoreContext.Provider value={rootStore}>
     <Router>
       <NavigationBar />
       <Routes>
@@ -18,6 +19,7 @@ const App: React.FC = () => {
       </Routes>
       <Footer />
     </Router>
+  </StoreContext.Provider>
   );
 };
 

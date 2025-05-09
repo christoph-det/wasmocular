@@ -14,13 +14,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@duckdb/duckdb-wasm": "1.29.1-dev132.0",
     "@tailwindcss/vite": "^4.0.14",
     "eslint-plugin-react": "^7.37.2",
+    "mobx": "^6.13.7",
+    "mobx-react-lite": "^4.1.0",
     "prettier": "^3.5.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-redux": "^9.2.0",
     "react-router-dom": "^7.3.0",
+    "react-scan": "^0.3.3",
     "tailwindcss": "^4.0.14",
     "wasm-lib": "link:wasm-lib/pkg"
   },

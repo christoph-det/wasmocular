@@ -1,25 +1,24 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Button from "../components/button/Button";
 import init, { sum_rs } from "wasm-lib";
+import { observer } from "mobx-react-lite";
+import { useStores } from "../store/StoreContext";
 
-const LoadPage = () => {
-  const [ans, setAns] = useState(0);
+// initialize rust code
+init();
+
+
+const LoadPage = observer(() => {
   const [worker, setWorker] = useState<Worker | null>(null);
 
-  useEffect(() => {
-    init()
-      .then(() => {
-        setAns(0);
-      })
-      .catch(console.error);
-  }, []);
+  const sumStore = useStores().testStore;
 
   useEffect(() => {
     const newWorker = new Worker(
       new URL("../containers/sumWorker.js", import.meta.url)
     );
     newWorker.onmessage = (event: MessageEvent) => {
-      setAns(Number(event.data));
+      sumStore.setCalcSum(Number(event.data));
     };
     setWorker(newWorker);
     return () => {
@@ -54,7 +53,7 @@ const LoadPage = () => {
             <br />
             <br />
             <Button text={"Reset"} onClick={() => resetCB()} />
-            <p>Summe: {ans}</p>
+            <p>Summe: {sumStore.calc_sum}</p>
           </div>
         </div>
       </div>
@@ -63,7 +62,7 @@ const LoadPage = () => {
 
   function clickButtonCB_WASM() {
     const startTS = Date.now();
-    setAns(sum_rs(1, 11));
+    sumStore.setCalcSum(sum_rs(1, 11));
     console.log("WASM Button clicked, time: ", Date.now() - startTS);
   }
 
@@ -74,8 +73,8 @@ const LoadPage = () => {
   }
 
   function resetCB() {
-    setAns(0);
+    sumStore.setCalcSum(0);
   }
-};
+});
 
 export default LoadPage;
