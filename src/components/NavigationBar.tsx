@@ -1,28 +1,50 @@
+import { useEffect, useState } from "react";
+
 const NavigationBar = () => {
+  const [current, setCurrent] = useState(window.location.hash || "#/");
+
+  useEffect(() => {
+    const onHashChange = () => setCurrent(window.location.hash || "#/");
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
+
   return (
-    <nav className="relative flex items-center p-4 border-b">
-      {/* Logo and brand name positioned absolutely to the left */}
-      <div className="absolute left-4 flex items-center">
+    <nav className="relative flex items-center p-4 bg-white/80 backdrop-blur border-b shadow-sm">
+      <div className="absolute left-6 flex items-center">
         <img
           src="./plattform-logo.webp"
           alt="RepMiner Logo"
-          className="w-6 h-6"
+          className="w-8 h-8 drop-shadow"
         />
-        <span className="ml-2.5 font-bold">RepMiner</span>
+        <span className="ml-3 text-xl font-extrabold text-blue-700 tracking-wide select-none">
+          RepMiner
+        </span>
       </div>
-
-      {/* Navigation links centered in the entire navbar */}
       <div className="w-full flex justify-center">
-        <div className="flex space-x-30 text-lg">
-          <a href="#/" className="hover:text-gray-500 py-2">
+        <div className="flex space-x-10 text-lg font-medium">
+          <a
+            href="#/"
+            className={`px-4 py-2 rounded-lg transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-100 focus:text-blue-900 ${
+              current === "#/" || current === "" ? "bg-blue-100 text-blue-900 font-bold shadow" : ""
+            }`}
+          >
             LOAD
           </a>
-          {/* Displays information about the repo */}
-          <a href="#index" className="hover:text-gray-500 py-2">
+          <a
+            href="#index"
+            className={`px-4 py-2 rounded-lg transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-100 focus:text-blue-900 ${
+              current === "#index" ? "bg-blue-100 text-blue-900 font-bold shadow" : ""
+            }`}
+          >
             INDEX
           </a>
-          {/* Displays information about the analysis and graphs */}
-          <a href="#explore" className="hover:text-gray-500 py-2">
+          <a
+            href="#explore"
+            className={`px-4 py-2 rounded-lg transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-100 focus:text-blue-900 ${
+              current === "#explore" ? "bg-blue-100 text-blue-900 font-bold shadow" : ""
+            }`}
+          >
             EXPLORE
           </a>
         </div>
