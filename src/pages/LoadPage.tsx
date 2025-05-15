@@ -11,8 +11,9 @@ const LoadPage = observer(() => {
   const [worker, setWorker] = useState<Worker | null>(null);
   const sumStore = useStores().testStore;
   const dbStore = useStores().dbStore;
+  dbStore.init();
 
-  useEffect(() =>{
+  useEffect(() => {
     const newWorker = new Worker(
       new URL("../containers/sumWorker.js", import.meta.url)
     );
@@ -20,6 +21,7 @@ const LoadPage = observer(() => {
       sumStore.setCalcSum(Number(event.data));
     };
     setWorker(newWorker);
+
     return () => {
       newWorker.terminate();
     };
@@ -51,22 +53,18 @@ const LoadPage = observer(() => {
               <Button
                 text={"Test WASM"}
                 onClick={() => clickButtonCB_WASM()}
-                className="hover:bg-blue-100"
               />
               <Button
                 text={"Test JS"}
                 onClick={() => clickButtonCB_JS()}
-                className="hover:bg-blue-100"
               />
               <Button
                 text={"Reset"}
                 onClick={() => resetCB()}
-                className="hover:bg-red-100"
               />
               <Button
                 text={"Test DuckDB"}
                 onClick={() => testDuckDB()}
-                className="hover:bg-green-100"
               />
             </div>
             <div className="mt-4">
@@ -97,18 +95,20 @@ const LoadPage = observer(() => {
   }
 
   async function testDuckDB() {
-    // Example: create table, insert data, query and print results
-    try {
-      await dbStore.query("CREATE TABLE IF NOT EXISTS people (id INTEGER, name VARCHAR)");
-      await dbStore.query("INSERT INTO people VALUES (1, 'Alice'), (2, 'Bob')");
-      const result = await dbStore.query("SELECT * FROM people");
-      // log result to console
-      const data = await result.toArray(); 
-      const plainRows = data.map(row => Object.fromEntries(Object.entries(row)));
-      console.log("DuckDB Result:", plainRows);
-    } catch (e) {
-      console.error("DuckDB error:", e);
+    // Send queries to dbWorker instead of running directly
+    for (let i = 0; i < 100; i++) {
+      dbStore.postMessage({
+        type: "query",
+        sql: "INSERT INTO people VALUES (1, 'Alice'), (2, 'Bob')",
+        returnResult: false
+      });
     }
+    dbStore.postMessage({
+      type: "query",
+      sql: "SELECT count(*) FROM people",
+      returnResult: true
+    });
+    // Results will be logged in the dbWorker.onmessage handler
   }
 });
 
