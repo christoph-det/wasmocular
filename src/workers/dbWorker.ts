@@ -4,6 +4,8 @@ import mvp_worker from '@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?ur
 import duckdb_wasm_eh from '@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url';
 import eh_worker from '@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url';
 
+
+
 const MANUAL_BUNDLES: duckdb.DuckDBBundles = {
     mvp: {
         mainModule: duckdb_wasm,
@@ -15,7 +17,7 @@ const MANUAL_BUNDLES: duckdb.DuckDBBundles = {
     },
 };
 
-class DatabaseStore {
+class DatabaseWorker {
     worker: Worker | null = null;
     db: duckdb.AsyncDuckDB | null = null;
     logger: duckdb.ConsoleLogger | null = null;
@@ -29,6 +31,10 @@ class DatabaseStore {
             this.logger = new duckdb.ConsoleLogger(duckdb.LogLevel.WARNING)
             this.db = new duckdb.AsyncDuckDB(this.logger, this.worker);
             await this.db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+            await this.db.open({
+                path: 'opfs://repminer_database.db',
+                accessMode: duckdb.DuckDBAccessMode.READ_WRITE,                
+            });
             await this.createTables();
             console.log("Database initialized");
             this.is_initialized = true;
@@ -48,10 +54,33 @@ class DatabaseStore {
         }
     }
 
-    async disconnect() {
+    async terminate() {
         if (this.connection) {
+            await this.connection.query("CHECKPOINT;");
             await this.connection.close();
             this.connection = null;
+            await this.db?.terminate();
+            console.log("Database disconnected");
+        }
+    }
+
+    // TODO: not sure if this is the right way to export the database, what file system to use?
+    async export () {
+        if (this.connection) {
+            this.connection.query("EXPORT DATABASE '/tmp/duckdbexportcsv';");
+            await this.db?.copyFileToBuffer(
+                '/tmp/duckdbexportcsv',)
+        } else {
+            throw new Error("No connection to database");
+        }
+    }
+
+    // By default DuckDB triggers a checkpoint every 16 MiB of data written to the database. (can be changed by setting the checkpoint_threshold config option)
+    persistCheckpoint() {
+        if (this.connection) {
+            this.connection.query("CHECKPOINT;");
+        } else {
+            throw new Error("No connection to database");
         }
     }
 
@@ -83,15 +112,15 @@ onmessage = async function() {
     console.log("DB Worker: Received message but is not initialized yet.");
 }
 
-const dbStore = new DatabaseStore();
-await dbStore.init();
+const dbWorker = new DatabaseWorker();
+await dbWorker.init();
 
 onmessage = async function(event) {
     //console.log("Worker received message:", event.data);
     const { type, sql, returnResult } = event.data;
     try {
         if (type === "query") {
-            const result = await dbStore.query(sql);
+            const result = await dbWorker.query(sql);
             if (returnResult) {
                 const arrayResult = result.toArray();
                 const cloneableResult = JSON.parse(
@@ -99,6 +128,14 @@ onmessage = async function(event) {
                 );
                 postMessage({ type: "result", result: cloneableResult });
             }        
+        }
+        if (type === "terminate") {
+            await dbWorker.terminate();
+            postMessage({ type: "disconnected" });
+        }
+
+        if (type === "export") {
+            dbWorker.export();
         }
     } catch (error: any) {
         postMessage({ type: "error", error: error.message });

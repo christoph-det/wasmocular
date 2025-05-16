@@ -65,6 +65,19 @@ const LoadPage = observer(() => {
                 text={"Test DuckDB"}
                 onClick={() => testDuckDB()}
               />
+               <Button
+                text={"Read DuckDB"}
+                onClick={() => readDuckDB()}
+              />
+              <Button
+                text={"Disconnect DuckDB"}
+                onClick={() => disconnectDuckDB()}
+              />
+
+              <Button
+                text={"Export DuckDB"}
+                onClick={() => exportDuckDB()}
+              />
             </div>
             <div className="mt-4">
               <div className="inline-block px-6 py-3 rounded-xl bg-blue-50 border border-blue-200 shadow text-blue-900 font-mono text-lg">
@@ -95,19 +108,53 @@ const LoadPage = observer(() => {
 
   async function testDuckDB() {
     // Send queries to dbWorker instead of running directly
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 10000; i++) {
       dbStore.postMessage({
         type: "query",
         sql: "INSERT INTO people VALUES (1, 'Alice'), (2, 'Bob')",
         returnResult: false
       });
     }
+    
+    // Results will be logged in the dbWorker.onmessage handler
+  }
+
+  async function readDuckDB() {
     dbStore.postMessage({
       type: "query",
       sql: "SELECT count(*) FROM people",
       returnResult: true
     });
-    // Results will be logged in the dbWorker.onmessage handler
+  }
+
+  function disconnectDuckDB() {
+    dbStore.postMessage({
+      type: "terminate",
+      returnResult: false
+    });
+  }
+
+  async function exportDuckDB() {
+    const opfsRoot = await navigator.storage.getDirectory();
+    const fileHandle = await opfsRoot.getFileHandle("repminer_database.db");
+    fileHandle.getFile().then((file) => {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const arrayBuffer = event.target?.result;
+        if (arrayBuffer) {
+          const blob = new Blob([arrayBuffer], { type: "application/octet-stream" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "repminer_database.db";
+          document.body.appendChild(a);
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+    );
   }
 });
 

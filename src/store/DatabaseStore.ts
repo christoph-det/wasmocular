@@ -10,7 +10,7 @@ export class DatabaseStore {
     init() {
         // Use new URL for correct worker path resolution
         this.worker = new Worker(
-            new URL("../workers/dbWorker.worker.ts", import.meta.url),
+            new URL("../workers/dbWorker.ts", import.meta.url),
             { type: "module" }
         );
         this.worker.onmessage = (event: MessageEvent) => {
