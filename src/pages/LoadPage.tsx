@@ -11,7 +11,6 @@ const LoadPage = observer(() => {
   const [worker, setWorker] = useState<Worker | null>(null);
   const sumStore = useStores().testStore;
   const dbStore = useStores().dbStore;
-  dbStore.init();
 
   useEffect(() => {
     const newWorker = new Worker(

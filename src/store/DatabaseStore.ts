@@ -1,5 +1,11 @@
+
+
 export class DatabaseStore {
     worker: Worker | null = null;
+
+    constructor() {
+        this.init();
+    }
 
     init() {
         // Use new URL for correct worker path resolution

@@ -20,10 +20,7 @@ class DatabaseStore {
     db: duckdb.AsyncDuckDB | null = null;
     logger: duckdb.ConsoleLogger | null = null;
     connection : duckdb.AsyncDuckDBConnection | null = null;
-
-    constructor() {
-        this.init();
-    }
+    is_initialized: boolean = false;
 
     async init() {
         if (!this.db) {
@@ -34,6 +31,9 @@ class DatabaseStore {
             await this.db.instantiate(bundle.mainModule, bundle.pthreadWorker);
             await this.createTables();
             console.log("Database initialized");
+            this.is_initialized = true;
+        } else {
+            console.log("Database already initialized");
         }
     }
 
@@ -44,7 +44,7 @@ class DatabaseStore {
         if (this.db) {
             this.connection = await this.db.connect();
         } else {
-            console.error("Database not initialized");
+            throw new Error("Not able to initialize Database");
         }
     }
 
@@ -79,7 +79,12 @@ class DatabaseStore {
     }
 }
 
+onmessage = async function() {
+    console.log("DB Worker: Received message but is not initialized yet.");
+}
+
 const dbStore = new DatabaseStore();
+await dbStore.init();
 
 onmessage = async function(event) {
     //console.log("Worker received message:", event.data);
@@ -99,3 +104,4 @@ onmessage = async function(event) {
         postMessage({ type: "error", error: error.message });
     }
 };
+
