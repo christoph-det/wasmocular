@@ -26,7 +26,7 @@ const NavigationBar = () => {
           <a
             href="#/"
             className={`px-4 py-2 rounded-lg transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-100 focus:text-blue-900 ${
-              current === "#/" || current === "" ? "bg-blue-100 text-blue-900 font-bold shadow" : ""
+              current === "#/" || current === "" ? "bg-blue-100 text-blue-900 shadow" : ""
             }`}
           >
             LOAD
@@ -34,7 +34,7 @@ const NavigationBar = () => {
           <a
             href="#index"
             className={`px-4 py-2 rounded-lg transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-100 focus:text-blue-900 ${
-              current === "#index" ? "bg-blue-100 text-blue-900 font-bold shadow" : ""
+              current === "#index" ? "bg-blue-100 text-blue-900 shadow" : ""
             }`}
           >
             INDEX
@@ -42,12 +42,17 @@ const NavigationBar = () => {
           <a
             href="#explore"
             className={`px-4 py-2 rounded-lg transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-100 focus:text-blue-900 ${
-              current === "#explore" ? "bg-blue-100 text-blue-900 font-bold shadow" : ""
+              current === "#explore" ? "bg-blue-100 text-blue-900 shadow" : ""
             }`}
           >
             EXPLORE
           </a>
         </div>
+      </div>
+      <div className="absolute right-6 flex items-center">
+        <span className="ml-3 text-xl text-black-700 tracking-wide select-none">
+          My Project
+        </span>
       </div>
     </nav>
   );
