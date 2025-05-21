@@ -3,9 +3,16 @@ import Button from "../components/button/Button";
 import init, { sum_rs } from "wasm-lib";
 import { observer } from "mobx-react-lite";
 import { useStores } from "../store/StoreContext";
+import {
+  DatabaseMessageType,
+  DatabaseQueryMessage,
+  DatabaseTerminateMessage
+} from "../workers/dbWorker.types";
 
 // initialize rust code
-init();
+init().catch((err) => {
+  console.error("Error initializing Rust WASM module:", err);
+});
 
 const LoadPage = observer(() => {
   const [worker, setWorker] = useState<Worker | null>(null);
@@ -14,7 +21,7 @@ const LoadPage = observer(() => {
 
   useEffect(() => {
     const newWorker = new Worker(
-      new URL("../containers/sumWorker.js", import.meta.url)
+      new URL("../workers/sumWorker.js", import.meta.url)
     );
     newWorker.onmessage = (event: MessageEvent) => {
       sumStore.setCalcSum(Number(event.data));
@@ -24,7 +31,7 @@ const LoadPage = observer(() => {
     return () => {
       newWorker.terminate();
     };
-  }, []);
+  }, [sumStore]);
 
   return (
     <div className="p-10 pb-14 mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen">
@@ -61,7 +68,10 @@ const LoadPage = observer(() => {
                 onClick={() => disconnectDuckDB()}
               />
 
-              <Button text={"Export DuckDB"} onClick={() => exportDuckDB()} />
+              <Button
+                text={"Export DuckDB"}
+                onClick={handleExportDuckDBClick}
+              />
             </div>
             <div className="mt-4">
               <div className="inline-block px-6 py-3 rounded-xl bg-blue-50 border border-blue-200 shadow text-blue-900 font-mono text-lg">
@@ -90,56 +100,69 @@ const LoadPage = observer(() => {
     sumStore.setCalcSum(0);
   }
 
-  async function testDuckDB() {
+  function testDuckDB() {
     // Send queries to dbWorker instead of running directly
     for (let i = 0; i < 10000; i++) {
-      dbStore.postMessage({
-        type: "query",
+      const queryMessage: DatabaseQueryMessage = {
+        type: DatabaseMessageType.QUERY,
         sql: "INSERT INTO people VALUES (1, 'Alice'), (2, 'Bob')",
         returnResult: false
-      });
+      };
+      dbStore.postMessage(queryMessage);
     }
 
     // Results will be logged in the dbWorker.onmessage handler
   }
 
-  async function readDuckDB() {
-    dbStore.postMessage({
-      type: "query",
+  function readDuckDB() {
+    const queryMessage: DatabaseQueryMessage = {
+      type: DatabaseMessageType.QUERY,
       sql: "SELECT count(*) FROM people",
       returnResult: true
-    });
+    };
+    dbStore.postMessage(queryMessage);
   }
 
   function disconnectDuckDB() {
-    dbStore.postMessage({
-      type: "terminate",
-      returnResult: false
+    const terminateMessage: DatabaseTerminateMessage = {
+      type: DatabaseMessageType.TERMINATE
+    };
+    dbStore.postMessage(terminateMessage);
+  }
+
+  function handleExportDuckDBClick() {
+    exportDuckDB().catch((error) => {
+      console.error("Error exporting DuckDB:", error);
     });
   }
 
   async function exportDuckDB() {
     const opfsRoot = await navigator.storage.getDirectory();
     const fileHandle = await opfsRoot.getFileHandle("repminer_database.db");
-    fileHandle.getFile().then((file) => {
-      const reader = new FileReader();
-      reader.onload = function (event) {
-        const arrayBuffer = event.target?.result;
-        if (arrayBuffer) {
-          const blob = new Blob([arrayBuffer], {
-            type: "application/octet-stream"
-          });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "repminer_database.db";
-          document.body.appendChild(a);
-          a.click();
-          URL.revokeObjectURL(url);
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    });
+    fileHandle
+      .getFile()
+      .then((file) => {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const arrayBuffer = event.target?.result;
+          if (arrayBuffer) {
+            const blob = new Blob([arrayBuffer], {
+              type: "application/octet-stream"
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "repminer_database.db";
+            document.body.appendChild(a);
+            a.click();
+            URL.revokeObjectURL(url);
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      })
+      .catch((error: Error) => {
+        return Promise.reject(error);
+      });
   }
 });
 

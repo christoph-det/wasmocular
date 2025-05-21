@@ -1,3 +1,8 @@
+import {
+  DatabaseMessageType,
+  DatabaseWorkerMessage
+} from "../workers/dbWorker.types";
+
 export class DatabaseStore {
   worker: Worker | null = null;
 
@@ -11,17 +16,20 @@ export class DatabaseStore {
       new URL("../workers/dbWorker.ts", import.meta.url),
       { type: "module" }
     );
-    this.worker.onmessage = (event: MessageEvent) => {
+    this.worker.onmessage = (event: MessageEvent<DatabaseWorkerMessage>) => {
+      const receivedMessage = event.data;
       // handle db query result
-      if (event.data.type === "result") {
-        console.log("DuckDB Worker Result:", event.data.result);
-      } else if (event.data.type === "error") {
-        console.error("DuckDB Worker Error:", event.data.error);
+      if (receivedMessage.type === DatabaseMessageType.RESULT) {
+        console.log("DuckDB Worker Result:", receivedMessage.result);
+      } else if (receivedMessage.type === DatabaseMessageType.ERROR) {
+        console.error("DuckDB Worker Error:", receivedMessage.error);
+      } else {
+        console.warn("DuckDB Store Unknown Message:", receivedMessage);
       }
     };
   }
 
-  postMessage(message: any) {
+  postMessage(message: DatabaseWorkerMessage) {
     if (this.worker) {
       this.worker.postMessage(message);
     } else {

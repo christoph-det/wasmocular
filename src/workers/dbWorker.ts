@@ -3,6 +3,11 @@ import duckdb_wasm from "@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm?url";
 import mvp_worker from "@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?url";
 import duckdb_wasm_eh from "@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url";
 import eh_worker from "@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url";
+import {
+  DatabaseMessageType,
+  DatabaseResultMessage,
+  DatabaseWorkerMessage
+} from "./dbWorker.types";
 
 const MANUAL_BUNDLES: duckdb.DuckDBBundles = {
   mvp: {
@@ -20,7 +25,7 @@ class DatabaseWorker {
   db: duckdb.AsyncDuckDB | null = null;
   logger: duckdb.ConsoleLogger | null = null;
   connection: duckdb.AsyncDuckDBConnection | null = null;
-  is_initialized: boolean = false;
+  is_initialized = false;
 
   async init() {
     if (!this.db) {
@@ -65,7 +70,7 @@ class DatabaseWorker {
   // TODO: not sure if this is the right way to export the database, what file system to use?
   async export() {
     if (this.connection) {
-      this.connection.query("EXPORT DATABASE '/tmp/duckdbexportcsv';");
+      //this.connection.query("EXPORT DATABASE '/tmp/duckdbexportcsv';");
       await this.db?.copyFileToBuffer("/tmp/duckdbexportcsv");
     } else {
       throw new Error("No connection to database");
@@ -73,9 +78,9 @@ class DatabaseWorker {
   }
 
   // By default DuckDB triggers a checkpoint every 16 MiB of data written to the database. (can be changed by setting the checkpoint_threshold config option)
-  persistCheckpoint() {
+  async persistCheckpoint() {
     if (this.connection) {
-      this.connection.query("CHECKPOINT;");
+      await this.connection.query("CHECKPOINT;");
     } else {
       throw new Error("No connection to database");
     }
@@ -107,38 +112,41 @@ class DatabaseWorker {
   }
 }
 
-onmessage = async function () {
+onmessage = function () {
   console.log("DB Worker: Received message but is not initialized yet.");
 };
 
 const dbWorker = new DatabaseWorker();
 await dbWorker.init();
 
-onmessage = async function (event) {
+onmessage = async function (event: MessageEvent<DatabaseWorkerMessage>) {
   //console.log("Worker received message:", event.data);
-  const { type, sql, returnResult } = event.data;
-  try {
-    if (type === "query") {
-      const result = await dbWorker.query(sql);
-      if (returnResult) {
+  const receivedMessage: DatabaseWorkerMessage = event.data;
+
+  switch (receivedMessage.type) {
+    case DatabaseMessageType.QUERY: {
+      const result = await dbWorker.query(receivedMessage.sql);
+      if (receivedMessage.returnResult) {
         const arrayResult = result.toArray();
         const cloneableResult = JSON.parse(
           JSON.stringify(arrayResult, (_, v) =>
             typeof v === "bigint" ? v.toString() : v
           )
         );
-        postMessage({ type: "result", result: cloneableResult });
+        const resultMessage: DatabaseResultMessage = {
+          type: DatabaseMessageType.RESULT,
+          result: cloneableResult
+        };
+        postMessage(resultMessage);
       }
+      break;
     }
-    if (type === "terminate") {
+    case DatabaseMessageType.TERMINATE:
       await dbWorker.terminate();
       postMessage({ type: "disconnected" });
-    }
-
-    if (type === "export") {
-      dbWorker.export();
-    }
-  } catch (error: any) {
-    postMessage({ type: "error", error: error.message });
+      break;
+    default:
+      postMessage({ type: "error", error: "Unsupported message type" });
+      break;
   }
 };
