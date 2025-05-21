@@ -1,5 +1,5 @@
-import { makeAutoObservable } from 'mobx';
-import { RootStore } from './RootStore';
+import { makeAutoObservable } from "mobx";
+import { RootStore } from "./RootStore";
 
 export class TestStore {
   rootStore: RootStore;

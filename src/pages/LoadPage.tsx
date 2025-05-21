@@ -40,7 +40,9 @@ const LoadPage = observer(() => {
 
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100">
           <div className="px-6 py-4 border-b bg-blue-50 rounded-t-2xl">
-            <h3 className="text-lg font-semibold text-blue-800">Local Repository</h3>
+            <h3 className="text-lg font-semibold text-blue-800">
+              Local Repository
+            </h3>
           </div>
           <div className="p-6">
             <p className="mb-6 text-gray-600">
@@ -49,35 +51,17 @@ const LoadPage = observer(() => {
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
               <Button text={"Select Repository"} />
-              <Button
-                text={"Test WASM"}
-                onClick={() => clickButtonCB_WASM()}
-              />
-              <Button
-                text={"Test JS"}
-                onClick={() => clickButtonCB_JS()}
-              />
-              <Button
-                text={"Reset"}
-                onClick={() => resetCB()}
-              />
-              <Button
-                text={"Test DuckDB"}
-                onClick={() => testDuckDB()}
-              />
-               <Button
-                text={"Read DuckDB"}
-                onClick={() => readDuckDB()}
-              />
+              <Button text={"Test WASM"} onClick={() => clickButtonCB_WASM()} />
+              <Button text={"Test JS"} onClick={() => clickButtonCB_JS()} />
+              <Button text={"Reset"} onClick={() => resetCB()} />
+              <Button text={"Test DuckDB"} onClick={() => testDuckDB()} />
+              <Button text={"Read DuckDB"} onClick={() => readDuckDB()} />
               <Button
                 text={"Disconnect DuckDB"}
                 onClick={() => disconnectDuckDB()}
               />
 
-              <Button
-                text={"Export DuckDB"}
-                onClick={() => exportDuckDB()}
-              />
+              <Button text={"Export DuckDB"} onClick={() => exportDuckDB()} />
             </div>
             <div className="mt-4">
               <div className="inline-block px-6 py-3 rounded-xl bg-blue-50 border border-blue-200 shadow text-blue-900 font-mono text-lg">
@@ -115,7 +99,7 @@ const LoadPage = observer(() => {
         returnResult: false
       });
     }
-    
+
     // Results will be logged in the dbWorker.onmessage handler
   }
 
@@ -139,10 +123,12 @@ const LoadPage = observer(() => {
     const fileHandle = await opfsRoot.getFileHandle("repminer_database.db");
     fileHandle.getFile().then((file) => {
       const reader = new FileReader();
-      reader.onload = function(event) {
+      reader.onload = function (event) {
         const arrayBuffer = event.target?.result;
         if (arrayBuffer) {
-          const blob = new Blob([arrayBuffer], { type: "application/octet-stream" });
+          const blob = new Blob([arrayBuffer], {
+            type: "application/octet-stream"
+          });
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = url;
@@ -153,8 +139,7 @@ const LoadPage = observer(() => {
         }
       };
       reader.readAsArrayBuffer(file);
-    }
-    );
+    });
   }
 });
 

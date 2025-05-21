@@ -18,12 +18,11 @@ To deploy run `pnpm run build` and find the files to deploy a static stite in th
 
 ## About the thesis
 
-
 ## Documentation
 
 ### DuckDB
 
-DuckDB is a fast SQL database, that can be used in the browser with WASM as well as with Rust. The database at its core is written in C++, but bindings exist. 
+DuckDB is a fast SQL database, that can be used in the browser with WASM as well as with Rust. The database at its core is written in C++, but bindings exist.
 
 Note: Multithreading with certain headers possible but stable?
 https://duckdb.org/2021/10/29/duckdb-wasm.html

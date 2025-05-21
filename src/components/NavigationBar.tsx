@@ -26,7 +26,9 @@ const NavigationBar = () => {
           <a
             href="#/"
             className={`px-4 py-2 rounded-lg transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-100 focus:text-blue-900 ${
-              current === "#/" || current === "" ? "bg-blue-100 text-blue-900 shadow" : ""
+              current === "#/" || current === ""
+                ? "bg-blue-100 text-blue-900 shadow"
+                : ""
             }`}
           >
             LOAD
