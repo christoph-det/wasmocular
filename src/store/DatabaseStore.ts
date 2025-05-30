@@ -23,6 +23,8 @@ export class DatabaseStore {
         console.log("DuckDB Worker Result:", receivedMessage.result);
       } else if (receivedMessage.type === DatabaseMessageType.ERROR) {
         console.error("DuckDB Worker Error:", receivedMessage.error);
+      } else if (receivedMessage.type === DatabaseMessageType.DISCONNECTED) {
+        console.log("DuckDB Worker Terminated");
       } else {
         console.warn("DuckDB Store Unknown Message:", receivedMessage);
       }

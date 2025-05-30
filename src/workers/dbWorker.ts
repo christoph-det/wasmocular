@@ -4,6 +4,7 @@ import mvp_worker from "@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?ur
 import duckdb_wasm_eh from "@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url";
 import eh_worker from "@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url";
 import {
+  DatabaseDisconnectedMessage,
   DatabaseMessageType,
   DatabaseResultMessage,
   DatabaseWorkerMessage
@@ -63,7 +64,6 @@ class DatabaseWorker {
       await this.connection.close();
       this.connection = null;
       await this.db?.terminate();
-      console.log("Database disconnected");
     }
   }
 
@@ -128,8 +128,8 @@ onmessage = async function (event: MessageEvent<DatabaseWorkerMessage>) {
       const result = await dbWorker.query(receivedMessage.sql);
       if (receivedMessage.returnResult) {
         const arrayResult = result.toArray();
-        const cloneableResult = JSON.parse(
-          JSON.stringify(arrayResult, (_, v) =>
+        const cloneableResult: unknown = JSON.parse(
+          JSON.stringify(arrayResult, (_, v: unknown) =>
             typeof v === "bigint" ? v.toString() : v
           )
         );
@@ -141,10 +141,14 @@ onmessage = async function (event: MessageEvent<DatabaseWorkerMessage>) {
       }
       break;
     }
-    case DatabaseMessageType.TERMINATE:
+    case DatabaseMessageType.TERMINATE: {
       await dbWorker.terminate();
-      postMessage({ type: "disconnected" });
+      const disconnectedMessage: DatabaseDisconnectedMessage = {
+        type: DatabaseMessageType.DISCONNECTED
+      };
+      postMessage(disconnectedMessage);
       break;
+    }
     default:
       postMessage({ type: "error", error: "Unsupported message type" });
       break;

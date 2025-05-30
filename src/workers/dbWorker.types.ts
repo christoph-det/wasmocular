@@ -2,6 +2,7 @@ export type DatabaseWorkerMessage =
   | DatabaseQueryMessage
   | DatabaseErrorMessage
   | DatabaseTerminateMessage
+  | DatabaseDisconnectedMessage
   | DatabaseResultMessage;
 
 export interface DatabaseQueryMessage {
@@ -20,12 +21,17 @@ export interface DatabaseTerminateMessage {
 
 export interface DatabaseResultMessage {
   type: DatabaseMessageType.RESULT;
-  result: any;
+  result: unknown;
+}
+
+export interface DatabaseDisconnectedMessage {
+  type: DatabaseMessageType.DISCONNECTED;
 }
 
 export enum DatabaseMessageType {
   QUERY,
   TERMINATE,
   ERROR,
-  RESULT
+  RESULT,
+  DISCONNECTED
 }
