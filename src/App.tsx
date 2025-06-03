@@ -8,7 +8,6 @@ import Footer from "./components/Footer";
 import { StoreContext, rootStore } from "./store/StoreContext";
 
 const App: React.FC = () => {
-  // const [count, setCount] = useState(0)
   return (
     <StoreContext.Provider value={rootStore}>
       <Router>
