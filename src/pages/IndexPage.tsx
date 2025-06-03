@@ -1,6 +1,6 @@
 import Button from "../components/button/Button";
 import { useStores } from "../store/StoreContext";
-import { Progress } from "@/components/ui/progress"
+import { Progress } from "@/components/ui/progress";
 import { observer } from "mobx-react-lite";
 
 const IndexPage = observer(() => {
@@ -29,26 +29,41 @@ const IndexPage = observer(() => {
               You can now proceed to analyze the data.
             </p>
             <div className="mt-4"></div>
-            <Button text={"Start Indexing"} center onClick={handleStartIndexingClick} />
+            <Button
+              text={"Start Indexing"}
+              center
+              onClick={handleStartIndexingClick}
+            />
             <div className="mt-4"></div>
-            <Progress value={indexingStore.indexingProgress} />
+            {indexingStore.indexingProgress > 0 ? (
+              <Progress value={indexingStore.indexingProgress} />
+            ) : null}
+            <div className="mt-6"></div>
+            {indexingStore.indexingProgress > 0 ? (
+              <Button
+                text={"Continue to Data Exploration"}
+                onClick={() => {
+                  window.location.hash = "#explore";
+                }}
+                center
+              />
+            ) : null}
           </div>
         </div>
       </div>
     </div>
   );
 
-
-function handleStartIndexingClick() {
-  // increase indexing progress every second
-  const interval = setInterval(() => {
-    if (indexingStore.indexingProgress < 100) {
-      indexingStore.setIndexingProgress(indexingStore.indexingProgress + 1);
-    } else {
-      clearInterval(interval);
-    }
-  }, 100);
-}
+  function handleStartIndexingClick() {
+    // increase indexing progress every second
+    const interval = setInterval(() => {
+      if (indexingStore.indexingProgress < 100) {
+        indexingStore.setIndexingProgress(indexingStore.indexingProgress + 1);
+      } else {
+        clearInterval(interval);
+      }
+    }, 100);
+  }
 });
 
 export default IndexPage;
