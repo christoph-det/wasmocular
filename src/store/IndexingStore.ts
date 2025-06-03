@@ -3,7 +3,7 @@ import { RootStore } from "./RootStore";
 
 export class IndexingStore {
   rootStore: RootStore;
-  indexingProgress: number = 0; // Percentage of indexing progress
+  indexingProgress = 0; // Percentage of indexing progress
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
