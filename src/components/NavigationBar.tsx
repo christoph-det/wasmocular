@@ -42,9 +42,9 @@ const NavigationBar = () => {
             INDEX
           </a>
           <a
-            href="#explore"
+            href="#explore-dashboard"
             className={`px-4 py-2 rounded-lg transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-100 focus:text-blue-900 ${
-              current === "#explore" ? "bg-blue-100 text-blue-900 shadow" : ""
+              current === "#explore-dashboard" || current === "#explore-customquery" ? "bg-blue-100 text-blue-900 shadow" : ""
             }`}
           >
             EXPLORE

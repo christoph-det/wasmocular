@@ -3,9 +3,11 @@ import "./App.css";
 import NavigationBar from "./components/NavigationBar";
 import IndexPage from "./pages/IndexPage";
 import LoadPage from "./pages/LoadPage";
-import ExplorePage from "./pages/ExplorePage";
+import ExplorePage from "./pages/ExplorePageCustomQuery";
 import Footer from "./components/Footer";
 import { StoreContext, rootStore } from "./store/StoreContext";
+import ExplorePageDashboard from "./pages/ExplorePageDashboard";
+import ExplorePageCustomQuery from "./pages/ExplorePageCustomQuery";
 
 const App: React.FC = () => {
   return (
@@ -15,7 +17,8 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<LoadPage />} />
           <Route path="/index" element={<IndexPage />} />
-          <Route path="/explore" element={<ExplorePage />} />
+          <Route path="/explore-dashboard" element={<ExplorePageDashboard />} />
+          <Route path="/explore-customquery" element={<ExplorePageCustomQuery />} />
         </Routes>
         <Footer />
       </Router>
