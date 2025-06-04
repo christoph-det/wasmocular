@@ -8,6 +8,7 @@ import {
   DatabaseQueryMessage,
   DatabaseTerminateMessage
 } from "../workers/dbWorker.types";
+import { DataLoadingState } from "@/store/IndexingStore";
 
 // initialize rust code
 init().catch((err) => {
@@ -18,6 +19,7 @@ const LoadPage = observer(() => {
   const [worker, setWorker] = useState<Worker | null>(null);
   const sumStore = useStores().testStore;
   const dbStore = useStores().dbStore;
+  const indexingStore = useStores().indexingStore;
 
   useEffect(() => {
     const newWorker = new Worker(
@@ -57,7 +59,7 @@ const LoadPage = observer(() => {
               remain on your device and will not be uploaded to any server.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-              <Button text={"Select Repository"} />
+              <Button text={"Select Repository"} onClick={clickSelectRepository} />
               <Button text={"Test WASM"} onClick={() => clickButtonCB_WASM()} />
               <Button text={"Test JS"} onClick={() => clickButtonCB_JS()} />
               <Button text={"Reset"} onClick={() => resetCB()} />
@@ -83,6 +85,12 @@ const LoadPage = observer(() => {
       </div>
     </div>
   );
+
+  function clickSelectRepository() {
+    //navigate to index page
+    window.location.hash = "#index";
+    indexingStore.setDataLoadingState(DataLoadingState.REPOSITORY_LOADED);
+  }
 
   function clickButtonCB_WASM() {
     const startTS = Date.now();

@@ -1,6 +1,11 @@
+import { DataLoadingState } from "@/store/IndexingStore";
+import { useStores } from "@/store/StoreContext";
+import { observer } from "mobx-react-lite";
 import { useEffect, useState } from "react";
 
-const NavigationBar = () => {
+const NavigationBar = observer(() => {
+  const indexingStore = useStores().indexingStore;
+
   const [current, setCurrent] = useState(window.location.hash || "#/");
 
   useEffect(() => {
@@ -8,6 +13,15 @@ const NavigationBar = () => {
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
+
+  const isRepoLoaded = indexingStore.dataLoadingState !== DataLoadingState.NOT_STARTED;
+
+  const indexStatusIcon =
+    indexingStore.dataLoadingState == DataLoadingState.INDEXING_STARTED
+      ? "⏳"
+      : (indexingStore.dataLoadingState == DataLoadingState.INDEXING_FINISHED
+      ? "✅"
+      : "");
 
   return (
     <nav className="relative flex items-center p-4 bg-white/80 backdrop-blur border-b shadow-sm">
@@ -24,22 +38,32 @@ const NavigationBar = () => {
       <div className="w-full flex justify-center">
         <div className="flex space-x-10 text-lg font-medium">
           <a
-            href="#/"
-            className={`px-4 py-2 rounded-lg transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-100 focus:text-blue-900 ${
+            href={"#/"}
+            onClick={(e) => isRepoLoaded && e.preventDefault()}
+            className={`px-4 py-2 rounded-lg transition-colors duration-150 ${
+              isRepoLoaded
+                ? "opacity-60 cursor-not-allowed"
+                : "hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-100 focus:text-blue-900"
+            } ${
               current === "#/" || current === ""
                 ? "bg-blue-100 text-blue-900 shadow"
                 : ""
             }`}
           >
-            LOAD
+            {isRepoLoaded ? "✅" : ""} LOAD
           </a>
           <a
             href="#index"
-            className={`px-4 py-2 rounded-lg transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-100 focus:text-blue-900 ${
+            onClick={(e) => indexingStore.dataLoadingState == DataLoadingState.INDEXING_FINISHED && e.preventDefault()}
+            className={`px-4 py-2 rounded-lg transition-colors duration-150 ${
+              indexingStore.dataLoadingState == DataLoadingState.INDEXING_FINISHED
+                ? "opacity-60 cursor-not-allowed"
+                : "hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-100 focus:text-blue-900"
+            } ${
               current === "#index" ? "bg-blue-100 text-blue-900 shadow" : ""
             }`}
           >
-            INDEX
+            {indexStatusIcon} INDEX
           </a>
           <a
             href="#explore-dashboard"
@@ -58,5 +82,5 @@ const NavigationBar = () => {
       </div>
     </nav>
   );
-};
+});
 export default NavigationBar;

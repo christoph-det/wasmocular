@@ -43,7 +43,7 @@ const IndexPage = observer(() => {
               <Button
                 text={"Continue to Data Exploration"}
                 onClick={() => {
-                  window.location.hash = "#explore";
+                  window.location.hash = "#explore-customquery";
                 }}
                 center
               />
