@@ -3,7 +3,6 @@ import "./App.css";
 import NavigationBar from "./components/NavigationBar";
 import IndexPage from "./pages/IndexPage";
 import LoadPage from "./pages/LoadPage";
-import ExplorePage from "./pages/ExplorePageCustomQuery";
 import Footer from "./components/Footer";
 import { StoreContext, rootStore } from "./store/StoreContext";
 import ExplorePageDashboard from "./pages/ExplorePageDashboard";
