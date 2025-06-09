@@ -17,7 +17,10 @@ const App: React.FC = () => {
           <Route path="/" element={<LoadPage />} />
           <Route path="/index" element={<IndexPage />} />
           <Route path="/explore-dashboard" element={<ExplorePageDashboard />} />
-          <Route path="/explore-customquery" element={<ExplorePageCustomQuery />} />
+          <Route
+            path="/explore-customquery"
+            element={<ExplorePageCustomQuery />}
+          />
         </Routes>
         <Footer />
       </Router>

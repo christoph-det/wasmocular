@@ -59,7 +59,10 @@ const LoadPage = observer(() => {
               remain on your device and will not be uploaded to any server.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-              <Button text={"Select Repository"} onClick={clickSelectRepository} />
+              <Button
+                text={"Select Repository"}
+                onClick={clickSelectRepository}
+              />
               <Button text={"Test WASM"} onClick={() => clickButtonCB_WASM()} />
               <Button text={"Test JS"} onClick={() => clickButtonCB_JS()} />
               <Button text={"Reset"} onClick={() => resetCB()} />

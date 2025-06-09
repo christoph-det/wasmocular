@@ -14,7 +14,8 @@ const NavigationBar = observer(() => {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  const isRepoLoaded = indexingStore.dataLoadingState !== DataLoadingState.NOT_STARTED;
+  const isRepoLoaded =
+    indexingStore.dataLoadingState !== DataLoadingState.NOT_STARTED;
 
   const getIndexStatusIcon = (state: DataLoadingState) => {
     switch (state) {
@@ -25,7 +26,7 @@ const NavigationBar = observer(() => {
       default:
         return "";
     }
-  }
+  };
 
   return (
     <nav className="relative flex items-center p-4 bg-white/80 backdrop-blur border-b shadow-sm">
@@ -58,9 +59,13 @@ const NavigationBar = observer(() => {
           </a>
           <a
             href="#index"
-            onClick={(e) => indexingStore.dataLoadingState == DataLoadingState.INDEXING_FINISHED && e.preventDefault()}
+            onClick={(e) =>
+              indexingStore.dataLoadingState ==
+                DataLoadingState.INDEXING_FINISHED && e.preventDefault()
+            }
             className={`px-4 py-2 rounded-lg transition-colors duration-150 ${
-              indexingStore.dataLoadingState == DataLoadingState.INDEXING_FINISHED
+              indexingStore.dataLoadingState ==
+              DataLoadingState.INDEXING_FINISHED
                 ? "opacity-60 cursor-not-allowed"
                 : "hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-100 focus:text-blue-900"
             } ${
@@ -72,7 +77,10 @@ const NavigationBar = observer(() => {
           <a
             href="#explore-dashboard"
             className={`px-4 py-2 rounded-lg transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-100 focus:text-blue-900 ${
-              current === "#explore-dashboard" || current === "#explore-customquery" ? "bg-blue-100 text-blue-900 shadow" : ""
+              current === "#explore-dashboard" ||
+              current === "#explore-customquery"
+                ? "bg-blue-100 text-blue-900 shadow"
+                : ""
             }`}
           >
             EXPLORE

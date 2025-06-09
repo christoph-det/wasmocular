@@ -7,10 +7,12 @@ const ExplorePageCustomQuery = () => {
       <div className="flex flex-col md:flex-row">
         {/* Sidebar */}
         <div className="w-full md:w-64 bg-white shadow-md p-4 md:min-h-[calc(100vh-64px)]">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">Data Schema</h2>
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">
+            Data Schema
+          </h2>
           {/* TODO: Schema overview */}
         </div>
-        
+
         {/* Main view */}
         <div className="flex-1 p-4">
           <div className="max-w-3xl mx-auto">

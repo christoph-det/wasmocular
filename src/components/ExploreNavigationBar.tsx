@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
 
 const ExploreNavigationBar = () => {
+  const [current, setCurrent] = useState(window.location.hash || "#/");
 
-const [current, setCurrent] = useState(window.location.hash || "#/");
-
-    useEffect(() => {
+  useEffect(() => {
     const onHashChange = () => setCurrent(window.location.hash || "#/");
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
-    }, []);
+  }, []);
 
   return (
     <nav className="relative flex items-center h-15 bg-white/80 backdrop-blur shadow-sm">
