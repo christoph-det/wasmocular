@@ -16,12 +16,16 @@ const NavigationBar = observer(() => {
 
   const isRepoLoaded = indexingStore.dataLoadingState !== DataLoadingState.NOT_STARTED;
 
-  const indexStatusIcon =
-    indexingStore.dataLoadingState == DataLoadingState.INDEXING_STARTED
-      ? "⏳"
-      : (indexingStore.dataLoadingState == DataLoadingState.INDEXING_FINISHED
-      ? "✅"
-      : "");
+  const getIndexStatusIcon = (state: DataLoadingState) => {
+    switch (state) {
+      case DataLoadingState.INDEXING_STARTED:
+        return "⏳";
+      case DataLoadingState.INDEXING_FINISHED:
+        return "✅";
+      default:
+        return "";
+    }
+  }
 
   return (
     <nav className="relative flex items-center p-4 bg-white/80 backdrop-blur border-b shadow-sm">
@@ -63,7 +67,7 @@ const NavigationBar = observer(() => {
               current === "#index" ? "bg-blue-100 text-blue-900 shadow" : ""
             }`}
           >
-            {indexStatusIcon} INDEX
+            {getIndexStatusIcon(indexingStore.dataLoadingState)} INDEX
           </a>
           <a
             href="#explore-dashboard"
