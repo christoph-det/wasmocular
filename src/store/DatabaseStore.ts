@@ -8,6 +8,7 @@ export class DatabaseStore {
 
   constructor() {
     this.init();
+    console.log("DatabaseStore initialized");
   }
 
   init() {

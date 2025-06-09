@@ -117,40 +117,46 @@ onmessage = function () {
 };
 
 const dbWorker = new DatabaseWorker();
-await dbWorker.init();
 
-onmessage = async function (event: MessageEvent<DatabaseWorkerMessage>) {
-  //console.log("Worker received message:", event.data);
-  const receivedMessage: DatabaseWorkerMessage = event.data;
+//using an IIFE to remove top-level await, which is not supported in workers and caused build errors
+(async function () {
+  await dbWorker.init();
 
-  switch (receivedMessage.type) {
-    case DatabaseMessageType.QUERY: {
-      const result = await dbWorker.query(receivedMessage.sql);
-      if (receivedMessage.returnResult) {
-        const arrayResult = result.toArray();
-        const cloneableResult: unknown = JSON.parse(
-          JSON.stringify(arrayResult, (_, v: unknown) =>
-            typeof v === "bigint" ? v.toString() : v
-          )
-        );
-        const resultMessage: DatabaseResultMessage = {
-          type: DatabaseMessageType.RESULT,
-          result: cloneableResult
-        };
-        postMessage(resultMessage);
+  onmessage = async function (event: MessageEvent<DatabaseWorkerMessage>) {
+    //console.log("Worker received message:", event.data);
+    const receivedMessage: DatabaseWorkerMessage = event.data;
+
+    switch (receivedMessage.type) {
+      case DatabaseMessageType.QUERY: {
+        const result = await dbWorker.query(receivedMessage.sql);
+        if (receivedMessage.returnResult) {
+          const arrayResult = result.toArray();
+          const cloneableResult: unknown = JSON.parse(
+            JSON.stringify(arrayResult, (_, v: unknown) =>
+              typeof v === "bigint" ? v.toString() : v
+            )
+          );
+          const resultMessage: DatabaseResultMessage = {
+            type: DatabaseMessageType.RESULT,
+            result: cloneableResult
+          };
+          postMessage(resultMessage);
+        }
+        break;
       }
-      break;
+      case DatabaseMessageType.TERMINATE: {
+        await dbWorker.terminate();
+        const disconnectedMessage: DatabaseDisconnectedMessage = {
+          type: DatabaseMessageType.DISCONNECTED
+        };
+        postMessage(disconnectedMessage);
+        break;
+      }
+      default:
+        postMessage({ type: "error", error: "Unsupported message type" });
+        break;
     }
-    case DatabaseMessageType.TERMINATE: {
-      await dbWorker.terminate();
-      const disconnectedMessage: DatabaseDisconnectedMessage = {
-        type: DatabaseMessageType.DISCONNECTED
-      };
-      postMessage(disconnectedMessage);
-      break;
-    }
-    default:
-      postMessage({ type: "error", error: "Unsupported message type" });
-      break;
-  }
-};
+  };
+})().catch((error) => {
+  console.error("Error initializing DB Worker:", error);
+});
