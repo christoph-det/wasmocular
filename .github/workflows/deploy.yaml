@@ -17,7 +17,16 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install dependencies
-        run: npm install
+        run: npm install # uses npm instead of pnpm because it does not work with the deplyment action
+
+      - name: Install Rust and wasm-pack
+        run: |
+          rustup update stable
+          rustup target add wasm32-unknown-unknown
+          cargo install -f wasm-pack
+
+      - name: Build WebAssembly Package
+        run: npm run build:wasm
 
       - name: Build project
         run: npm run build
