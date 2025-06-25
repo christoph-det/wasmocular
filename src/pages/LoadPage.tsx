@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, SetStateAction } from "react";
 import Button from "../components/button/Button";
 import init, { sum_rs } from "wasm-lib";
 import { observer } from "mobx-react-lite";
@@ -22,6 +22,11 @@ const LoadPage = observer(() => {
   const sumStore = useStores().testStore;
   const dbStore = useStores().dbStore;
   const indexingStore = useStores().indexingStore;
+  const [projectName, setProjectName] = useState<string>("");
+
+  const handleprojectNameInputChange = (event: { target: { value: SetStateAction<string>; }; }) => {
+    setProjectName(event.target.value);
+  }
 
   useEffect(() => {
     const newWorker = new Worker(
@@ -60,11 +65,13 @@ const LoadPage = observer(() => {
               Select the folder containing your Git repository. Your data will
               remain on your device and will not be uploaded to any server.
             </p>
-            <Label htmlFor="text">Project Name:</Label>
-            <Input type="text" />
-            <Label className="mt-8" htmlFor="email">
+            <Label className="mb-2" htmlFor="text">Project Name:</Label>
+            <Input type="text" onChange={handleprojectNameInputChange} hasError={projectName == "state::Error"} />
+            <Label className="mt-8 mb-2" htmlFor="email">
               Select Repository Folder:
             </Label>
+            { // TODO: add file picker functionality and error handling 
+            }
             <Input className="mb-8" type="file" id="repository" />
             <Button text={"Connect API Data (optional)"} secondary />
             <Button
@@ -109,10 +116,18 @@ const LoadPage = observer(() => {
   );
 
   function clickCreateProject() {
+    // Get project name from input
+    if (!projectName || projectName.trim() === "") {
+      setProjectName("state::Error");
+      alert("Please enter a project name.");
+      return;
+    }
+    
     //navigate to index page
     window.location.hash = "#index";
     indexingStore.setDataLoadingState(DataLoadingState.REPOSITORY_LOADED);
-    indexingStore.createNewProject("My Project");
+  
+    indexingStore.createNewProject(projectName);
   }
 
   function clickButtonCB_WASM() {
