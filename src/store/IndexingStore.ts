@@ -23,6 +23,12 @@ export class IndexingStore {
     makeAutoObservable(this);
   }
 
+  removeProject() {
+    this.project = null;
+    this.dataLoadingState = DataLoadingState.NOT_STARTED;
+    this.indexingProgress = 0;
+  }
+
   createNewProject(name: string) {
     this.project = new RepminerProject();
     this.project.name = name;

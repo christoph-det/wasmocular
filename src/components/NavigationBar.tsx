@@ -2,6 +2,14 @@ import { DataLoadingState } from "@/store/IndexingStore";
 import { useStores } from "@/store/StoreContext";
 import { observer } from "mobx-react-lite";
 import { useEffect, useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 
 const NavigationBar = observer(() => {
   const indexingStore = useStores().indexingStore;
@@ -28,9 +36,14 @@ const NavigationBar = observer(() => {
     }
   };
 
+  const handleCreateNewProjectClick = () => {
+    window.location.hash = "#";
+    indexingStore.removeProject();
+  };
+
   return (
-    <nav className="relative flex items-center p-4 bg-white/80 backdrop-blur border-b shadow-sm">
-      <div className="absolute left-6 flex items-center">
+    <nav className="flex items-center justify-between p-4 bg-white/80 backdrop-blur border-b shadow-sm">
+      <div className="flex items-center w-1/4">
         <img
           src="./plattform-logo.webp"
           alt="RepMiner Logo"
@@ -40,7 +53,7 @@ const NavigationBar = observer(() => {
           RepMiner
         </span>
       </div>
-      <div className="w-full flex justify-center">
+      <div className="flex justify-center w-2/4">
         <div className="flex space-x-10 text-lg font-medium">
           <a
             href={"#/"}
@@ -87,10 +100,21 @@ const NavigationBar = observer(() => {
           </a>
         </div>
       </div>
-      <div className="absolute right-6 flex items-center">
-        <span className="ml-3 text-xl text-black-700 tracking-wide select-none">
-          {indexingStore.project! ? indexingStore.project.name : ""}
-        </span>
+      <div className="flex justify-end w-1/4 pr-4">
+        {indexingStore.project && (
+          <DropdownMenu>
+            <DropdownMenuTrigger className="max-w-[200px] truncate text-xl text-black-700 tracking-wide">
+              {indexingStore.project.name}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>{indexingStore.project.name}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuItem>Load other project</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleCreateNewProjectClick}>Create new Project</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
     </nav>
   );

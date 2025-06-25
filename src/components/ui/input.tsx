@@ -2,7 +2,12 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-function Input({ className, type, hasError, ...props }: React.ComponentProps<"input"> & {hasError?: boolean}) {
+function Input({
+  className,
+  type,
+  hasError,
+  ...props
+}: React.ComponentProps<"input"> & { hasError?: boolean }) {
   return (
     <input
       type={type}
