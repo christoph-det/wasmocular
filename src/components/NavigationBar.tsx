@@ -89,7 +89,7 @@ const NavigationBar = observer(() => {
       </div>
       <div className="absolute right-6 flex items-center">
         <span className="ml-3 text-xl text-black-700 tracking-wide select-none">
-          My Project
+          {indexingStore.project! ? indexingStore.project.name : ""}
         </span>
       </div>
     </nav>

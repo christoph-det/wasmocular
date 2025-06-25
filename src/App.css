@@ -21,7 +21,8 @@
   --color-primary: var(--color-red-900);
   --color-primary-700: var(--color-red-700);
   --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--color-blue-500);
+  --color-secondary: var(--color-slate-600);
+  --color-secondary-500: var(--color-slate-500);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);

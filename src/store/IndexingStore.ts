@@ -7,14 +7,25 @@ export enum DataLoadingState {
   INDEXING_STARTED = "INDEXING_STARTED",
   INDEXING_FINISHED = "INDEXING_FINISHED"
 }
+
+export class RepminerProject {
+  name = "";
+}
 export class IndexingStore {
   rootStore: RootStore;
   indexingProgress = 0; // Percentage of indexing progress
   dataLoadingState = DataLoadingState.NOT_STARTED;
 
+  project: RepminerProject | null = null;
+
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
     makeAutoObservable(this);
+  }
+
+  createNewProject(name: string) {
+    this.project = new RepminerProject();
+    this.project.name = name;
   }
 
   setIndexingProgress(progress: number) {

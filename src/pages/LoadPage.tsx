@@ -9,6 +9,8 @@ import {
   DatabaseTerminateMessage
 } from "../workers/dbWorker.types";
 import { DataLoadingState } from "@/store/IndexingStore";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 // initialize rust code
 init().catch((err) => {
@@ -58,11 +60,28 @@ const LoadPage = observer(() => {
               Select the folder containing your Git repository. Your data will
               remain on your device and will not be uploaded to any server.
             </p>
+            <Label htmlFor="text">Project Name:</Label>
+            <Input type="text" />
+            <Label className="mt-8" htmlFor="email">
+              Select Repository Folder:
+            </Label>
+            <Input className="mb-8" type="file" id="repository" />
+            <Button text={"Connect API Data (optional)"} secondary />
+            <Button
+              text={"Create Project"}
+              onClick={clickCreateProject}
+              center
+              className="mt-8"
+            />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 mt-5">
+          <div className="px-6 py-4 border-b bg-blue-50 rounded-t-2xl">
+            <h3 className="text-lg font-semibold text-blue-800">Testing</h3>
+          </div>
+          <div className="p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-              <Button
-                text={"Select Repository"}
-                onClick={clickSelectRepository}
-              />
               <Button text={"Test WASM"} onClick={() => clickButtonCB_WASM()} />
               <Button text={"Test JS"} onClick={() => clickButtonCB_JS()} />
               <Button text={"Reset"} onClick={() => resetCB()} />
@@ -89,10 +108,11 @@ const LoadPage = observer(() => {
     </div>
   );
 
-  function clickSelectRepository() {
+  function clickCreateProject() {
     //navigate to index page
     window.location.hash = "#index";
     indexingStore.setDataLoadingState(DataLoadingState.REPOSITORY_LOADED);
+    indexingStore.createNewProject("My Project");
   }
 
   function clickButtonCB_WASM() {
