@@ -41,6 +41,10 @@ const NavigationBar = observer(() => {
     indexingStore.removeProject();
   };
 
+  const handleSettingsClick = () => {
+    window.location.hash = "#settings";
+  };
+
   return (
     <nav className="flex items-center justify-between p-4 bg-white/80 backdrop-blur border-b shadow-sm">
       <div className="flex items-center w-1/4">
@@ -70,15 +74,22 @@ const NavigationBar = observer(() => {
           >
             {isRepoLoaded ? "✅" : ""} LOAD
           </a>
+          <img
+            src="./icons/arrow-right-solid.svg"
+            alt="Progress Arrow"
+            className="h-4 w-4 self-center text-gray-500"
+          />
           <a
             href="#index"
             onClick={(e) =>
-              indexingStore.dataLoadingState ==
-                DataLoadingState.INDEXING_FINISHED && e.preventDefault()
+              (indexingStore.dataLoadingState ==
+                DataLoadingState.INDEXING_FINISHED ||
+                !isRepoLoaded) &&
+              e.preventDefault()
             }
             className={`px-4 py-2 rounded-lg transition-colors duration-150 ${
               indexingStore.dataLoadingState ==
-              DataLoadingState.INDEXING_FINISHED
+                DataLoadingState.INDEXING_FINISHED || !isRepoLoaded
                 ? "opacity-60 cursor-not-allowed"
                 : "hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-100 focus:text-blue-900"
             } ${
@@ -87,9 +98,28 @@ const NavigationBar = observer(() => {
           >
             {getIndexStatusIcon(indexingStore.dataLoadingState)} INDEX
           </a>
+          <img
+            src="./icons/arrow-right-solid.svg"
+            alt="Progress Arrow"
+            className="h-4 w-4 self-center text-gray-500"
+          />
           <a
+            onClick={(e) =>
+              indexingStore.dataLoadingState !==
+                DataLoadingState.INDEXING_STARTED &&
+              indexingStore.dataLoadingState !==
+                DataLoadingState.INDEXING_FINISHED &&
+              e.preventDefault()
+            }
             href="#explore-dashboard"
-            className={`px-4 py-2 rounded-lg transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-100 focus:text-blue-900 ${
+            className={`px-4 py-2 rounded-lg transition-colors duration-150  ${
+              indexingStore.dataLoadingState !==
+                DataLoadingState.INDEXING_STARTED &&
+              indexingStore.dataLoadingState !==
+                DataLoadingState.INDEXING_FINISHED
+                ? "opacity-60 cursor-not-allowed"
+                : "hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-100 focus:text-blue-900"
+            } ${
               current === "#explore-dashboard" ||
               current === "#explore-customquery"
                 ? "bg-blue-100 text-blue-900 shadow"
@@ -103,15 +133,21 @@ const NavigationBar = observer(() => {
       <div className="flex justify-end w-1/4 pr-4">
         {indexingStore.project && (
           <DropdownMenu>
-            <DropdownMenuTrigger className="max-w-[200px] truncate text-xl text-black-700 tracking-wide">
-              {indexingStore.project.name}
+            <DropdownMenuTrigger className="max-w-[280px] truncate text-xl text-black-700 tracking-wide px-4 py-2 rounded-lg transition-colors cursor-pointer duration-150 hover:bg-blue-50 hover:text-blue-700">
+              Project: {indexingStore.project.name}
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuLabel>{indexingStore.project.name}</DropdownMenuLabel>
+              <DropdownMenuLabel>
+                {indexingStore.project.name}
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSettingsClick}>
+                Settings
+              </DropdownMenuItem>
               <DropdownMenuItem>Load other project</DropdownMenuItem>
-              <DropdownMenuItem onClick={handleCreateNewProjectClick}>Create new Project</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleCreateNewProjectClick}>
+                Create new Project
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )}
