@@ -30,7 +30,9 @@ const SettingsPage = observer(() => {
     });
   }
 
-  function handleDeleteProjectClick() {}
+  function handleDeleteProjectClick() {
+    throw new Error("Not implemented.");
+  }
 
   async function exportDuckDB() {
     const opfsRoot = await navigator.storage.getDirectory();
@@ -73,7 +75,7 @@ const SettingsPage = observer(() => {
           <div className="px-6 py-4 border-b bg-blue-50 rounded-t-2xl">
             <h3 className="text-lg font-semibold text-blue-800">
               Settings for Project{" "}
-              {indexingStore.project?.name || "No Project Loaded"}
+              {indexingStore.project?.name ?? "No Project Loaded"}
             </h3>
           </div>
           <div className="p-6">
@@ -84,7 +86,7 @@ const SettingsPage = observer(() => {
               type="text"
               onChange={handleprojectNameInputChange}
               value={projectName}
-              placeholder={indexingStore.project?.name || ""}
+              placeholder={indexingStore.project?.name ?? ""}
             />
             <Button
               className="mt-2"

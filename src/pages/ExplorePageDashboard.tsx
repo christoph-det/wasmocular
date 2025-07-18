@@ -9,7 +9,7 @@ const sampleData = [
   { uv: 300 },
   { uv: 200 },
   { uv: 278 },
-  { uv: 189 },
+  { uv: 189 }
 ];
 
 const ExplorePageDashboard = () => {

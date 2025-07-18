@@ -1,4 +1,4 @@
-import { makeAutoObservable, observable, reaction } from "mobx";
+import { makeAutoObservable, reaction } from "mobx";
 import { RootStore } from "./RootStore";
 
 export enum DataLoadingState {
@@ -56,6 +56,7 @@ export class IndexingStore {
 
   private loadFromStorage() {
     try {
+      // TODO: add a datastructure for typing the localStorage data
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
         const data = JSON.parse(stored);

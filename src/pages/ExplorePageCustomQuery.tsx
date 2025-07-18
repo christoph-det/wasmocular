@@ -75,13 +75,11 @@ const ExplorePageCustomQuery = () => {
                     }
                   >
                     <option value="">Select table...</option>
-                    {Object.entries(DatabaseDataModel).map(
-                      ([tableName, fields]) => (
-                        <option key={tableName} value={tableName}>
-                          {tableName}
-                        </option>
-                      )
-                    )}
+                    {Object.entries(DatabaseDataModel).map(([tableName]) => (
+                      <option key={tableName} value={tableName}>
+                        {tableName}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

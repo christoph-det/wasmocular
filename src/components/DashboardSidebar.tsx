@@ -1,10 +1,6 @@
 import { useState } from "react";
 
-interface DashboardSidebarProps {
-  children?: React.ReactNode;
-}
-
-const DashboardSidebar = ({ children }: DashboardSidebarProps) => {
+const DashboardSidebar = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const toggleSidebar = () => {
@@ -45,7 +41,7 @@ const DashboardSidebar = ({ children }: DashboardSidebarProps) => {
 
       {!sidebarCollapsed && (
         <div className="mt-4">
-          {children || <div>{/* TODO: Dashboard overview */}</div>}
+          {<div>{/* TODO: Dashboard overview */}</div>}
         </div>
       )}
     </div>

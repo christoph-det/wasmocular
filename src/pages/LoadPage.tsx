@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, SetStateAction } from "react";
+import { useEffect, useState, SetStateAction } from "react";
 import Button from "../components/button/Button";
 import init, { sum_rs } from "wasm-lib";
 import { observer } from "mobx-react-lite";
