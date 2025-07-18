@@ -107,7 +107,6 @@ const LoadPage = observer(() => {
                 text={"Disconnect DuckDB"}
                 onClick={() => disconnectDuckDB()}
               />
-
             </div>
             <div className="mt-4">
               <div className="inline-block px-6 py-3 rounded-xl bg-blue-50 border border-blue-200 shadow text-blue-900 font-mono text-lg">
@@ -180,7 +179,6 @@ const LoadPage = observer(() => {
     };
     dbStore.postMessage(terminateMessage);
   }
-
 });
 
 export default LoadPage;

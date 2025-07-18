@@ -9,8 +9,6 @@ const SettingsPage = observer(() => {
   const indexingStore = useStores().indexingStore;
   const [projectName, setProjectName] = useState<string>("");
 
-  
-
   const handleprojectNameInputChange = (event: {
     target: { value: string };
   }) => {
@@ -24,17 +22,15 @@ const SettingsPage = observer(() => {
     } else {
       console.warn("No project loaded to change name");
     }
-  }   
+  };
 
-
-   function handleExportDuckDBClick() {
+  function handleExportDuckDBClick() {
     exportDuckDB().catch((error) => {
       console.error("Error exporting DuckDB:", error);
     });
   }
 
-  function handleDeleteProjectClick() {
-  }
+  function handleDeleteProjectClick() {}
 
   async function exportDuckDB() {
     const opfsRoot = await navigator.storage.getDirectory();
@@ -76,7 +72,8 @@ const SettingsPage = observer(() => {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100">
           <div className="px-6 py-4 border-b bg-blue-50 rounded-t-2xl">
             <h3 className="text-lg font-semibold text-blue-800">
-              Settings for Project {indexingStore.project?.name || "No Project Loaded"}
+              Settings for Project{" "}
+              {indexingStore.project?.name || "No Project Loaded"}
             </h3>
           </div>
           <div className="p-6">
@@ -89,11 +86,23 @@ const SettingsPage = observer(() => {
               value={projectName}
               placeholder={indexingStore.project?.name || ""}
             />
-            <Button className="mt-2" onClick={handleProjectNameSaveClick} text={"Save"} />
+            <Button
+              className="mt-2"
+              onClick={handleProjectNameSaveClick}
+              text={"Save"}
+            />
             <br />
-            <Button className="mt-8" onClick={handleExportDuckDBClick} text={"Export Database"} />
+            <Button
+              className="mt-8"
+              onClick={handleExportDuckDBClick}
+              text={"Export Database"}
+            />
             <br />
-            <Button className="mt-8" onClick={handleDeleteProjectClick} text={"Delete Project and Database"} />
+            <Button
+              className="mt-8"
+              onClick={handleDeleteProjectClick}
+              text={"Delete Project and Database"}
+            />
           </div>
         </div>
       </div>

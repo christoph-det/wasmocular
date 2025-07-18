@@ -8,7 +8,6 @@ export enum DataLoadingState {
   INDEXING_FINISHED = "INDEXING_FINISHED"
 }
 
-
 export class RepminerProject {
   name = "";
 
