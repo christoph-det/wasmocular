@@ -30,6 +30,7 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.3.0",
     "react-scan": "^0.3.3",
+    "recharts": "^3.1.0",
     "tailwind-merge": "^3.3.0",
     "tailwindcss": "^4.0.14",
     "wasm-lib": "link:wasm-lib/pkg"
