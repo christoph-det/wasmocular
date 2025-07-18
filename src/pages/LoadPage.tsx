@@ -108,10 +108,6 @@ const LoadPage = observer(() => {
                 onClick={() => disconnectDuckDB()}
               />
 
-              <Button
-                text={"Export DuckDB"}
-                onClick={handleExportDuckDBClick}
-              />
             </div>
             <div className="mt-4">
               <div className="inline-block px-6 py-3 rounded-xl bg-blue-50 border border-blue-200 shadow text-blue-900 font-mono text-lg">
@@ -185,40 +181,6 @@ const LoadPage = observer(() => {
     dbStore.postMessage(terminateMessage);
   }
 
-  function handleExportDuckDBClick() {
-    exportDuckDB().catch((error) => {
-      console.error("Error exporting DuckDB:", error);
-    });
-  }
-
-  async function exportDuckDB() {
-    const opfsRoot = await navigator.storage.getDirectory();
-    const fileHandle = await opfsRoot.getFileHandle("repminer_database.db");
-    fileHandle
-      .getFile()
-      .then((file) => {
-        const reader = new FileReader();
-        reader.onload = function (event) {
-          const arrayBuffer = event.target?.result;
-          if (arrayBuffer) {
-            const blob = new Blob([arrayBuffer], {
-              type: "application/octet-stream"
-            });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "repminer_database.db";
-            document.body.appendChild(a);
-            a.click();
-            URL.revokeObjectURL(url);
-          }
-        };
-        reader.readAsArrayBuffer(file);
-      })
-      .catch((error: Error) => {
-        return Promise.reject(error);
-      });
-  }
 });
 
 export default LoadPage;

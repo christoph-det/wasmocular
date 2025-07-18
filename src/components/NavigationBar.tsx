@@ -134,11 +134,11 @@ const NavigationBar = observer(() => {
         {indexingStore.project && (
           <DropdownMenu>
             <DropdownMenuTrigger className="max-w-[280px] truncate text-xl text-black-700 tracking-wide px-4 py-2 rounded-lg transition-colors cursor-pointer duration-150 hover:bg-blue-50 hover:text-blue-700">
-              Project: {indexingStore.project.name}
+              Project: {indexingStore.project?.name}
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuLabel>
-                {indexingStore.project.name}
+                {indexingStore.project?.name}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSettingsClick}>

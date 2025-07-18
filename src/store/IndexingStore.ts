@@ -1,4 +1,4 @@
-import { makeAutoObservable, reaction } from "mobx";
+import { makeAutoObservable, observable, reaction } from "mobx";
 import { RootStore } from "./RootStore";
 
 export enum DataLoadingState {
@@ -8,8 +8,13 @@ export enum DataLoadingState {
   INDEXING_FINISHED = "INDEXING_FINISHED"
 }
 
+
 export class RepminerProject {
   name = "";
+
+  constructor() {
+    makeAutoObservable(this);
+  }
 }
 export class IndexingStore {
   rootStore: RootStore;
@@ -81,6 +86,7 @@ export class IndexingStore {
   changeProjectName(name: string) {
     if (this.project) {
       this.project.name = name;
+      this.saveToStorage();
     } else {
       console.warn("No project loaded to change name");
     }
