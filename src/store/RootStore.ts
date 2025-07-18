@@ -1,4 +1,4 @@
-import { DatabaseStore } from "./DatabaseStore";
+import { DatabaseStore } from "./database/DatabaseStore";
 import { IndexingStore } from "./IndexingStore";
 import { TestStore } from "./TestStore";
 
