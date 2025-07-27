@@ -7,6 +7,7 @@ import Footer from "./components/Footer";
 import { StoreContext, rootStore } from "./store/StoreContext";
 import ExplorePageDashboard from "./pages/ExplorePageDashboard";
 import ExplorePageCustomQuery from "./pages/ExplorePageCustomQuery";
+import SettingsPage from "./pages/SettingsPage";
 
 const App: React.FC = () => {
   return (
@@ -15,6 +16,7 @@ const App: React.FC = () => {
         <NavigationBar />
         <Routes>
           <Route path="/" element={<LoadPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/index" element={<IndexPage />} />
           <Route path="/explore-dashboard" element={<ExplorePageDashboard />} />
           <Route

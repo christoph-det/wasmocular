@@ -1,58 +1,65 @@
 import ExploreNavigationBar from "@/components/ExploreNavigationBar";
+import DashboardSidebar from "@/components/DashboardSidebar";
+import ChartCard from "@/components/ChartCard";
 import { useState } from "react";
 
-const ExplorePageDashboard = () => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+import { LineChart, Line } from "recharts";
+const sampleData = [
+  { uv: 400 },
+  { uv: 300 },
+  { uv: 200 },
+  { uv: 278 },
+  { uv: 189 }
+];
 
-  const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
+const ExplorePageDashboard = () => {
+  const [chartWidths, setChartWidths] = useState<
+    Record<string, "half" | "full">
+  >({
+    chart1: "half",
+    chart2: "half"
+  });
+
+  const toggleChartWidth = (chartId: string) => {
+    setChartWidths({
+      ...chartWidths,
+      [chartId]: chartWidths[chartId] === "half" ? "full" : "half"
+    });
   };
 
   return (
     <div className="mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen">
       <ExploreNavigationBar />
       <div className="flex">
-        {/* Sidebar */}
-        <div
-          className={`bg-white shadow-md p-4 min-h-screen transition-all duration-300 ease-in-out ${
-            sidebarCollapsed ? "w-16" : "w-64"
-          }`}
-        >
-          <div className="flex justify-between items-center mb-4">
-            {!sidebarCollapsed && (
-              <h2 className="text-xl font-semibold text-gray-800">
-                Dashboard Settings
-              </h2>
-            )}
-            <button
-              onClick={toggleSidebar}
-              className="p-1 rounded-full hover:bg-gray-200"
-            >
-              {sidebarCollapsed ? (
-                <img
-                  src="./icons/expand.svg"
-                  alt="Expand Sidebar"
-                  className="h-5 w-5"
-                />
-              ) : (
-                <img
-                  src="./icons/collapse.svg"
-                  alt="Collapse Sidebar"
-                  className="h-5 w-5"
-                />
-              )}
-            </button>
-          </div>
+        <DashboardSidebar />
 
-          {!sidebarCollapsed && (
-            <div className="mt-4">{/* TODO: Dashboard overview */}</div>
-          )}
-        </div>
+        <div className="flex-1 p-5">
+          <div className="mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <ChartCard
+                chartId="chart1"
+                title="Example Data Trends"
+                description="Commit activity over time"
+                chartWidth={chartWidths.chart1}
+                onToggleWidth={toggleChartWidth}
+              >
+                <LineChart
+                  width={chartWidths.chart1 === "full" ? 1000 : 600}
+                  height={300}
+                  data={sampleData}
+                >
+                  <Line dataKey="uv" stroke="#3B82F6" strokeWidth={2} />
+                </LineChart>
+              </ChartCard>
 
-        {/* Main view */}
-        <div className="flex-1 p-6">
-          <div className="max-w-3xl mx-auto">
-            <div className="mb-8 text-center">Dashboard Content</div>
+              <ChartCard
+                chartId="chart2"
+                title="Other Chart"
+                description="Coming soon"
+                chartWidth={chartWidths.chart2}
+                onToggleWidth={toggleChartWidth}
+              />
+            </div>
           </div>
         </div>
       </div>

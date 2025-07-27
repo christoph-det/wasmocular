@@ -1,7 +1,7 @@
 import {
   DatabaseMessageType,
   DatabaseWorkerMessage
-} from "../workers/dbWorker.types";
+} from "../../workers/dbWorker.types";
 
 export class DatabaseStore {
   worker: Worker | null = null;
