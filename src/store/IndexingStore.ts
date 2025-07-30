@@ -8,6 +8,14 @@ export enum DataLoadingState {
   INDEXING_FINISHED = "INDEXING_FINISHED"
 }
 
+interface StoredIndexingData {
+  indexingProgress?: number;
+  dataLoadingState?: DataLoadingState;
+  project?: {
+    name: string;
+  };
+}
+
 export class RepminerProject {
   name = "";
 
@@ -56,13 +64,14 @@ export class IndexingStore {
 
   private loadFromStorage() {
     try {
-      // TODO: add a datastructure for typing the localStorage data
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
-        const data = JSON.parse(stored);
-        this.indexingProgress = data.indexingProgress || 0;
+        const data: StoredIndexingData = JSON.parse(
+          stored
+        ) as StoredIndexingData;
+        this.indexingProgress = data.indexingProgress ?? 0;
         this.dataLoadingState =
-          data.dataLoadingState || DataLoadingState.NOT_STARTED;
+          data.dataLoadingState ?? DataLoadingState.NOT_STARTED;
         if (data.project) {
           this.project = Object.assign(new RepminerProject(), data.project);
         }
