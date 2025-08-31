@@ -11,5 +11,23 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src")
     }
+  },
+  server: {
+    proxy: {
+      // Frontend calls /git/...
+      '/git-proxy': {
+        target: 'https://github.com',
+        changeOrigin: true,
+        secure: true,
+        // strip the prefix so /git/user/repo.git/... -> /user/repo.git/...
+        rewrite: (path) => path.replace(/^\/git-proxy/, ''),
+        configure(proxy) {
+          proxy.on('proxyReq', (proxyReq, req) => {
+            // GitHub’s smart-HTTP expects a git-y UA and correct path (.git!)
+            proxyReq.setHeader('user-agent', 'git/2.0');
+          });
+        }
+      }
+    }
   }
 });

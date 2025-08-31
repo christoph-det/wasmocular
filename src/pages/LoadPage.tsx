@@ -19,6 +19,7 @@ init().catch((err) => {
 
 const LoadPage = observer(() => {
   const [worker, setWorker] = useState<Worker | null>(null);
+  const [wasmGitWorker, setWasmGitWorker] = useState<Worker | null>(null);
   const sumStore = useStores().testStore;
   const dbStore = useStores().dbStore;
   const indexingStore = useStores().indexingStore;
@@ -43,6 +44,22 @@ const LoadPage = observer(() => {
       newWorker.terminate();
     };
   }, [sumStore]);
+
+  useEffect(() => {
+    const newWasmGitWorker = new Worker(
+      new URL("../workers/wasmgitWorker.ts", import.meta.url),
+      { type: "module" }
+    );
+    newWasmGitWorker.onmessage = (event: MessageEvent) => {
+      // Handle messages from the wasmGitWorker
+      console.log("Message from wasmGitWorker:", event.data);
+    };
+    setWasmGitWorker(newWasmGitWorker);
+
+    return () => {
+      newWasmGitWorker.terminate();
+    };
+  }, []);
 
   return (
     <div className="p-10 pb-14 mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen">
@@ -101,6 +118,7 @@ const LoadPage = observer(() => {
               <Button text={"Test WASM"} onClick={() => clickButtonCB_WASM()} />
               <Button text={"Test JS"} onClick={() => clickButtonCB_JS()} />
               <Button text={"Reset"} onClick={() => resetCB()} />
+              <Button text={"Test WASM Git Worker"} onClick={() => testwasmGitWorker()} />
               <Button text={"Test DuckDB"} onClick={() => testDuckDB()} />
               <Button text={"Read DuckDB"} onClick={() => readDuckDB()} />
               <Button
@@ -148,6 +166,15 @@ const LoadPage = observer(() => {
 
   function resetCB() {
     sumStore.setCalcSum(0);
+  }
+
+  function testwasmGitWorker() {
+    // Send a test message to the wasmGitWorker
+    if (wasmGitWorker) {
+      wasmGitWorker.postMessage({ type: "test", origin: window.location.origin });
+    } else {
+      console.warn("wasmGitWorker is not initialized.");
+    }
   }
 
   function testDuckDB() {
