@@ -72,9 +72,12 @@ class WasmGitWorker {
     this.lg.callMainWithResetStream(["ls-files"]);
     console.log('File count git:', this.stdout.length);
 
+
+  }
+
+  countCommits() {
     this.lg.callMainWithResetStream(["rev-list", "HEAD"]);
     console.log('Commit count:', this.stdout.length);
-
   }
 }
 
@@ -94,6 +97,12 @@ const wasmGitWorker = new WasmGitWorker();
       wasmGitWorker.baseOrigin = data.origin;
     }
     console.log("wasmGitWorker: Received message:", data);
-    wasmGitWorker.runTest();
+    if (data.action === "runTest") {
+      wasmGitWorker.runTest();
+    } else if (data.action === "countCommits") {
+      wasmGitWorker.countCommits();
+    } else {
+      console.warn("wasmGitWorker: Unknown action:", data.action);
+    }
   };
 })();

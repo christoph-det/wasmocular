@@ -119,6 +119,7 @@ const LoadPage = observer(() => {
               <Button text={"Test JS"} onClick={() => clickButtonCB_JS()} />
               <Button text={"Reset"} onClick={() => resetCB()} />
               <Button text={"Test WASM Git Worker"} onClick={() => testwasmGitWorker()} />
+              <Button text={"Count Commits"} onClick={() => countCommits()} />
               <Button text={"Test DuckDB"} onClick={() => testDuckDB()} />
               <Button text={"Read DuckDB"} onClick={() => readDuckDB()} />
               <Button
@@ -171,7 +172,15 @@ const LoadPage = observer(() => {
   function testwasmGitWorker() {
     // Send a test message to the wasmGitWorker
     if (wasmGitWorker) {
-      wasmGitWorker.postMessage({ type: "test", origin: window.location.origin });
+      wasmGitWorker.postMessage({ action: "runTest", origin: window.location.origin });
+    } else {
+      console.warn("wasmGitWorker is not initialized.");
+    }
+  }
+
+  function countCommits() {
+    if (wasmGitWorker) {
+           wasmGitWorker.postMessage({ action: "countCommits", origin: window.location.origin });
     } else {
       console.warn("wasmGitWorker is not initialized.");
     }
