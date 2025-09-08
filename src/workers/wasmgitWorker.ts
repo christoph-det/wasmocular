@@ -1,3 +1,5 @@
+import { stdout } from "process";
+
 class WasmGitWorker {
   stdout: string[] = [];
   stderr: string[] = [];
@@ -9,24 +11,27 @@ class WasmGitWorker {
   baseOrigin: string | null = null;
 
   async init() {
-    this.lg2mod = await import(new URL("lg2.js", import.meta.url).href);
-    this.lg = await this.lg2mod.default();
-
-    globalThis.wasmGitModuleOverrides = {
+    this.lg2mod = await import(new URL("wasm-git-library/lg2.js", import.meta.url).href);
+    // Prevent lg2 from printing to the console by overriding Emscripten print handlers
+    this.lg = await this.lg2mod.default({
       print: (text: any) => {
-        console.log(text);
+        //console.log(text);
         this.stdout.push(text);
       },
       printErr: (text: any) => {
-        console.error(text);
+        console.log(text);
         this.stderr.push(text);
+      },
+      callMainWithResetStream: (...args: any[]) => {
+        this.resetOutput();
+        this.lg.callMain(...args);
       }
-    };
+    });
 
     this.FS = this.lg.FS;
     this.IDBFS = this.lg.IDBFS;
 
-    const username = "Test User";
+    /*const username = "Test User";
     const useremail = "test@example.com";
 
     this.FS.writeFile(
@@ -34,23 +39,42 @@ class WasmGitWorker {
       `[user]
     name = ${username}
     email = ${useremail}`
-    );
+    );*/
   }
+
+  flushStdout() {
+    const capturedOutput = this.stdout;
+    this.stdout = [];
+    return capturedOutput;
+  }
+
+  resetOutput() {
+    this.stdout = [];
+    this.stderr = [];
+  }
+
+  
 
   runTest() {
     const repoURL = this.baseOrigin
-      ? `${this.baseOrigin}/git-proxy/petersalomonsen/wasm-git.git`
-      : "/git-proxy/petersalomonsen/wasm-git.git";
+      ? `${this.baseOrigin}/git-proxy/INSO-World/Binocular.git`
+      : "";
     this.currentRepoRootDir = repoURL.substring(repoURL.lastIndexOf('/') + 1);
 
+    // clone repo
     this.lg.callMain(['clone', repoURL, this.currentRepoRootDir]);
+
+    //
     this.FS.chdir(this.currentRepoRootDir);
 
-    this.FS.syncfs(false, () => {
-      console.log(this.currentRepoRootDir, 'stored to indexeddb');
-      console.log('Current directory files:', this.FS.readdir('.'));
-    });
-    this.lg.callMain(["status"]);
+
+    // count files
+    this.lg.callMainWithResetStream(["ls-files"]);
+    console.log('File count git:', this.stdout.length);
+
+    this.lg.callMainWithResetStream(["rev-list", "HEAD"]);
+    console.log('Commit count:', this.stdout.length);
+
   }
 }
 
