@@ -118,8 +118,9 @@ const LoadPage = observer(() => {
               <Button text={"Test WASM"} onClick={() => clickButtonCB_WASM()} />
               <Button text={"Test JS"} onClick={() => clickButtonCB_JS()} />
               <Button text={"Reset"} onClick={() => resetCB()} />
-              <Button text={"Test WASM Git Worker"} onClick={() => testwasmGitWorker()} />
-              <Button text={"Count Commits"} onClick={() => countCommits()} />
+              <Button text={"WASM GIT: Clone"} onClick={() => testwasmGitWorker()} />
+              <Button text={"WASM GIT: Count Commits"} onClick={() => countCommits()} />
+              <Button text={"WASM GIT: Reload Repo"} onClick={() => reloadRepo()} />
               <Button text={"Test DuckDB"} onClick={() => testDuckDB()} />
               <Button text={"Read DuckDB"} onClick={() => readDuckDB()} />
               <Button
@@ -172,7 +173,7 @@ const LoadPage = observer(() => {
   function testwasmGitWorker() {
     // Send a test message to the wasmGitWorker
     if (wasmGitWorker) {
-      wasmGitWorker.postMessage({ action: "runTest", origin: window.location.origin });
+      wasmGitWorker.postMessage({ action: "cloneRepository", gitRepoURL: "https://github.com/christoph-det/FLBadgePrinting.git" });
     } else {
       console.warn("wasmGitWorker is not initialized.");
     }
@@ -180,7 +181,15 @@ const LoadPage = observer(() => {
 
   function countCommits() {
     if (wasmGitWorker) {
-           wasmGitWorker.postMessage({ action: "countCommits", origin: window.location.origin });
+           wasmGitWorker.postMessage({ action: "countCommits" });
+    } else {
+      console.warn("wasmGitWorker is not initialized.");
+    }
+  }
+
+  function reloadRepo() {
+    if (wasmGitWorker) {
+      wasmGitWorker.postMessage({ action: "reloadRepo", gitRepoURL: "https://github.com/christoph-det/FLBadgePrinting.git" });
     } else {
       console.warn("wasmGitWorker is not initialized.");
     }
