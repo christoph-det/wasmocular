@@ -19,11 +19,13 @@ init().catch((err) => {
 
 const LoadPage = observer(() => {
   const [worker, setWorker] = useState<Worker | null>(null);
-  const [wasmGitWorker, setWasmGitWorker] = useState<Worker | null>(null);
+  const wasmGitStore = useStores().wasmGitStore;
   const sumStore = useStores().testStore;
   const dbStore = useStores().dbStore;
   const indexingStore = useStores().indexingStore;
   const [projectName, setProjectName] = useState<string>("");
+  const [gitRepoUrl, setGitRepoUrl] = useState<string>("");
+  const [hasLocalSelection, setHasLocalSelection] = useState<boolean>(false);
 
   const handleprojectNameInputChange = (event: {
     target: { value: SetStateAction<string> };
@@ -45,21 +47,7 @@ const LoadPage = observer(() => {
     };
   }, [sumStore]);
 
-  useEffect(() => {
-    const newWasmGitWorker = new Worker(
-      new URL("../workers/wasmgitWorker.ts", import.meta.url),
-      { type: "module" }
-    );
-    newWasmGitWorker.onmessage = (event: MessageEvent) => {
-      // Handle messages from the wasmGitWorker
-      console.log("Message from wasmGitWorker:", event.data);
-    };
-    setWasmGitWorker(newWasmGitWorker);
-
-    return () => {
-      newWasmGitWorker.terminate();
-    };
-  }, []);
+  // wasmGit worker is managed globally in WasmGitStore now
 
   return (
     <div className="p-10 pb-14 mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen">
@@ -93,12 +81,37 @@ const LoadPage = observer(() => {
               hasError={projectName == "state::Error"}
             />
             <Label className="mt-8 mb-2" htmlFor="email">
-              Select Repository Folder:
+              Select Repository Folder or paste a public GitHub URL:
             </Label>
             {
               // TODO: add file picker functionality and error handling
             }
-            <Input className="mb-8" type="file" id="repository" />
+            <Input
+              className="mb-0"
+              type="file"
+              id="repository"
+              disabled={gitRepoUrl.trim() !== ""}
+              onChange={(e) =>
+                setHasLocalSelection((e.target as HTMLInputElement).files?.length ? true : false)
+              }
+            />
+
+            <div className="mt-0 pt-4 mb-8">
+              <Input
+                id="github-url"
+                type="text"
+                placeholder="https://github.com/user/repo"
+                value={gitRepoUrl}
+                disabled={hasLocalSelection}
+                onChange={(e) => setGitRepoUrl(e.target.value)}
+              />
+              <p className="text-sm text-gray-500 mt-2">
+                {hasLocalSelection
+                  ? "Disabled because a local repository is selected."
+                  : "Only public repositories are supported."}
+              </p>
+            </div>
+            
             <Button text={"Connect API Data (optional)"} secondary />
             <Button
               text={"Create Project"}
@@ -147,6 +160,18 @@ const LoadPage = observer(() => {
       return;
     }
 
+    // Ensure a repository source is chosen
+    if (!hasLocalSelection && gitRepoUrl.trim() === "") {
+      alert("Please select a local repository or paste a GitHub URL.");
+      return;
+    }
+
+    // If a GitHub URL is provided, trigger clone in the background
+    const trimmedUrl = gitRepoUrl.trim();
+    if (trimmedUrl) {
+      wasmGitStore.cloneRepository(trimmedUrl);
+    }
+
     //navigate to index page
     window.location.hash = "#index";
     indexingStore.setDataLoadingState(DataLoadingState.REPOSITORY_LOADED);
@@ -172,27 +197,19 @@ const LoadPage = observer(() => {
 
   function testwasmGitWorker() {
     // Send a test message to the wasmGitWorker
-    if (wasmGitWorker) {
-      wasmGitWorker.postMessage({ action: "cloneRepository", gitRepoURL: "https://github.com/christoph-det/FLBadgePrinting.git" });
-    } else {
-      console.warn("wasmGitWorker is not initialized.");
-    }
+    wasmGitStore.cloneRepository(
+      "https://github.com/christoph-det/FLBadgePrinting.git"
+    );
   }
 
   function countCommits() {
-    if (wasmGitWorker) {
-           wasmGitWorker.postMessage({ action: "countCommits" });
-    } else {
-      console.warn("wasmGitWorker is not initialized.");
-    }
+    wasmGitStore.countCommits();
   }
 
   function reloadRepo() {
-    if (wasmGitWorker) {
-      wasmGitWorker.postMessage({ action: "reloadRepo", gitRepoURL: "https://github.com/christoph-det/FLBadgePrinting.git" });
-    } else {
-      console.warn("wasmGitWorker is not initialized.");
-    }
+    wasmGitStore.reloadRepo(
+      "https://github.com/christoph-det/FLBadgePrinting.git"
+    );
   }
 
   function testDuckDB() {
