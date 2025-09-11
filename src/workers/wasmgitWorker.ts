@@ -94,7 +94,8 @@ class WasmGitWorker {
     this.lg.callMain(['clone', this.repoURL, `/${this.currentRepoRootDir}`]);
     console.log("Cloned repo");
     this.FS.chdir(`/${this.currentRepoRootDir}`);
-    
+    // NOTE: When syncing the fs to indexed DB, for some repos we get an error (code 43), here. For example the wasm-git repo itself. I am assuming this could be bacause the repo links
+    // 2 alias files, and due to a bug in emscripten, this causes an error
     this.FS.syncfs(false, (err: any) => {
       if (err) console.error('syncfs(save) error:', err);
       console.log(this.currentRepoRootDir, 'stored to indexeddb');
