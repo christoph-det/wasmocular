@@ -11,6 +11,7 @@ import {
 import { DataLoadingState } from "@/store/IndexingStore";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/useToast";
 
 // initialize rust code
 init().catch((err) => {
@@ -24,6 +25,7 @@ const LoadPage = observer(() => {
   const sumStore = useStores().testStore;
   const dbStore = useStores().dbStore;
   const indexingStore = useStores().indexingStore;
+  const { showError, showInfo, showSuccess } = useToast();
   const [projectName, setProjectName] = useState<string>("");
   const [gitRepoUrl, setGitRepoUrl] = useState<string>("");
   const [hasLocalSelection, setHasLocalSelection] = useState<boolean>(false);
@@ -165,13 +167,13 @@ const LoadPage = observer(() => {
     // Get project name from input
     if (!projectName || projectName.trim() === "") {
       setProjectName("state::Error");
-      alert("Please enter a project name.");
+      showError("Please enter a project name before continuing.");
       return;
     }
 
     // Ensure a repository source is chosen
     if (!hasLocalSelection && gitRepoUrl.trim() === "") {
-      alert("Please select a local repository or paste a GitHub URL.");
+      showError("Select a local repository or paste a public GitHub URL.");
       return;
     }
 
@@ -179,6 +181,7 @@ const LoadPage = observer(() => {
     const trimmedUrl = gitRepoUrl.trim();
     if (trimmedUrl) {
       wasmGitStore.cloneRepository(trimmedUrl);
+      showInfo("Cloning repository in the background...");
     }
 
     //navigate to index page
@@ -186,16 +189,20 @@ const LoadPage = observer(() => {
     indexingStore.setDataLoadingState(DataLoadingState.REPOSITORY_LOADED);
 
     indexingStore.createNewProject(projectName);
+    showSuccess("Project created successfully.");
   }
 
   async function handleDirectoryPicker() {
-    if (typeof (globalThis as any).showDirectoryPicker !== 'function') {
-        console.error('Directory Picker API is not supported in this browser.');
+    if (typeof (globalThis as any).showDirectoryPicker !== "function") {
+        console.error("Directory Picker API is not supported in this browser.");
+        showInfo("Directory Picker API is not available in this browser.");
         return;
     }
 
     try {
-        const dirHandle = await (globalThis as any).showDirectoryPicker({ mode: 'read' });
+        await (globalThis as any).showDirectoryPicker({ mode: "read" });
+        setHasLocalSelection(true);
+        showSuccess("Local repository selected.");
         //await importRepository(dirHandle);
     } catch (error) {
         /*hideRepoSpinner();
@@ -207,7 +214,8 @@ const LoadPage = observer(() => {
         console.error(error);
         repoStatus.textContent = `Failed to read directory: ${error}`;
         showBranchesError(error?.message ?? error);*/
-        console.error('Error during directory selection:', error);
+        console.error("Error during directory selection:", error);
+        showError("Failed to open the directory picker. Please try again.");
     }
 }
 
