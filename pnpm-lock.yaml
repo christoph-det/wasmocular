@@ -68,7 +68,13 @@ importers:
       wasm-lib:
         specifier: link:wasm-lib/pkg
         version: link:wasm-lib/pkg
+      web:
+        specifier: link:@bytecodealliance/preview2-shim/web
+        version: link:@bytecodealliance/preview2-shim/web
     devDependencies:
+      '@bytecodealliance/preview2-shim':
+        specifier: ^0.17.4
+        version: 0.17.4
       '@eslint/compat':
         specifier: ^1.2.7
         version: 1.2.7(eslint@9.22.0(jiti@2.4.2))
@@ -186,6 +192,9 @@ packages:
   '@babel/types@7.27.1':
     resolution: {integrity: sha512-+EzkxvLNfiUeKMgy/3luqfsCWFRXLb7U6wNQTk60tovuckwB15B191tJWvpp4HjiQWdJkCxO3Wbvc6jlk3Xb2Q==}
     engines: {node: '>=6.9.0'}
+
+  '@bytecodealliance/preview2-shim@0.17.4':
+    resolution: {integrity: sha512-vRfxQ6ob5wCgXlpVNoeIUHrqJ2+JTcnQASNMpoi3OVPRYA2oUfhMJdWFP0u5JVL9FlC4YKe+QKqerr345B3T4A==}
 
   '@clack/core@0.3.5':
     resolution: {integrity: sha512-5cfhQNH+1VQ2xLQlmzXMqUoiaH0lRBq9/CLW9lTyMbuKLC3+xEK01tHVvyut++mLOn5urSHmkm6I0Lg9MaJSTQ==}
@@ -2954,6 +2963,8 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.27.1
+
+  '@bytecodealliance/preview2-shim@0.17.4': {}
 
   '@clack/core@0.3.5':
     dependencies:

@@ -20,6 +20,7 @@ init().catch((err) => {
 const LoadPage = observer(() => {
   const [worker, setWorker] = useState<Worker | null>(null);
   const wasmGitStore = useStores().wasmGitStore;
+  const wasmGixStore = useStores().wasmGixStore;
   const sumStore = useStores().testStore;
   const dbStore = useStores().dbStore;
   const indexingStore = useStores().indexingStore;
@@ -46,8 +47,6 @@ const LoadPage = observer(() => {
       newWorker.terminate();
     };
   }, [sumStore]);
-
-  // wasmGit worker is managed globally in WasmGitStore now
 
   return (
     <div className="p-10 pb-14 mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen">
@@ -80,12 +79,21 @@ const LoadPage = observer(() => {
               onChange={handleprojectNameInputChange}
               hasError={projectName == "state::Error"}
             />
-            <Label className="mt-8 mb-2" htmlFor="email">
+            <Label className="mt-8 mb-2">
               Select Repository Folder or paste a public GitHub URL:
             </Label>
             {
               // TODO: add file picker functionality and error handling
             }
+            <Input
+              id="directory-button"
+              className="mb-4"
+              type="button"
+              disabled={gitRepoUrl.trim() !== ""}
+              placeholder="No directory selected"
+              onClick={handleDirectoryPicker}
+              value={hasLocalSelection ? "Local directory selected!" : "Select local repository"}
+            />
             <Input
               className="mb-0"
               type="file"
@@ -134,6 +142,7 @@ const LoadPage = observer(() => {
               <Button text={"WASM GIT: Clone"} onClick={() => testwasmGitWorker()} />
               <Button text={"WASM GIT: Count Commits"} onClick={() => countCommits()} />
               <Button text={"WASM GIT: Reload Repo"} onClick={() => reloadRepo()} />
+              <Button text={"WASM GIX: Parse OID"} onClick={() => testwasmGixWorker()} />
               <Button text={"Test DuckDB"} onClick={() => testDuckDB()} />
               <Button text={"Read DuckDB"} onClick={() => readDuckDB()} />
               <Button
@@ -179,6 +188,29 @@ const LoadPage = observer(() => {
     indexingStore.createNewProject(projectName);
   }
 
+  async function handleDirectoryPicker() {
+    if (typeof (globalThis as any).showDirectoryPicker !== 'function') {
+        console.error('Directory Picker API is not supported in this browser.');
+        return;
+    }
+
+    try {
+        const dirHandle = await (globalThis as any).showDirectoryPicker({ mode: 'read' });
+        //await importRepository(dirHandle);
+    } catch (error) {
+        /*hideRepoSpinner();
+        updateRepoMeta(null);
+        if (error && error.name === 'AbortError') {
+            repoStatus.textContent = 'Directory selection cancelled.';
+            return;
+        }
+        console.error(error);
+        repoStatus.textContent = `Failed to read directory: ${error}`;
+        showBranchesError(error?.message ?? error);*/
+        console.error('Error during directory selection:', error);
+    }
+}
+
   function clickButtonCB_WASM() {
     const startTS = Date.now();
     sumStore.setCalcSum(sum_rs(1, 11));
@@ -193,6 +225,11 @@ const LoadPage = observer(() => {
 
   function resetCB() {
     sumStore.setCalcSum(0);
+  }
+
+   function testwasmGixWorker() {
+    // Send a test message to the wasmGixWorker
+    wasmGixStore.parseOid("e69de29bb2d1d6434b8b29ae775ad8c2e48c5391");
   }
 
   function testwasmGitWorker() {
