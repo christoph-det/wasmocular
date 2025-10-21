@@ -5,6 +5,7 @@ import duckdb_wasm_eh from "@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url";
 import eh_worker from "@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url";
 import {
   DatabaseDisconnectedMessage,
+  DatabaseErrorMessage,
   DatabaseMessageType,
   DatabaseResultMessage,
   DatabaseWorkerMessage
@@ -36,7 +37,7 @@ class DatabaseWorker {
       this.db = new duckdb.AsyncDuckDB(this.logger, this.worker);
       await this.db.instantiate(bundle.mainModule, bundle.pthreadWorker);
       await this.db.open({
-        path: "opfs://repminer_database.db",
+        path: "opfs://repminer_database2.db",
         accessMode: duckdb.DuckDBAccessMode.READ_WRITE
       });
       await this.createTables();
@@ -106,9 +107,24 @@ class DatabaseWorker {
       await this.query(
         "CREATE TABLE IF NOT EXISTS people (id INTEGER, name VARCHAR)"
       );
+      await this.query(
+        "CREATE TABLE IF NOT EXISTS commits (sha VARCHAR, message VARCHAR, author VARCHAR, timestamp TIMESTAMP, branch VARCHAR, additions INTEGER, deletions INTEGER)"
+      );
     } else {
       throw new Error("No connection to database");
     }
+  }
+
+  async insertIndexerData(identifier: string, buffer: Uint8Array) {
+    if (!this.connection) await this.connect();
+
+    const tableName = `indexer_commits_${identifier}`;
+
+    await this.connection!.insertArrowFromIPCStream(buffer, {
+      name: tableName,
+      create: true // <-- ask DuckDB to create the table if missing
+    });
+    await this.persistCheckpoint();
   }
 }
 
@@ -128,19 +144,35 @@ const dbWorker = new DatabaseWorker();
 
     switch (receivedMessage.type) {
       case DatabaseMessageType.QUERY: {
-        const result = await dbWorker.query(receivedMessage.sql);
-        if (receivedMessage.returnResult) {
-          const arrayResult = result.toArray();
-          const cloneableResult: unknown = JSON.parse(
-            JSON.stringify(arrayResult, (_, v: unknown) =>
-              typeof v === "bigint" ? v.toString() : v
-            )
-          );
-          const resultMessage: DatabaseResultMessage = {
-            type: DatabaseMessageType.RESULT,
-            result: cloneableResult
+        try {
+          const result = await dbWorker.query(receivedMessage.sql);
+          if (receivedMessage.returnResult) {
+            if (!receivedMessage.requestId) {
+              console.warn(
+                "Database worker received QUERY without requestId for result response."
+              );
+              break;
+            }
+            const arrayResult = result.toArray();
+            const cloneableResult: unknown = JSON.parse(
+              JSON.stringify(arrayResult, (_, v: unknown) =>
+                typeof v === "bigint" ? v.toString() : v
+              )
+            );
+            const resultMessage: DatabaseResultMessage = {
+              type: DatabaseMessageType.RESULT,
+              result: cloneableResult,
+              requestId: receivedMessage.requestId
+            };
+            postMessage(resultMessage);
+          }
+        } catch (error) {
+          const errorMessage: DatabaseErrorMessage = {
+            type: DatabaseMessageType.ERROR,
+            error: error instanceof Error ? error.message : String(error),
+            requestId: receivedMessage.requestId
           };
-          postMessage(resultMessage);
+          postMessage(errorMessage);
         }
         break;
       }
@@ -150,6 +182,12 @@ const dbWorker = new DatabaseWorker();
           type: DatabaseMessageType.DISCONNECTED
         };
         postMessage(disconnectedMessage);
+        break;
+      }
+      case DatabaseMessageType.INDEXER_RESULT: {
+        //load indexer result into database
+        console.log("DB Worker: Received INDEXER_RESULT message with buffer size:", receivedMessage.buffer.byteLength);
+        await dbWorker.insertIndexerData(receivedMessage.identifier, receivedMessage.buffer);
         break;
       }
       default:

@@ -16,6 +16,6 @@ export class RootStore {
     this.dbStore = new DatabaseStore();
     this.indexingStore = new IndexingStore(this);
     this.wasmGitStore = new WasmGitStore();
-    this.wasmGixStore = new WasmGixStore();
+    this.wasmGixStore = new WasmGixStore(this);
   }
 }

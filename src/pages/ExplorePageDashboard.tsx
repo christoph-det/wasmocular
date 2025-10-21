@@ -1,18 +1,50 @@
 import ExploreNavigationBar from "@/components/ExploreNavigationBar";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import ChartCard from "@/components/ChartCard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { LineChart, Line } from "recharts";
+import { useStores } from "@/store/StoreContext";
 const sampleData = [
-  { uv: 400 },
-  { uv: 300 },
-  { uv: 200 },
-  { uv: 278 },
-  { uv: 189 }
+  { additions: 0, deletions: 0 }
 ];
 
 const ExplorePageDashboard = () => {
+  const dbStore = useStores().dbStore;
+  const indexingStore = useStores().indexingStore;
+
+  const [actualData, setActualData] = useState(sampleData);
+
+  useEffect(() => {
+    const repositoryIdentifier = indexingStore.project?.repositoryIdentifier;
+    if (!repositoryIdentifier) return;
+
+    const query = `SELECT additions, -CAST(deletions AS INTEGER) AS deletions FROM indexer_commits_${repositoryIdentifier} LIMIT 100`;
+
+    dbStore
+      .runQuery(query, true)
+      .then((result) => {
+        console.log("Query result for chart data:", result);
+        if (Array.isArray(result)) {
+          const normalized = result.map((row) => {
+            const additions = Number(
+              (row as Record<string, unknown>).additions ?? 0
+            );
+            const deletions = Number(
+              (row as Record<string, unknown>).deletions ?? 0
+            );
+            return { additions, deletions };
+          });
+          setActualData(normalized);
+        } else {
+          console.warn("Unexpected query result format:", result);
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to fetch chart data:", error);
+      });
+  }, [dbStore, indexingStore.project?.repositoryIdentifier]);
+
   const [chartWidths, setChartWidths] = useState<
     Record<string, "half" | "full">
   >({
@@ -44,11 +76,13 @@ const ExplorePageDashboard = () => {
                 onToggleWidth={toggleChartWidth}
               >
                 <LineChart
+                  stackOffset="sign"
                   width={chartWidths.chart1 === "full" ? 1000 : 600}
                   height={300}
-                  data={sampleData}
+                  data={actualData}
                 >
-                  <Line dataKey="uv" stroke="#3B82F6" strokeWidth={2} />
+                  <Line dataKey="additions" stroke="#3B82F6" strokeWidth={2} />
+                  <Line dataKey="deletions" stroke="#EF4444" strokeWidth={2} />
                 </LineChart>
               </ChartCard>
 

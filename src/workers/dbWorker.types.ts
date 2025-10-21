@@ -3,16 +3,19 @@ export type DatabaseWorkerMessage =
   | DatabaseErrorMessage
   | DatabaseTerminateMessage
   | DatabaseDisconnectedMessage
-  | DatabaseResultMessage;
+  | DatabaseResultMessage
+  | DatabaseIndexerResultMessage;
 
 export interface DatabaseQueryMessage {
   type: DatabaseMessageType.QUERY;
   sql: string;
   returnResult?: boolean;
+  requestId?: string;
 }
 export interface DatabaseErrorMessage {
   type: DatabaseMessageType.ERROR;
   error: string;
+  requestId?: string;
 }
 
 export interface DatabaseTerminateMessage {
@@ -22,10 +25,17 @@ export interface DatabaseTerminateMessage {
 export interface DatabaseResultMessage {
   type: DatabaseMessageType.RESULT;
   result: unknown;
+  requestId: string;
 }
 
 export interface DatabaseDisconnectedMessage {
   type: DatabaseMessageType.DISCONNECTED;
+}
+
+export interface DatabaseIndexerResultMessage {
+  type: DatabaseMessageType.INDEXER_RESULT;
+  identifier: string;
+  buffer: Uint8Array;
 }
 
 export enum DatabaseMessageType {
@@ -33,5 +43,6 @@ export enum DatabaseMessageType {
   TERMINATE,
   ERROR,
   RESULT,
-  DISCONNECTED
+  DISCONNECTED,
+  INDEXER_RESULT
 }

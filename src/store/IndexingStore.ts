@@ -13,11 +13,13 @@ interface StoredIndexingData {
   dataLoadingState?: DataLoadingState;
   project?: {
     name: string;
+    repositoryIdentifier: string;
   };
 }
 
 export class RepminerProject {
   name = "";
+  repositoryIdentifier = "";
 
   constructor() {
     makeAutoObservable(this);
@@ -87,9 +89,10 @@ export class IndexingStore {
     this.indexingProgress = 0;
   }
 
-  createNewProject(name: string) {
+  createNewProject(name: string, repositoryIdentifier: string) {
     this.project = new RepminerProject();
     this.project.name = name;
+    this.project.repositoryIdentifier = repositoryIdentifier;
   }
 
   changeProjectName(name: string) {

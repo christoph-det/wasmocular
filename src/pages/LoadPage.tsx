@@ -12,6 +12,7 @@ import { DataLoadingState } from "@/store/IndexingStore";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/useToast";
+import { set } from "mobx";
 
 // initialize rust code
 init().catch((err) => {
@@ -28,7 +29,7 @@ const LoadPage = observer(() => {
   const { showError, showInfo, showSuccess } = useToast();
   const [projectName, setProjectName] = useState<string>("");
   const [gitRepoUrl, setGitRepoUrl] = useState<string>("");
-  const [hasLocalSelection, setHasLocalSelection] = useState<boolean>(false);
+  const [localRepoDirHandle, setLocalRepoDirHandle] = useState<FileSystemDirectoryHandle | null>(null);
 
   const handleprojectNameInputChange = (event: {
     target: { value: SetStateAction<string> };
@@ -89,36 +90,26 @@ const LoadPage = observer(() => {
             }
             <Input
               id="directory-button"
-              className="mb-4"
+              className="mt-4 cursor-pointer hover:bg-gray-100"
               type="button"
               disabled={gitRepoUrl.trim() !== ""}
               placeholder="No directory selected"
               onClick={handleDirectoryPicker}
-              value={hasLocalSelection ? "Local directory selected!" : "Select local repository"}
+              value={localRepoDirHandle ? "Local directory selected!" : "Select local repository"}
             />
-            <Input
-              className="mb-0"
-              type="file"
-              id="repository"
-              disabled={gitRepoUrl.trim() !== ""}
-              onChange={(e) =>
-                setHasLocalSelection((e.target as HTMLInputElement).files?.length ? true : false)
-              }
-            />
-
             <div className="mt-0 pt-4 mb-8">
               <Input
                 id="github-url"
                 type="text"
                 placeholder="https://github.com/user/repo"
                 value={gitRepoUrl}
-                disabled={hasLocalSelection}
+                disabled={localRepoDirHandle !== null}
                 onChange={(e) => setGitRepoUrl(e.target.value)}
               />
               <p className="text-sm text-gray-500 mt-2">
-                {hasLocalSelection
-                  ? "Disabled because a local repository is selected."
-                  : "Only public repositories are supported."}
+                {localRepoDirHandle == null
+                  ? "Only public repositories are supported."
+                  : "Disabled because a local repository is selected."}
               </p>
             </div>
             
@@ -172,7 +163,7 @@ const LoadPage = observer(() => {
     }
 
     // Ensure a repository source is chosen
-    if (!hasLocalSelection && gitRepoUrl.trim() === "") {
+    if (!localRepoDirHandle && gitRepoUrl.trim() === "") {
       showError("Select a local repository or paste a public GitHub URL.");
       return;
     }
@@ -185,10 +176,14 @@ const LoadPage = observer(() => {
     }
 
     //navigate to index page
-    window.location.hash = "#index";
-    indexingStore.setDataLoadingState(DataLoadingState.REPOSITORY_LOADED);
+    const repoIdentifier = Date.now().toString(16); // Simple unique ID based on timestamp
+    indexingStore.createNewProject(projectName, repoIdentifier);
+    
 
-    indexingStore.createNewProject(projectName);
+    indexingStore.setDataLoadingState(DataLoadingState.REPOSITORY_LOADED);
+    wasmGixStore.loadRepository(repoIdentifier, localRepoDirHandle!);
+
+    window.location.hash = "#index";
     showSuccess("Project created successfully.");
   }
 
@@ -200,22 +195,17 @@ const LoadPage = observer(() => {
     }
 
     try {
-        await (globalThis as any).showDirectoryPicker({ mode: "read" });
-        setHasLocalSelection(true);
+        const dirHandle: FileSystemDirectoryHandle = await (globalThis as any).showDirectoryPicker({ mode: "read" });
+        setLocalRepoDirHandle(dirHandle);
         showSuccess("Local repository selected.");
         //await importRepository(dirHandle);
-    } catch (error) {
-        /*hideRepoSpinner();
-        updateRepoMeta(null);
+    } catch (error: any) {
+        setLocalRepoDirHandle(null);
         if (error && error.name === 'AbortError') {
-            repoStatus.textContent = 'Directory selection cancelled.';
             return;
         }
-        console.error(error);
-        repoStatus.textContent = `Failed to read directory: ${error}`;
-        showBranchesError(error?.message ?? error);*/
         console.error("Error during directory selection:", error);
-        showError("Failed to open the directory picker. Please try again.");
+        showError("Failed to open the directory picker. Please try again. Cause: " + error?.message);
     }
 }
 
@@ -237,7 +227,6 @@ const LoadPage = observer(() => {
 
    function testwasmGixWorker() {
     // Send a test message to the wasmGixWorker
-    wasmGixStore.parseOid("e69de29bb2d1d6434b8b29ae775ad8c2e48c5391");
   }
 
   function testwasmGitWorker() {
