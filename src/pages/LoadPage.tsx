@@ -3,16 +3,10 @@ import Button from "../components/button/Button";
 import init, { sum_rs } from "wasm-lib";
 import { observer } from "mobx-react-lite";
 import { useStores } from "../store/StoreContext";
-import {
-  DatabaseMessageType,
-  DatabaseQueryMessage,
-  DatabaseTerminateMessage
-} from "../workers/dbWorker.types";
 import { DataLoadingState } from "@/store/IndexingStore";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/useToast";
-import { set } from "mobx";
 
 // initialize rust code
 init().catch((err) => {
@@ -136,12 +130,6 @@ const LoadPage = observer(() => {
               <Button text={"WASM GIT: Count Commits"} onClick={() => countCommits()} />
               <Button text={"WASM GIT: Reload Repo"} onClick={() => reloadRepo()} />
               <Button text={"WASM GIX: Parse OID"} onClick={() => testwasmGixWorker()} />
-              <Button text={"Test DuckDB"} onClick={() => testDuckDB()} />
-              <Button text={"Read DuckDB"} onClick={() => readDuckDB()} />
-              <Button
-                text={"Disconnect DuckDB"}
-                onClick={() => disconnectDuckDB()}
-              />
             </div>
             <div className="mt-4">
               <div className="inline-block px-6 py-3 rounded-xl bg-blue-50 border border-blue-200 shadow text-blue-900 font-mono text-lg">
@@ -246,35 +234,6 @@ const LoadPage = observer(() => {
     );
   }
 
-  function testDuckDB() {
-    // Send queries to dbWorker instead of running directly
-    for (let i = 0; i < 10000; i++) {
-      const queryMessage: DatabaseQueryMessage = {
-        type: DatabaseMessageType.QUERY,
-        sql: "INSERT INTO people VALUES (1, 'Alice'), (2, 'Bob')",
-        returnResult: false
-      };
-      dbStore.postMessage(queryMessage);
-    }
-
-    // Results will be logged in the dbWorker.onmessage handler
-  }
-
-  function readDuckDB() {
-    const queryMessage: DatabaseQueryMessage = {
-      type: DatabaseMessageType.QUERY,
-      sql: "SELECT count(*) FROM people",
-      returnResult: true
-    };
-    dbStore.postMessage(queryMessage);
-  }
-
-  function disconnectDuckDB() {
-    const terminateMessage: DatabaseTerminateMessage = {
-      type: DatabaseMessageType.TERMINATE
-    };
-    dbStore.postMessage(terminateMessage);
-  }
 });
 
 export default LoadPage;

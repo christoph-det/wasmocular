@@ -1,12 +1,11 @@
 import {
-  DatabaseMessageType,
-  DatabaseWorkerMessage,
-  DatabaseQueryMessage
+  DatabaseWorkerInboundMessage,
+  DatabaseWorkerOutboundMessage
 } from "../../workers/dbWorker.types";
 
 export class DatabaseStore {
   worker: Worker | null = null;
-  private pendingQueries = new Map<
+  private readonly pendingQueries = new Map<
     string,
     {
       resolve: (value: unknown) => void;
@@ -21,32 +20,26 @@ export class DatabaseStore {
   }
 
   receiveIndexerResults(identifier: string, resultBuffer: Uint8Array) {
-    if (!this.worker) return;
-    const indexingResultMessage: DatabaseWorkerMessage = {
-      type: DatabaseMessageType.INDEXER_RESULT,
+    const indexingResultMessage: DatabaseWorkerInboundMessage = {
+      type: "INDEXER_RESULT",
       identifier,
       buffer: resultBuffer
     };
-    this.worker.postMessage(indexingResultMessage, [resultBuffer.buffer]);
+    this.postMessage(indexingResultMessage, [resultBuffer.buffer]);
   }
 
   runQuery(sql: string, returnResult: boolean = true): Promise<unknown> {
-    if (!this.worker) {
-      const error = new Error("Database worker not initialized");
-      console.error(error.message);
-      return Promise.reject(error);
-    }
     const requestId = returnResult ? this.nextRequestId() : undefined;
 
-    const queryMessage: DatabaseQueryMessage = {
-      type: DatabaseMessageType.QUERY,
+    const queryMessage: DatabaseWorkerInboundMessage = {
+      type: "QUERY",
       sql,
       returnResult,
       requestId
     };
 
     if (!returnResult) {
-      this.worker.postMessage(queryMessage);
+      this.postMessage(queryMessage);
       return Promise.resolve(undefined);
     }
 
@@ -56,7 +49,7 @@ export class DatabaseStore {
         return;
       }
       this.pendingQueries.set(requestId, { resolve, reject });
-      this.worker?.postMessage(queryMessage);
+      this.postMessage(queryMessage);
     });
   }
 
@@ -67,10 +60,12 @@ export class DatabaseStore {
       new URL("../../workers/dbWorker.ts", import.meta.url),
       { type: "module" }
     );
-    this.worker.onmessage = (event: MessageEvent<DatabaseWorkerMessage>) => {
+    this.worker.onmessage = (
+      event: MessageEvent<DatabaseWorkerOutboundMessage>
+    ) => {
       const receivedMessage = event.data;
       // handle db query result
-      if (receivedMessage.type === DatabaseMessageType.RESULT) {
+      if (receivedMessage.type === "RESULT") {
         const { requestId, result } = receivedMessage;
         const pending = this.pendingQueries.get(requestId);
         if (pending) {
@@ -82,7 +77,7 @@ export class DatabaseStore {
             receivedMessage
           );
         }
-      } else if (receivedMessage.type === DatabaseMessageType.ERROR) {
+      } else if (receivedMessage.type === "ERROR") {
         const { requestId, error } = receivedMessage;
         if (requestId) {
           const pending = this.pendingQueries.get(requestId);
@@ -98,7 +93,7 @@ export class DatabaseStore {
         } else {
           console.error("DuckDB Worker Error:", error);
         }
-      } else if (receivedMessage.type === DatabaseMessageType.DISCONNECTED) {
+      } else if (receivedMessage.type === "DISCONNECTED") {
         console.log("DuckDB Worker Terminated");
         this.rejectAllPending(
           new Error("Database worker disconnected before completing query.")
@@ -109,11 +104,18 @@ export class DatabaseStore {
     };
   }
 
-  postMessage(message: DatabaseWorkerMessage) {
+  private postMessage(message: DatabaseWorkerInboundMessage, transfer?: Transferable[]): Promise<unknown> {
     if (this.worker) {
-      this.worker.postMessage(message);
+      if (transfer) {
+        this.worker.postMessage(message, transfer);
+      } else {
+        this.worker.postMessage(message);
+      }
+      return Promise.resolve();
     } else {
-      console.error("Worker not initialized");
+      const error = new Error("Database worker not initialized");
+      console.error(error.message);
+      return Promise.reject(error);
     }
   }
 

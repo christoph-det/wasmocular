@@ -19,7 +19,7 @@ const ExplorePageDashboard = () => {
     const repositoryIdentifier = indexingStore.project?.repositoryIdentifier;
     if (!repositoryIdentifier) return;
 
-    const query = `SELECT additions, -CAST(deletions AS INTEGER) AS deletions FROM indexer_commits_${repositoryIdentifier} LIMIT 100`;
+    const query = `SELECT additions, -CAST(deletions AS INTEGER) AS deletions FROM indexer_commits_${repositoryIdentifier} LIMIT 1000`;
 
     dbStore
       .runQuery(query, true)

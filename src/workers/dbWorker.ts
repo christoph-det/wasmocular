@@ -4,11 +4,8 @@ import mvp_worker from "@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?ur
 import duckdb_wasm_eh from "@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url";
 import eh_worker from "@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url";
 import {
-  DatabaseDisconnectedMessage,
-  DatabaseErrorMessage,
-  DatabaseMessageType,
-  DatabaseResultMessage,
-  DatabaseWorkerMessage
+  DatabaseWorkerInboundMessage,
+  DatabaseWorkerOutboundMessage
 } from "./dbWorker.types";
 
 const MANUAL_BUNDLES: duckdb.DuckDBBundles = {
@@ -138,12 +135,12 @@ const dbWorker = new DatabaseWorker();
 (async function () {
   await dbWorker.init();
 
-  onmessage = async function (event: MessageEvent<DatabaseWorkerMessage>) {
+  onmessage = async function (event: MessageEvent<DatabaseWorkerInboundMessage>) {
     //console.log("Worker received message:", event.data);
-    const receivedMessage: DatabaseWorkerMessage = event.data;
+    const receivedMessage = event.data;
 
     switch (receivedMessage.type) {
-      case DatabaseMessageType.QUERY: {
+      case "QUERY": {
         try {
           const result = await dbWorker.query(receivedMessage.sql);
           if (receivedMessage.returnResult) {
@@ -159,16 +156,16 @@ const dbWorker = new DatabaseWorker();
                 typeof v === "bigint" ? v.toString() : v
               )
             );
-            const resultMessage: DatabaseResultMessage = {
-              type: DatabaseMessageType.RESULT,
+            const resultMessage: DatabaseWorkerOutboundMessage = {
+              type: "RESULT",
               result: cloneableResult,
               requestId: receivedMessage.requestId
             };
             postMessage(resultMessage);
           }
         } catch (error) {
-          const errorMessage: DatabaseErrorMessage = {
-            type: DatabaseMessageType.ERROR,
+          const errorMessage: DatabaseWorkerOutboundMessage = {
+            type: "ERROR",
             error: error instanceof Error ? error.message : String(error),
             requestId: receivedMessage.requestId
           };
@@ -176,23 +173,28 @@ const dbWorker = new DatabaseWorker();
         }
         break;
       }
-      case DatabaseMessageType.TERMINATE: {
+      case "TERMINATE": {
         await dbWorker.terminate();
-        const disconnectedMessage: DatabaseDisconnectedMessage = {
-          type: DatabaseMessageType.DISCONNECTED
+        const disconnectedMessage: DatabaseWorkerOutboundMessage = {
+          type: "DISCONNECTED"
         };
         postMessage(disconnectedMessage);
         break;
       }
-      case DatabaseMessageType.INDEXER_RESULT: {
+      case "INDEXER_RESULT": {
         //load indexer result into database
         console.log("DB Worker: Received INDEXER_RESULT message with buffer size:", receivedMessage.buffer.byteLength);
         await dbWorker.insertIndexerData(receivedMessage.identifier, receivedMessage.buffer);
         break;
       }
-      default:
-        postMessage({ type: "error", error: "Unsupported message type" });
+      default: {
+        const errorMessage: DatabaseWorkerOutboundMessage = {
+          type: "ERROR",
+          error: "Unsupported message type"
+        };
+        postMessage(errorMessage);
         break;
+      }
     }
   };
 })().catch((error) => {
