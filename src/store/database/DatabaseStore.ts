@@ -1,4 +1,5 @@
 import {
+  DatabaseAccessMode,
   DatabaseWorkerInboundMessage,
   DatabaseWorkerOutboundMessage
 } from "../../workers/dbWorker.types";
@@ -13,6 +14,8 @@ export class DatabaseStore {
     }
   >();
   private requestCounter = 0;
+  private currentRepositoryIdentifier: string | null = null;
+  private currentAccessMode: DatabaseAccessMode | null = null;
 
   constructor() {
     this.init();
@@ -20,12 +23,44 @@ export class DatabaseStore {
   }
 
   receiveIndexerResults(identifier: string, resultBuffer: Uint8Array) {
+    // Ensure we are in write mode before pushing indexing data.
+    this.currentRepositoryIdentifier = identifier;
+    this.currentAccessMode = null;
+    this.ensureInitialization(identifier, "READ_WRITE");
+
     const indexingResultMessage: DatabaseWorkerInboundMessage = {
       type: "INDEXER_RESULT",
       identifier,
       buffer: resultBuffer
     };
     this.postMessage(indexingResultMessage, [resultBuffer.buffer]);
+  }
+
+
+  ensureInitialization(
+    repositoryIdentifier: string,
+    accessMode: DatabaseAccessMode
+  ) {
+    const hasMatchingIdentifier =
+      this.currentRepositoryIdentifier === repositoryIdentifier;
+    const hasMatchingMode = this.currentAccessMode === accessMode;
+
+    if (hasMatchingIdentifier && hasMatchingMode) {
+      return;
+    }
+
+    this.currentRepositoryIdentifier = repositoryIdentifier;
+    this.currentAccessMode = accessMode;
+
+    const initMessage: DatabaseWorkerInboundMessage = {
+      type: "INIT",
+      repositoryIdentifier,
+      accessMode
+    };
+
+    this.postMessage(initMessage).catch((error) => {
+      console.error("DatabaseStore: Failed to initialize database worker", error);
+    });
   }
 
   runQuery(sql: string, returnResult: boolean = true): Promise<unknown> {

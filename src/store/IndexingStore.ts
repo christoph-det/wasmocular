@@ -1,5 +1,6 @@
 import { makeAutoObservable, reaction } from "mobx";
 import { RootStore } from "./RootStore";
+import { DatabaseAccessMode } from "../workers/dbWorker.types";
 
 export enum DataLoadingState {
   NOT_STARTED = "NOT_STARTED",
@@ -76,6 +77,7 @@ export class IndexingStore {
           data.dataLoadingState ?? DataLoadingState.NOT_STARTED;
         if (data.project) {
           this.project = Object.assign(new RepminerProject(), data.project);
+          this.updateDatabaseAccessMode();
         }
       }
     } catch (error) {
@@ -93,6 +95,7 @@ export class IndexingStore {
     this.project = new RepminerProject();
     this.project.name = name;
     this.project.repositoryIdentifier = repositoryIdentifier;
+    this.updateDatabaseAccessMode();
   }
 
   changeProjectName(name: string) {
@@ -107,16 +110,33 @@ export class IndexingStore {
   setIndexingProgress(progress: number) {
     this.indexingProgress = progress;
     if (progress >= 100) {
-      this.dataLoadingState = DataLoadingState.INDEXING_FINISHED;
+      this.setDataLoadingState(DataLoadingState.INDEXING_FINISHED);
     } else if (
       this.dataLoadingState != DataLoadingState.INDEXING_STARTED &&
       progress > 0
     ) {
-      this.dataLoadingState = DataLoadingState.INDEXING_STARTED;
+      this.setDataLoadingState(DataLoadingState.INDEXING_STARTED);
     }
   }
 
   setDataLoadingState(state: DataLoadingState) {
     this.dataLoadingState = state;
+    this.updateDatabaseAccessMode();
+  }
+
+  private updateDatabaseAccessMode() {
+    if (!this.project) {
+      return;
+    }
+
+    const mode: DatabaseAccessMode =
+      this.dataLoadingState === DataLoadingState.INDEXING_FINISHED
+        ? "READ_ONLY"
+        : "READ_WRITE";
+
+    this.rootStore.dbStore.ensureInitialization(
+      this.project.repositoryIdentifier,
+      mode
+    );
   }
 }

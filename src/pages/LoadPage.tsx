@@ -18,7 +18,6 @@ const LoadPage = observer(() => {
   const wasmGitStore = useStores().wasmGitStore;
   const wasmGixStore = useStores().wasmGixStore;
   const sumStore = useStores().testStore;
-  const dbStore = useStores().dbStore;
   const indexingStore = useStores().indexingStore;
   const { showError, showInfo, showSuccess } = useToast();
   const [projectName, setProjectName] = useState<string>("");
