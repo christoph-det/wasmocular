@@ -5,9 +5,7 @@ import { useEffect, useState } from "react";
 
 import { LineChart, Line } from "recharts";
 import { useStores } from "@/store/StoreContext";
-const sampleData = [
-  { additions: 0, deletions: 0 }
-];
+const sampleData = [{ additions: 0, deletions: 0 }];
 
 const ExplorePageDashboard = () => {
   const dbStore = useStores().dbStore;

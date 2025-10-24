@@ -7,9 +7,12 @@ export class WasmGitStore {
   }
 
   init() {
-    this.worker = new Worker(new URL("../../workers/wasmgitWorker.ts", import.meta.url), {
-      type: "module"
-    });
+    this.worker = new Worker(
+      new URL("../../workers/wasmgitWorker.ts", import.meta.url),
+      {
+        type: "module"
+      }
+    );
 
     this.worker.onmessage = (event: MessageEvent) => {
       console.log("Message from wasmGitWorker:", event.data);
@@ -36,4 +39,3 @@ export class WasmGitStore {
     this.postMessage({ action: "countCommits" });
   }
 }
-

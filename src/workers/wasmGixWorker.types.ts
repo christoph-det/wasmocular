@@ -3,7 +3,10 @@ type WorkerMessageUnion<T extends Record<string, object>> = {
 }[keyof T];
 
 type WasmGixMessagePayload = {
-  LOAD_REPOSITORY: { identifier: string, localFileHandle: FileSystemDirectoryHandle };
+  LOAD_REPOSITORY: {
+    identifier: string;
+    localFileHandle: FileSystemDirectoryHandle;
+  };
   START_INDEXING: { identifier: string };
 };
 
@@ -11,7 +14,8 @@ export type WasmGixMessageType = keyof WasmGixMessagePayload;
 export type WasmGixWorkerMessage = WorkerMessageUnion<WasmGixMessagePayload>;
 
 type WasmGixWorkerOutboundPayload = {
-  INDEXING_COMPLETED: { identifier: string, buffer: Uint8Array };
+  INDEXING_COMPLETED: { identifier: string; buffer: Uint8Array };
 };
 
-export type WasmGixWorkerOutboundMessage = WorkerMessageUnion<WasmGixWorkerOutboundPayload>;
+export type WasmGixWorkerOutboundMessage =
+  WorkerMessageUnion<WasmGixWorkerOutboundPayload>;

@@ -22,7 +22,8 @@ const LoadPage = observer(() => {
   const { showError, showInfo, showSuccess } = useToast();
   const [projectName, setProjectName] = useState<string>("");
   const [gitRepoUrl, setGitRepoUrl] = useState<string>("");
-  const [localRepoDirHandle, setLocalRepoDirHandle] = useState<FileSystemDirectoryHandle | null>(null);
+  const [localRepoDirHandle, setLocalRepoDirHandle] =
+    useState<FileSystemDirectoryHandle | null>(null);
 
   const handleprojectNameInputChange = (event: {
     target: { value: SetStateAction<string> };
@@ -88,7 +89,11 @@ const LoadPage = observer(() => {
               disabled={gitRepoUrl.trim() !== ""}
               placeholder="No directory selected"
               onClick={handleDirectoryPicker}
-              value={localRepoDirHandle ? "Local directory selected!" : "Select local repository"}
+              value={
+                localRepoDirHandle
+                  ? "Local directory selected!"
+                  : "Select local repository"
+              }
             />
             <div className="mt-0 pt-4 mb-8">
               <Input
@@ -105,7 +110,7 @@ const LoadPage = observer(() => {
                   : "Disabled because a local repository is selected."}
               </p>
             </div>
-            
+
             <Button text={"Connect API Data (optional)"} secondary />
             <Button
               text={"Create Project"}
@@ -125,10 +130,22 @@ const LoadPage = observer(() => {
               <Button text={"Test WASM"} onClick={() => clickButtonCB_WASM()} />
               <Button text={"Test JS"} onClick={() => clickButtonCB_JS()} />
               <Button text={"Reset"} onClick={() => resetCB()} />
-              <Button text={"WASM GIT: Clone"} onClick={() => testwasmGitWorker()} />
-              <Button text={"WASM GIT: Count Commits"} onClick={() => countCommits()} />
-              <Button text={"WASM GIT: Reload Repo"} onClick={() => reloadRepo()} />
-              <Button text={"WASM GIX: Parse OID"} onClick={() => testwasmGixWorker()} />
+              <Button
+                text={"WASM GIT: Clone"}
+                onClick={() => testwasmGitWorker()}
+              />
+              <Button
+                text={"WASM GIT: Count Commits"}
+                onClick={() => countCommits()}
+              />
+              <Button
+                text={"WASM GIT: Reload Repo"}
+                onClick={() => reloadRepo()}
+              />
+              <Button
+                text={"WASM GIX: Parse OID"}
+                onClick={() => testwasmGixWorker()}
+              />
             </div>
             <div className="mt-4">
               <div className="inline-block px-6 py-3 rounded-xl bg-blue-50 border border-blue-200 shadow text-blue-900 font-mono text-lg">
@@ -165,7 +182,6 @@ const LoadPage = observer(() => {
     //navigate to index page
     const repoIdentifier = Date.now().toString(16); // Simple unique ID based on timestamp
     indexingStore.createNewProject(projectName, repoIdentifier);
-    
 
     indexingStore.setDataLoadingState(DataLoadingState.REPOSITORY_LOADED);
     wasmGixStore.loadRepository(repoIdentifier, localRepoDirHandle!);
@@ -176,25 +192,30 @@ const LoadPage = observer(() => {
 
   async function handleDirectoryPicker() {
     if (typeof (globalThis as any).showDirectoryPicker !== "function") {
-        console.error("Directory Picker API is not supported in this browser.");
-        showInfo("Directory Picker API is not available in this browser.");
-        return;
+      console.error("Directory Picker API is not supported in this browser.");
+      showInfo("Directory Picker API is not available in this browser.");
+      return;
     }
 
     try {
-        const dirHandle: FileSystemDirectoryHandle = await (globalThis as any).showDirectoryPicker({ mode: "read" });
-        setLocalRepoDirHandle(dirHandle);
-        showSuccess("Local repository selected.");
-        //await importRepository(dirHandle);
+      const dirHandle: FileSystemDirectoryHandle = await (
+        globalThis as any
+      ).showDirectoryPicker({ mode: "read" });
+      setLocalRepoDirHandle(dirHandle);
+      showSuccess("Local repository selected.");
+      //await importRepository(dirHandle);
     } catch (error: any) {
-        setLocalRepoDirHandle(null);
-        if (error && error.name === 'AbortError') {
-            return;
-        }
-        console.error("Error during directory selection:", error);
-        showError("Failed to open the directory picker. Please try again. Cause: " + error?.message);
+      setLocalRepoDirHandle(null);
+      if (error && error.name === "AbortError") {
+        return;
+      }
+      console.error("Error during directory selection:", error);
+      showError(
+        "Failed to open the directory picker. Please try again. Cause: " +
+          error?.message
+      );
     }
-}
+  }
 
   function clickButtonCB_WASM() {
     const startTS = Date.now();
@@ -212,7 +233,7 @@ const LoadPage = observer(() => {
     sumStore.setCalcSum(0);
   }
 
-   function testwasmGixWorker() {
+  function testwasmGixWorker() {
     // Send a test message to the wasmGixWorker
   }
 
@@ -232,7 +253,6 @@ const LoadPage = observer(() => {
       "https://github.com/christoph-det/FLBadgePrinting.git"
     );
   }
-
 });
 
 export default LoadPage;

@@ -26,7 +26,5 @@ export type DatabaseWorkerMessage =
   | DatabaseWorkerInboundMessage
   | DatabaseWorkerOutboundMessage;
 
-export type DatabaseWorkerInboundType =
-  keyof DatabaseWorkerInboundPayload;
-export type DatabaseWorkerOutboundType =
-  keyof DatabaseWorkerOutboundPayload;
+export type DatabaseWorkerInboundType = keyof DatabaseWorkerInboundPayload;
+export type DatabaseWorkerOutboundType = keyof DatabaseWorkerOutboundPayload;

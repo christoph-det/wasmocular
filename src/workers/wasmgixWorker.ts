@@ -1,10 +1,9 @@
 /// <reference lib="webworker" />
-import initGitoxide from './wasm-gix-library/wasm_gix.js';
-import { WasmGixWorkerMessage } from './wasmGixWorker.types.js';
+import initGitoxide from "./wasm-gix-library/wasm_gix.js";
+import { WasmGixWorkerMessage } from "./wasmGixWorker.types.js";
 
-const GITOXIDE_LOG_PREFIX = '[gitoxide]';
-const PERSIST_ROOT = '/repos';
-
+const GITOXIDE_LOG_PREFIX = "[gitoxide]";
+const PERSIST_ROOT = "/repos";
 
 // TODO: cleanup, maybe bring some methods outside of the worker
 // TODO: open repo again on page reload
@@ -13,69 +12,92 @@ const PERSIST_ROOT = '/repos';
 // TODO: handle data deletion
 // TODO: progress callbacks
 
-
-
-
 class WasmGixWorker {
   gitoxide: any = null;
-  createdDirs: Set<string> = new Set(['/']);
+  createdDirs: Set<string> = new Set(["/"]);
   storedRepositories: string[] = [];
 
   async init() {
     this.gitoxide = await initGitoxide();
-    console.log('gitoxide wasm module loaded');
+    console.log("gitoxide wasm module loaded");
     await this.setupPersistentFs();
   }
 
   startIndexing(identifier: string) {
     const repoPath = `${PERSIST_ROOT}/${identifier}`;
     try {
-      const resultFilePath = this.gitoxide.ccall('gitoxide_run_git_indexer', 'string', ['string'], [repoPath]);
-      if (!resultFilePath || resultFilePath.startsWith('error:')) {
+      const resultFilePath = this.gitoxide.ccall(
+        "gitoxide_run_git_indexer",
+        "string",
+        ["string"],
+        [repoPath]
+      );
+      if (!resultFilePath || resultFilePath.startsWith("error:")) {
         throw new Error(resultFilePath);
       }
-      const bytes =  this.gitoxide.FS.readFile(resultFilePath, { encoding: 'binary' });
-      const buffer: Uint8Array = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
-      console.log(`${GITOXIDE_LOG_PREFIX} Indexing completed for repository at ${repoPath}. Result sent to DB worker.`);
-      self.postMessage({
-         type: 'INDEXING_COMPLETED', 
-         identifier, 
-         buffer }, 
-      [buffer.buffer]);
+      const bytes = this.gitoxide.FS.readFile(resultFilePath, {
+        encoding: "binary"
+      });
+      const buffer: Uint8Array =
+        bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+      console.log(
+        `${GITOXIDE_LOG_PREFIX} Indexing completed for repository at ${repoPath}. Result sent to DB worker.`
+      );
+      self.postMessage(
+        {
+          type: "INDEXING_COMPLETED",
+          identifier,
+          buffer
+        },
+        [buffer.buffer]
+      );
     } catch (error) {
-      console.error(`${GITOXIDE_LOG_PREFIX} Indexing failed for repository at ${repoPath}:`, error);
+      console.error(
+        `${GITOXIDE_LOG_PREFIX} Indexing failed for repository at ${repoPath}:`,
+        error
+      );
       return;
     }
-    
   }
 
-  async mountRepository(identifier: string, localFileHandle: FileSystemDirectoryHandle) {
+  async mountRepository(
+    identifier: string,
+    localFileHandle: FileSystemDirectoryHandle
+  ) {
     const repoPath = `${PERSIST_ROOT}/${identifier}`;
     this.ensureDirExists(repoPath);
 
+    const writeFile = async ({
+      file,
+      relativePath
+    }: {
+      file: File;
+      relativePath: string;
+    }) => {
+      const destination = `${repoPath}/${relativePath}`.replace(/\\/g, "/");
+      const directoryEnd = destination.lastIndexOf("/");
+      if (directoryEnd > repoPath.length) {
+        this.ensureDirExists(destination.slice(0, directoryEnd));
+      }
 
-    const writeFile = async ({ file, relativePath }: { file: File, relativePath: string }) => {
-        const destination = `${repoPath}/${relativePath}`.replace(/\\/g, '/');
-        const directoryEnd = destination.lastIndexOf('/');
-        if (directoryEnd > repoPath.length) {
-            this.ensureDirExists(destination.slice(0, directoryEnd));
-        }
-
-        const buffer = new Uint8Array(await file.arrayBuffer());
-        this.gitoxide.FS.writeFile(destination, buffer, { canOwn: true });
-        return true;
+      const buffer = new Uint8Array(await file.arrayBuffer());
+      this.gitoxide.FS.writeFile(destination, buffer, { canOwn: true });
+      return true;
     };
 
-    const { files: gitFiles } = await this.collectGitDirectoryEntries(localFileHandle, (count: number) => {
+    const { files: gitFiles } = await this.collectGitDirectoryEntries(
+      localFileHandle,
+      (count: number) => {
         // TODO: Implement progress callback
-    });
+      }
+    );
 
     let writtenFiles = 0;
 
     for (const entry of gitFiles) {
-        if (await writeFile(entry)) {
-            writtenFiles += 1;
-        }
+      if (await writeFile(entry)) {
+        writtenFiles += 1;
+      }
     }
 
     await this.syncFs(false);
@@ -85,259 +107,288 @@ class WasmGixWorker {
     let copiedTracked = 0;
 
     if (trackedList.length > 0) {
-        const trackedFiles = await this.collectTrackedFileEntries(
-            localFileHandle,
-            trackedList,
-            (processed, total) => {
-                // TODO: Implement progress callback
-            },
-        );
-
-        for (const entry of trackedFiles) {
-            if (await writeFile(entry)) {
-                writtenFiles += 1;
-                copiedTracked += 1;
-            }
+      const trackedFiles = await this.collectTrackedFileEntries(
+        localFileHandle,
+        trackedList,
+        (processed, total) => {
+          // TODO: Implement progress callback
         }
+      );
+
+      for (const entry of trackedFiles) {
+        if (await writeFile(entry)) {
+          writtenFiles += 1;
+          copiedTracked += 1;
+        }
+      }
     }
 
     await this.syncFs(false);
 
-    console.log(`${GITOXIDE_LOG_PREFIX} Mounted repository at ${repoPath} with ${writtenFiles} files.`);
+    console.log(
+      `${GITOXIDE_LOG_PREFIX} Mounted repository at ${repoPath} with ${writtenFiles} files.`
+    );
+  }
 
-}
-
-
-async collectGitDirectoryEntries(localFileHandle: FileSystemDirectoryHandle, onProgress: any) {
+  async collectGitDirectoryEntries(
+    localFileHandle: FileSystemDirectoryHandle,
+    onProgress: any
+  ) {
     let gitHandle;
     try {
-        gitHandle = await localFileHandle.getDirectoryHandle('.git', { create: false });
+      gitHandle = await localFileHandle.getDirectoryHandle(".git", {
+        create: false
+      });
     } catch (error) {
-        throw new Error('Selected directory does not contain a .git directory.');
+      throw new Error("Selected directory does not contain a .git directory.");
     }
 
     const files = [];
     let count = 0;
-    const stack = [{ handle: gitHandle, path: '.git' }];
+    const stack = [{ handle: gitHandle, path: ".git" }];
 
     while (stack.length > 0) {
-        const popped = stack.pop();
-        if (!popped) {
+      const popped = stack.pop();
+      if (!popped) {
+        continue;
+      }
+      const {
+        handle,
+        path
+      }: {
+        handle: FileSystemDirectoryHandle | undefined;
+        path: string | undefined;
+      } = popped;
+      if (!handle) {
+        continue;
+      }
+      for await (const entry of (handle as any).values()) {
+        const nextPath = `${path}/${entry.name}`;
+        if (entry.kind === "file") {
+          // Avoid copying the Git index to the virtual FS. The index is large
+          // and not needed for read-only history operations. Importing it
+          // can cause the wasm runtime to read and hash it, triggering
+          // memory pressure and out-of-bounds traps.
+          if (nextPath === ".git/index") {
             continue;
-        }
-        const { handle, path }: { handle: FileSystemDirectoryHandle | undefined, path: string | undefined } = popped;
-        if (!handle) {
-            continue;
-        }
-        for await (const entry of (handle as any).values()) {
-            const nextPath = `${path}/${entry.name}`;
-            if (entry.kind === 'file') {
-                // Avoid copying the Git index to the virtual FS. The index is large
-                // and not needed for read-only history operations. Importing it
-                // can cause the wasm runtime to read and hash it, triggering
-                // memory pressure and out-of-bounds traps.
-                if (nextPath === '.git/index') {
-                    continue;
-                }
-                try {
-                    const file = await entry.getFile();
-                    files.push({ file, relativePath: nextPath });
-                    count += 1;
-                    if (typeof onProgress === 'function') {
-                        onProgress(count);
-                    }
-                } catch (error) {
-                    console.warn('Failed to read .git entry', nextPath, error);
-                }
-            } else if (entry.kind === 'directory') {
-                stack.push({ handle: entry, path: nextPath });
+          }
+          try {
+            const file = await entry.getFile();
+            files.push({ file, relativePath: nextPath });
+            count += 1;
+            if (typeof onProgress === "function") {
+              onProgress(count);
             }
+          } catch (error) {
+            console.warn("Failed to read .git entry", nextPath, error);
+          }
+        } else if (entry.kind === "directory") {
+          stack.push({ handle: entry, path: nextPath });
         }
+      }
     }
 
     return { files, fileCount: count };
-}
+  }
 
-// TODO: cleanup
-async collectTrackedFileEntries(localFileHandle: FileSystemDirectoryHandle, trackedPaths: string[], onProgress: (processed: number, total: number) => void) {
+  // TODO: cleanup
+  async collectTrackedFileEntries(
+    localFileHandle: FileSystemDirectoryHandle,
+    trackedPaths: string[],
+    onProgress: (processed: number, total: number) => void
+  ) {
     const entries = [];
     const directoryCache = new Map();
-    directoryCache.set('', localFileHandle);
+    directoryCache.set("", localFileHandle);
 
     const total = trackedPaths.length;
     let processed = 0;
 
     for (const rawPath of trackedPaths) {
-        const relativePath = rawPath?.replace(/^[\\/]+/, '');
-        if (!relativePath) {
-            processed += 1;
-            if (typeof onProgress === 'function') {
-                onProgress(processed, total);
-            }
-            continue;
+      const relativePath = rawPath?.replace(/^[\\/]+/, "");
+      if (!relativePath) {
+        processed += 1;
+        if (typeof onProgress === "function") {
+          onProgress(processed, total);
         }
+        continue;
+      }
 
-        const segments = relativePath.split('/').filter(Boolean);
-        if (segments.length === 0) {
-            processed += 1;
-            if (typeof onProgress === 'function') {
-                onProgress(processed, total);
-            }
-            continue;
+      const segments = relativePath.split("/").filter(Boolean);
+      if (segments.length === 0) {
+        processed += 1;
+        if (typeof onProgress === "function") {
+          onProgress(processed, total);
         }
+        continue;
+      }
 
-        const fileName: string | undefined = segments.pop();
-        const directoryPath = segments.join('/');
+      const fileName: string | undefined = segments.pop();
+      const directoryPath = segments.join("/");
 
-        try {
-            const directoryHandle = await this.getDirectoryHandleCached(localFileHandle, directoryCache, directoryPath);
-            if (!directoryHandle) {
-                continue;
-            }
-            const fileHandle = await directoryHandle.getFileHandle(fileName!, { create: false });
-            const file = await fileHandle.getFile();
-            entries.push({ file, relativePath });
-        } catch (error) {
-            console.warn(`Failed to read tracked path ${relativePath}`, error);
-        } finally {
-            processed += 1;
-            if (typeof onProgress === 'function') {
-                onProgress(processed, total);
-            }
+      try {
+        const directoryHandle = await this.getDirectoryHandleCached(
+          localFileHandle,
+          directoryCache,
+          directoryPath
+        );
+        if (!directoryHandle) {
+          continue;
         }
+        const fileHandle = await directoryHandle.getFileHandle(fileName!, {
+          create: false
+        });
+        const file = await fileHandle.getFile();
+        entries.push({ file, relativePath });
+      } catch (error) {
+        console.warn(`Failed to read tracked path ${relativePath}`, error);
+      } finally {
+        processed += 1;
+        if (typeof onProgress === "function") {
+          onProgress(processed, total);
+        }
+      }
     }
 
     return entries;
-}
+  }
 
-async getDirectoryHandleCached(localDirectoryHandle: FileSystemDirectoryHandle, cache: Map<string, FileSystemDirectoryHandle | null>, path: string) {
+  async getDirectoryHandleCached(
+    localDirectoryHandle: FileSystemDirectoryHandle,
+    cache: Map<string, FileSystemDirectoryHandle | null>,
+    path: string
+  ) {
     if (!path) {
-        return localDirectoryHandle;
+      return localDirectoryHandle;
     }
     if (cache.has(path)) {
-        return cache.get(path);
+      return cache.get(path);
     }
 
-    const segments = path.split('/').filter(Boolean);
+    const segments = path.split("/").filter(Boolean);
     let currentHandle = localDirectoryHandle;
-    let currentPath = '';
+    let currentPath = "";
 
     for (const segment of segments) {
-        currentPath = currentPath ? `${currentPath}/${segment}` : segment;
-        if (cache.has(currentPath)) {
-            const cachedHandle = cache.get(currentPath);
-            if (!cachedHandle) {
-                cache.set(path, null);
-                return null;
-            }
-            currentHandle = cachedHandle;
-            continue;
+      currentPath = currentPath ? `${currentPath}/${segment}` : segment;
+      if (cache.has(currentPath)) {
+        const cachedHandle = cache.get(currentPath);
+        if (!cachedHandle) {
+          cache.set(path, null);
+          return null;
         }
+        currentHandle = cachedHandle;
+        continue;
+      }
 
-        try {
-            currentHandle = await currentHandle.getDirectoryHandle(segment, { create: false });
-        } catch (error) {
-            console.warn(`Failed to access directory ${currentPath}`, error);
-            cache.set(currentPath, null);
-            cache.set(path, null);
-            return null;
-        }
+      try {
+        currentHandle = await currentHandle.getDirectoryHandle(segment, {
+          create: false
+        });
+      } catch (error) {
+        console.warn(`Failed to access directory ${currentPath}`, error);
+        cache.set(currentPath, null);
+        cache.set(path, null);
+        return null;
+      }
 
-        cache.set(currentPath, currentHandle);
+      cache.set(currentPath, currentHandle);
     }
 
     cache.set(path, currentHandle);
     return currentHandle;
-}
+  }
 
-
-ensureDirExists(path: string) {
-    const parts = path.split('/').filter(part => part.length > 0);
-    let currentPath = '';
+  ensureDirExists(path: string) {
+    const parts = path.split("/").filter((part) => part.length > 0);
+    let currentPath = "";
     for (const part of parts) {
-        currentPath += `/${part}`;
-        if (!this.createdDirs.has(currentPath)) {
-            try {
-                this.gitoxide.FS.mkdir(currentPath);
-                this.createdDirs.add(currentPath);
-            } catch (error) {
-                if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
-                    console.error(`Error creating directory ${currentPath}:`, error);
-                }
-            }
+      currentPath += `/${part}`;
+      if (!this.createdDirs.has(currentPath)) {
+        try {
+          this.gitoxide.FS.mkdir(currentPath);
+          this.createdDirs.add(currentPath);
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
+            console.error(`Error creating directory ${currentPath}:`, error);
+          }
         }
+      }
     }
-}
+  }
 
-async setupPersistentFs() {
+  async setupPersistentFs() {
     try {
-        this.gitoxide.FS.mkdir(PERSIST_ROOT);
+      this.gitoxide.FS.mkdir(PERSIST_ROOT);
     } catch (error) {
-        console.error('Error creating PERSIST_ROOT:', error);
+      console.error("Error creating PERSIST_ROOT:", error);
     }
 
     try {
-        this.gitoxide.FS.mount(this.gitoxide.IDBFS, {}, PERSIST_ROOT);
+      this.gitoxide.FS.mount(this.gitoxide.IDBFS, {}, PERSIST_ROOT);
     } catch (error) {
-        console.error('Error mounting IDBFS:', error);
+      console.error("Error mounting IDBFS:", error);
     }
 
     await this.syncFs(true);
     this.createdDirs.add(PERSIST_ROOT);
     //persistentReady = true;
     await this.refreshStoredRepos();
-}
+  }
 
-async syncFs(populate: boolean) {
+  async syncFs(populate: boolean) {
     return new Promise((resolve, reject) => {
-        this.gitoxide.FS.syncfs(populate, (error: Error) => {
-            if (error) {
-                reject(error);
-            } else {
-                console.log('IDBFS sync complete');
-                resolve(null);
-            }
-        });
+      this.gitoxide.FS.syncfs(populate, (error: Error) => {
+        if (error) {
+          reject(error);
+        } else {
+          console.log("IDBFS sync complete");
+          resolve(null);
+        }
+      });
     }).catch((error) => {
-        console.error('IDBFS sync failed:', error);
+      console.error("IDBFS sync failed:", error);
     });
-}
+  }
 
-async refreshStoredRepos() {
+  async refreshStoredRepos() {
     let repos: string[] = [];
     try {
-        repos = this.gitoxide.FS.readdir(PERSIST_ROOT)
-            .filter((name: string) => name !== '.' && name !== '..')
-            .sort((a: string, b: string) => a.localeCompare(b));
+      repos = this.gitoxide.FS.readdir(PERSIST_ROOT)
+        .filter((name: string) => name !== "." && name !== "..")
+        .sort((a: string, b: string) => a.localeCompare(b));
     } catch (error) {
-        console.warn('Failed to enumerate stored repositories', error);
+      console.warn("Failed to enumerate stored repositories", error);
     }
     this.storedRepositories = repos;
-}
+  }
 
-trackedPathsFor(repositoryPath: string): Set<string> {
+  trackedPathsFor(repositoryPath: string): Set<string> {
     const tracked: Set<string> = new Set();
 
     try {
-        const trackedList = this.gitoxide.ccall('gitoxide_tracked_paths', 'string', ['string'], [repositoryPath]);
-        if (trackedList && !trackedList.startsWith('error:')) {
-            trackedList
-                .split('\n')
-                .map((path: string) => path.trim())
-                .filter(Boolean)
-                .forEach((path: string) => tracked.add(path));
-        } else if (trackedList && trackedList.startsWith('error:')) {
-            console.warn(trackedList);
-        }
+      const trackedList = this.gitoxide.ccall(
+        "gitoxide_tracked_paths",
+        "string",
+        ["string"],
+        [repositoryPath]
+      );
+      if (trackedList && !trackedList.startsWith("error:")) {
+        trackedList
+          .split("\n")
+          .map((path: string) => path.trim())
+          .filter(Boolean)
+          .forEach((path: string) => tracked.add(path));
+      } else if (trackedList && trackedList.startsWith("error:")) {
+        console.warn(trackedList);
+      }
     } catch (error) {
-        console.warn('Could not determine tracked paths', error);
+      console.warn("Could not determine tracked paths", error);
     }
 
     return tracked;
+  }
 }
-}
-
-
 
 onmessage = () => {
   console.log("wasmGixWorker: Received message but not initialized yet!");
@@ -354,11 +405,17 @@ const wasmGixWorker = new WasmGixWorker();
     switch (receivedMessage.type) {
       case "LOAD_REPOSITORY": {
         console.log("Loading repository:", receivedMessage.identifier);
-        await wasmGixWorker.mountRepository(receivedMessage.identifier, receivedMessage.localFileHandle);
+        await wasmGixWorker.mountRepository(
+          receivedMessage.identifier,
+          receivedMessage.localFileHandle
+        );
         break;
       }
       case "START_INDEXING": {
-        console.log("Starting indexing for repository:", receivedMessage.identifier);
+        console.log(
+          "Starting indexing for repository:",
+          receivedMessage.identifier
+        );
         wasmGixWorker.startIndexing(receivedMessage.identifier);
         break;
       }
@@ -367,6 +424,5 @@ const wasmGixWorker = new WasmGixWorker();
     }
 
     //
-
   };
 })();

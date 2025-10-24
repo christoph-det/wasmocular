@@ -12,24 +12,38 @@ export class WasmGixStore {
   }
 
   init() {
-    this.worker = new Worker(new URL("../../workers/wasmGixWorker.ts", import.meta.url), {
-      type: "module"
-    });
+    this.worker = new Worker(
+      new URL("../../workers/wasmGixWorker.ts", import.meta.url),
+      {
+        type: "module"
+      }
+    );
 
-    this.worker.onmessage = (event: MessageEvent<WasmGixWorkerOutboundMessage>) => {
+    this.worker.onmessage = (
+      event: MessageEvent<WasmGixWorkerOutboundMessage>
+    ) => {
       const receivedMessage = event.data;
       switch (receivedMessage.type) {
         case "INDEXING_COMPLETED": {
-          this.rootStore.dbStore.receiveIndexerResults(receivedMessage.identifier, receivedMessage.buffer);
+          this.rootStore.dbStore.receiveIndexerResults(
+            receivedMessage.identifier,
+            receivedMessage.buffer
+          );
           break;
         }
         default:
-          console.warn("WasmGixStore: Unknown message from worker", receivedMessage);
+          console.warn(
+            "WasmGixStore: Unknown message from worker",
+            receivedMessage
+          );
       }
     };
   }
 
-  loadRepository(identifier: string, localFileHandle: FileSystemDirectoryHandle) {
+  loadRepository(
+    identifier: string,
+    localFileHandle: FileSystemDirectoryHandle
+  ) {
     if (!this.worker) {
       console.error("WasmGix worker not initialized");
       return;
@@ -61,5 +75,4 @@ export class WasmGixStore {
     }
     this.worker.postMessage(message);
   }
-
 }

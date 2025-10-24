@@ -82,7 +82,6 @@ class DatabaseWorker {
     repositoryIdentifier: string,
     accessMode: duckdb.DuckDBAccessMode
   ) {
-
     if (this.isInitialized) {
       const sameIdentifier = this.repositoryIdentifier === repositoryIdentifier;
       const sameMode = this.accessMode === accessMode;
@@ -199,7 +198,9 @@ class DatabaseWorker {
   }
 }
 
-const resolveAccessMode = (mode: DatabaseAccessMode): duckdb.DuckDBAccessMode => {
+const resolveAccessMode = (
+  mode: DatabaseAccessMode
+): duckdb.DuckDBAccessMode => {
   return mode === "READ_WRITE"
     ? duckdb.DuckDBAccessMode.READ_WRITE
     : duckdb.DuckDBAccessMode.READ_ONLY;
@@ -214,7 +215,10 @@ onmessage = async function (event: MessageEvent<DatabaseWorkerInboundMessage>) {
     case "INIT": {
       try {
         const accessMode = resolveAccessMode(receivedMessage.accessMode);
-        await dbWorker.initialize(receivedMessage.repositoryIdentifier, accessMode);
+        await dbWorker.initialize(
+          receivedMessage.repositoryIdentifier,
+          accessMode
+        );
       } catch (error) {
         const errorMessage: DatabaseWorkerOutboundMessage = {
           type: "ERROR",

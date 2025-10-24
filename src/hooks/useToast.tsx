@@ -19,7 +19,6 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => (
 
 export const useToast = (): UseToastResult => {
   return useMemo<UseToastResult>(() => {
-
     return {
       showInfo: (message) => toast(message),
       showSuccess: (message) => toast.success(message),

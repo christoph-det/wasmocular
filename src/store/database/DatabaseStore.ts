@@ -36,7 +36,6 @@ export class DatabaseStore {
     this.postMessage(indexingResultMessage, [resultBuffer.buffer]);
   }
 
-
   ensureInitialization(
     repositoryIdentifier: string,
     accessMode: DatabaseAccessMode
@@ -59,7 +58,10 @@ export class DatabaseStore {
     };
 
     this.postMessage(initMessage).catch((error) => {
-      console.error("DatabaseStore: Failed to initialize database worker", error);
+      console.error(
+        "DatabaseStore: Failed to initialize database worker",
+        error
+      );
     });
   }
 
@@ -87,7 +89,6 @@ export class DatabaseStore {
       this.postMessage(queryMessage);
     });
   }
-
 
   init() {
     // Use new URL for correct worker path resolution
@@ -139,7 +140,10 @@ export class DatabaseStore {
     };
   }
 
-  private postMessage(message: DatabaseWorkerInboundMessage, transfer?: Transferable[]): Promise<unknown> {
+  private postMessage(
+    message: DatabaseWorkerInboundMessage,
+    transfer?: Transferable[]
+  ): Promise<unknown> {
     if (this.worker) {
       if (transfer) {
         this.worker.postMessage(message, transfer);
