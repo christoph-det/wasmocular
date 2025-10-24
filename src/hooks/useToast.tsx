@@ -4,11 +4,11 @@ import { toast } from "sonner";
 
 export type ToastVariant = "info" | "success" | "error";
 
-type UseToastResult = {
+interface UseToastResult {
   showInfo: (message: string) => void;
   showSuccess: (message: string) => void;
   showError: (message: string) => void;
-};
+}
 
 export const ToastProvider = ({ children }: { children: ReactNode }) => (
   <>

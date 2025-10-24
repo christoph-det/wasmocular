@@ -65,7 +65,7 @@ export class DatabaseStore {
     });
   }
 
-  runQuery(sql: string, returnResult: boolean = true): Promise<unknown> {
+  runQuery(sql: string, returnResult = true): Promise<unknown> {
     const requestId = returnResult ? this.nextRequestId() : undefined;
 
     const queryMessage: DatabaseWorkerInboundMessage = {

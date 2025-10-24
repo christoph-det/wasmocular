@@ -14,7 +14,7 @@ const PERSIST_ROOT = "/repos";
 
 class WasmGixWorker {
   gitoxide: any = null;
-  createdDirs: Set<string> = new Set(["/"]);
+  createdDirs = new Set<string>(["/"]);
   storedRepositories: string[] = [];
 
   async init() {
@@ -364,7 +364,7 @@ class WasmGixWorker {
   }
 
   trackedPathsFor(repositoryPath: string): Set<string> {
-    const tracked: Set<string> = new Set();
+    const tracked = new Set<string>();
 
     try {
       const trackedList = this.gitoxide.ccall(
@@ -379,7 +379,7 @@ class WasmGixWorker {
           .map((path: string) => path.trim())
           .filter(Boolean)
           .forEach((path: string) => tracked.add(path));
-      } else if (trackedList && trackedList.startsWith("error:")) {
+      } else if (trackedList?.startsWith("error:")) {
         console.warn(trackedList);
       }
     } catch (error) {

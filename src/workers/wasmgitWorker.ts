@@ -3,11 +3,11 @@ class WasmGitWorker {
   stderr: string[] = [];
   lg2mod: any;
   lg: any;
-  repoURL: string = "";
+  repoURL = "";
   currentRepoRootDir: string | null = null;
   FS: any;
   IDBFS: any;
-  baseOrigin: string = "";
+  baseOrigin = "";
 
   async init(baseOrigin: string) {
     this.baseOrigin = baseOrigin;
