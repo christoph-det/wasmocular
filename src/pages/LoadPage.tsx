@@ -7,6 +7,7 @@ import { DataLoadingState } from "@/store/IndexingStore";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/useToast";
+import { useNavigate } from "react-router-dom";
 
 // initialize rust code
 init().catch((err) => {
@@ -20,6 +21,7 @@ const LoadPage = observer(() => {
   const sumStore = useStores().testStore;
   const indexingStore = useStores().indexingStore;
   const { showError, showInfo, showSuccess } = useToast();
+  const navigate = useNavigate();
   const [projectName, setProjectName] = useState<string>("");
   const [gitRepoUrl, setGitRepoUrl] = useState<string>("");
   const [localRepoDirHandle, setLocalRepoDirHandle] =
@@ -44,6 +46,13 @@ const LoadPage = observer(() => {
       newWorker.terminate();
     };
   }, [sumStore]);
+
+  useEffect(() => {
+    if (indexingStore.dataLoadingState === DataLoadingState.INDEXING_FINISHED) {
+      navigate("/explore-customquery", { replace: true });
+      window.location.hash = "#explore-customquery";
+    }
+  }, [indexingStore.dataLoadingState, navigate]);
 
   return (
     <div className="p-10 pb-14 mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen">
