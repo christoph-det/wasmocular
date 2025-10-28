@@ -40,6 +40,18 @@ export class WasmGixStore {
     };
   }
 
+  reloadRepository(identifier: string) {
+    if (!this.worker) {
+      console.error("WasmGix worker not initialized");
+      return;
+    }
+
+    this.worker.postMessage({
+      type: "RELOAD_REPOSITORY",
+      identifier
+    });
+  }
+
   loadRepository(
     identifier: string,
     localFileHandle: FileSystemDirectoryHandle
@@ -53,6 +65,18 @@ export class WasmGixStore {
       type: "LOAD_REPOSITORY",
       identifier,
       localFileHandle
+    });
+  }
+
+  copyClonedRepository(identifier: string) {
+    if (!this.worker) {
+      console.error("WasmGix worker not initialized");
+      return;
+    }
+
+    this.worker.postMessage({
+      type: "COPY_CLONED_REPOSITORY",
+      identifier
     });
   }
 

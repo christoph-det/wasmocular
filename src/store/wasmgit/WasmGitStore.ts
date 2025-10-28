@@ -1,5 +1,8 @@
+import { wrap } from "comlink";
+
 export class WasmGitStore {
   worker: Worker | null = null;
+  rpcWorker: any = null;
 
   constructor() {
     this.init();
@@ -14,28 +17,11 @@ export class WasmGitStore {
       }
     );
 
-    this.worker.onmessage = (event: MessageEvent) => {
-      console.log("Message from wasmGitWorker:", event.data);
-    };
+    this.rpcWorker = wrap(this.worker);
   }
 
-  postMessage(message: any) {
-    if (!this.worker) {
-      console.error("WasmGit worker not initialized");
-      return;
-    }
-    this.worker.postMessage(message);
+  cloneRepository(gitRepoURL: string, repoIdentifier: string): Promise<void> {
+    return this.rpcWorker.cloneRepository(gitRepoURL, repoIdentifier);
   }
 
-  cloneRepository(gitRepoURL: string) {
-    this.postMessage({ action: "cloneRepository", gitRepoURL });
-  }
-
-  reloadRepo(gitRepoURL: string) {
-    this.postMessage({ action: "reloadRepo", gitRepoURL });
-  }
-
-  countCommits() {
-    this.postMessage({ action: "countCommits" });
-  }
 }

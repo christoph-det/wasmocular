@@ -1,6 +1,4 @@
-import * as Comlink from "comlink";
-
-class WasmGitWorker {
+class WasmGitWorkerAlt {
   stdout: string[] = [];
   stderr: string[] = [];
   lg2mod: any;
@@ -14,7 +12,6 @@ class WasmGitWorker {
   async init(baseOrigin: string) {
     this.baseOrigin = baseOrigin;
     this.lg2mod = await import(
-      /* @vite-ignore */
       new URL("wasm-git-library/lg2.js", import.meta.url).href
     );
     // Prevent lg2 from printing to the console by overriding Emscripten print handlers
@@ -63,40 +60,83 @@ class WasmGitWorker {
     );
   }
 
-  mountIDBFS(repoIdentifier: string) {
+  mountIDBFS(loadExisting: boolean) {
+    //const mountPath = `/${this.currentRepoRootDir}`;
     const mountPath = "/repos"
-    const repoPath = `${mountPath}/${repoIdentifier}`;
+    const repoPath = `${mountPath}`;
     try {
       this.FS.mkdir(mountPath);
-      //this.FS.mkdir(repoPath);
+      this.FS.mkdir(`${mountPath}/123`);
+
     } catch {
       console.log("Mount path already exists");
     }
     this.FS.mount(this.IDBFS, {}, mountPath);
+    if (loadExisting) {
+      this.FS.syncfs(true, (err: any) => {
+        if (err) console.error("syncfs(load) error:", err);
+        if (
+          this.FS.readdir(mountPath).find(
+            (file: string) => file === ".git"
+          )
+        ) {
+          this.FS.chdir(mountPath);
+          postMessage({ dircontents: this.FS.readdir(".") });
+          console.log(this.currentRepoRootDir, "restored from indexeddb");
+        } else {
+          postMessage({ notfound: true });
+        }
+      });
+    }
   }
 
-  cloneRepository(gitRepoURL: string, repoIdentifier: string) {
+  cloneRepository(gitRepoURL: string) {
     this.setCurrentRepository(gitRepoURL);
-    this.mountIDBFS(repoIdentifier);
-    this.lg.callMain(["clone", this.repoURL, `/repos/${repoIdentifier}`]);
+    this.mountIDBFS(false);
+    this.lg.callMain(["clone", this.repoURL, `/repos/123`]);
     console.log("Cloned repo");
+    this.FS.chdir(`/repos/123`);
     // NOTE: When syncing the fs to indexed DB, for some repos we get an error (code 43), here. For example the wasm-git repo itself. I am assuming this could be bacause the repo links
     // 2 alias files, and due to a bug in emscripten, this causes an error
-    this.FS.syncfs((err: any) => {
+    this.FS.syncfs(false, (err: any) => {
       if (err) console.error("syncfs(save) error:", err);
       console.log(this.currentRepoRootDir, "stored to indexeddb");
+      postMessage({ dircontents: this.FS.readdir(".") });
     });
   }
 
+  reloadRepo(gitRepoURL: string) {
+    this.setCurrentRepository("/repos/123");
+    this.mountIDBFS(true);
+  }
 
+  countCommits() {
+    this.lg.callMainWithResetStream(["rev-list", "HEAD"]);
+    console.log("Commit count:", this.stdout.length);
+  }
 }
 
 onmessage = () => {
   console.log("wasmGitWorker: Received message but not initialized yet!");
 };
 
-const wasmGitWorker = new WasmGitWorker();
-await wasmGitWorker.init(self.location.origin);
+const wasmGitWorker2 = new WasmGitWorker();
 
+// Initialize once and handle messages
+(async function () {
+  await wasmGitWorker.init(self.location.origin);
 
-Comlink.expose(wasmGitWorker);
+  onmessage = async function (event) {
+    const data = event.data || {};
+    console.log("wasmGitWorker: Received message:", data);
+    if (data.action === "cloneRepository") {
+      wasmGitWorker.cloneRepository(data.gitRepoURL);
+    } else if (data.action === "reloadRepo") {
+      wasmGitWorker.reloadRepo(data.gitRepoURL);
+    } else if (data.action === "countCommits") {
+      wasmGitWorker.countCommits();
+    } else {
+      console.warn("wasmGitWorker: Unknown action:", data.action);
+    }
+  };
+})();

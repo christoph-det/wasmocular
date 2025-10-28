@@ -7,7 +7,9 @@ type WasmGixMessagePayload = {
     identifier: string;
     localFileHandle: FileSystemDirectoryHandle;
   };
+  RELOAD_REPOSITORY: { identifier: string };
   START_INDEXING: { identifier: string };
+  COPY_CLONED_REPOSITORY: { identifier: string };
 };
 
 export type WasmGixMessageType = keyof WasmGixMessagePayload;

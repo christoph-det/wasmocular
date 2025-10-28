@@ -1,4 +1,5 @@
 /// <reference lib="webworker" />
+import { generateRepoIdentifier } from "@/utils/utils.js";
 import initGitoxide from "./wasm-gix-library/wasm_gix.js";
 import { WasmGixWorkerMessage } from "./wasmGixWorker.types.js";
 
@@ -23,7 +24,7 @@ class WasmGixWorker {
     await this.setupPersistentFs();
   }
 
-  startIndexing(identifier: string) {
+  async startIndexing(identifier: string) {
     const repoPath = `${PERSIST_ROOT}/${identifier}`;
     try {
       const resultFilePath = this.gitoxide.ccall(
@@ -38,6 +39,9 @@ class WasmGixWorker {
       const bytes = this.gitoxide.FS.readFile(resultFilePath, {
         encoding: "binary"
       });
+      console.log(
+        `${GITOXIDE_LOG_PREFIX} Indexing produced result file at ${resultFilePath} for repository at ${repoPath}.`
+      );
       const buffer: Uint8Array =
         bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
       console.log(
@@ -58,6 +62,13 @@ class WasmGixWorker {
       );
       return;
     }
+  }
+
+  async remountRepository(identifier: string) {
+    const repoPath = `${PERSIST_ROOT}/${identifier}`;
+    await this.syncFs(true);
+    console.log(`Repository remounted at ${repoPath}`);
+  
   }
 
   async mountRepository(
@@ -388,6 +399,8 @@ class WasmGixWorker {
 
     return tracked;
   }
+
+  
 }
 
 onmessage = () => {
@@ -411,6 +424,12 @@ const wasmGixWorker = new WasmGixWorker();
         );
         break;
       }
+      case "RELOAD_REPOSITORY": {
+        console.log("Reloading repository:", receivedMessage.identifier);
+        // For now, re-mounting is the same as mounting
+        //wasmGixWorker.remountRepository(receivedMessage.identifier);
+        break;
+      } 
       case "START_INDEXING": {
         console.log(
           "Starting indexing for repository:",

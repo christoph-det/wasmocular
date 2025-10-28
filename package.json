@@ -22,6 +22,7 @@
     "apache-arrow": "^21.1.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "comlink": "^4.4.2",
     "eslint-plugin-react": "^7.37.2",
     "lucide-react": "^0.511.0",
     "mobx": "^6.13.7",

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/useToast";
 import { useNavigate } from "react-router-dom";
+import { generateRepoIdentifier } from "@/utils/utils";
 
 // initialize rust code
 init().catch((err) => {
@@ -139,22 +140,6 @@ const LoadPage = observer(() => {
               <Button text={"Test WASM"} onClick={() => clickButtonCB_WASM()} />
               <Button text={"Test JS"} onClick={() => clickButtonCB_JS()} />
               <Button text={"Reset"} onClick={() => resetCB()} />
-              <Button
-                text={"WASM GIT: Clone"}
-                onClick={() => testwasmGitWorker()}
-              />
-              <Button
-                text={"WASM GIT: Count Commits"}
-                onClick={() => countCommits()}
-              />
-              <Button
-                text={"WASM GIT: Reload Repo"}
-                onClick={() => reloadRepo()}
-              />
-              <Button
-                text={"WASM GIX: Parse OID"}
-                onClick={() => testwasmGixWorker()}
-              />
             </div>
             <div className="mt-4">
               <div className="inline-block px-6 py-3 rounded-xl bg-blue-50 border border-blue-200 shadow text-blue-900 font-mono text-lg">
@@ -181,19 +166,25 @@ const LoadPage = observer(() => {
       return;
     }
 
+    
+    //navigate to index page
+    const repoIdentifier = generateRepoIdentifier(); // Simple unique ID based on timestamp
+    indexingStore.createNewProject(projectName, repoIdentifier);
+
     // If a GitHub URL is provided, trigger clone in the background
     const trimmedUrl = gitRepoUrl.trim();
     if (trimmedUrl) {
-      wasmGitStore.cloneRepository(trimmedUrl);
       showInfo("Cloning repository in the background...");
+      wasmGitStore.cloneRepository(trimmedUrl, repoIdentifier).then(() => {
+        showInfo("Repository successfully cloned.");
+        wasmGixStore.reloadRepository(repoIdentifier);
+      });
+    } else {
+      wasmGixStore.loadRepository(repoIdentifier, localRepoDirHandle!);
     }
 
-    //navigate to index page
-    const repoIdentifier = Date.now().toString(16); // Simple unique ID based on timestamp
-    indexingStore.createNewProject(projectName, repoIdentifier);
 
     indexingStore.setDataLoadingState(DataLoadingState.REPOSITORY_LOADED);
-    wasmGixStore.loadRepository(repoIdentifier, localRepoDirHandle!);
 
     window.location.hash = "#index";
     showSuccess("Project created successfully.");
@@ -239,29 +230,11 @@ const LoadPage = observer(() => {
   }
 
   function resetCB() {
-    sumStore.setCalcSum(0);
+    wasmGixStore.copyClonedRepository("FLBadgePrinting.git");
   }
 
-  function testwasmGixWorker() {
-    // Send a test message to the wasmGixWorker
-  }
 
-  function testwasmGitWorker() {
-    // Send a test message to the wasmGitWorker
-    wasmGitStore.cloneRepository(
-      "https://github.com/christoph-det/FLBadgePrinting.git"
-    );
-  }
 
-  function countCommits() {
-    wasmGitStore.countCommits();
-  }
-
-  function reloadRepo() {
-    wasmGitStore.reloadRepo(
-      "https://github.com/christoph-det/FLBadgePrinting.git"
-    );
-  }
 });
 
 export default LoadPage;
