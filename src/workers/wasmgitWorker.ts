@@ -75,14 +75,22 @@ class WasmGitWorker {
     this.FS.mount(this.IDBFS, {}, mountPath);
   }
 
-  cloneRepository(gitRepoURL: string, repoIdentifier: string) {
+  async cloneRepository(gitRepoURL: string, repoIdentifier: string) {
     this.setCurrentRepository(gitRepoURL);
     this.mountIDBFS(repoIdentifier);
     this.lg.callMain(["clone", this.repoURL, `/repos/${repoIdentifier}`]);
     console.log("Cloned repo");
+    try {
+      this.FS.unlink(`/repos/${repoIdentifier}/.git/index`);
+      console.log("Removed Git index to reduce wasm memory usage");
+    } catch (error: any) {
+      if (error?.code !== "ENOENT") {
+        console.warn("Failed to remove Git index", error);
+      }
+    }
     // NOTE: When syncing the fs to indexed DB, for some repos we get an error (code 43), here. For example the wasm-git repo itself. I am assuming this could be bacause the repo links
     // 2 alias files, and due to a bug in emscripten, this causes an error
-    this.FS.syncfs((err: any) => {
+    await this.FS.syncfs((err: any) => {
       if (err) console.error("syncfs(save) error:", err);
       console.log(this.currentRepoRootDir, "stored to indexeddb");
     });
