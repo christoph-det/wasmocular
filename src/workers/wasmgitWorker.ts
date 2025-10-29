@@ -11,22 +11,24 @@ function extractPercent(line: string): number | undefined {
 }
 
 // we only get seperate lines for the download phase, so we can parse percent there
-function parseCloneProgress(line: string): { phase: string; percent: number } | null {
-    const lowered = line.toLowerCase();
-     if (lowered.includes(DOWNLOAD_MARKER)) {
-      const percent = extractPercent(line);
-      return percent === undefined ? null : { phase: "Downloading", percent };
-    }
-    if (lowered.includes(COUNTING_MARKER)) {
-      return { phase: "Counting", percent: 0 };
-    }
-    if (lowered.includes(COMPRESSING_MARKER)) {
-      return { phase: "Compressing", percent: 0 };
-    }
-    if (lowered.includes(RESOLVING_MARKER)) {
-      return { phase: "Resolving", percent: 100 };
-    }
-    return null;
+function parseCloneProgress(
+  line: string
+): { phase: string; percent: number } | null {
+  const lowered = line.toLowerCase();
+  if (lowered.includes(DOWNLOAD_MARKER)) {
+    const percent = extractPercent(line);
+    return percent === undefined ? null : { phase: "Downloading", percent };
+  }
+  if (lowered.includes(COUNTING_MARKER)) {
+    return { phase: "Counting", percent: 0 };
+  }
+  if (lowered.includes(COMPRESSING_MARKER)) {
+    return { phase: "Compressing", percent: 0 };
+  }
+  if (lowered.includes(RESOLVING_MARKER)) {
+    return { phase: "Resolving", percent: 100 };
+  }
+  return null;
 }
 class WasmGitWorker {
   private lg: any;
@@ -58,12 +60,11 @@ class WasmGitWorker {
 
     this.FS = this.lg.FS;
     this.IDBFS = this.lg.IDBFS;
-
   }
 
   /**
-   * Sets the current repository URL. 
-   * @param url 
+   * Sets the current repository URL.
+   * @param url
    */
   private setCurrentRepository(url: string) {
     // if the url contains github remove everything before and including github.com/
@@ -80,7 +81,7 @@ class WasmGitWorker {
     if (this.isMounted) {
       return;
     }
-    const mountPath = "/repos"
+    const mountPath = "/repos";
     this.isMounted = true;
     this.FS.mkdir(mountPath);
     this.FS.mount(this.IDBFS, {}, mountPath);
@@ -90,8 +91,12 @@ class WasmGitWorker {
    * Clones a remote Git repository into IndexedDB using WasmGit.
    * @param gitRepoURL Expects the URL in the following format: https://github.com/repo-owner/repo-name.git
    * @param repoIdentifier Repository identifier to be used as folder name in IndexedDB and as DB name
-  */
-  async cloneRepository(gitRepoURL: string, repoIdentifier: string, progressCallback: (progress: number, message: string) => void) {
+   */
+  async cloneRepository(
+    gitRepoURL: string,
+    repoIdentifier: string,
+    progressCallback: (progress: number, message: string) => void
+  ) {
     this.logCallback = (logMessage: string) => {
       const progress = parseCloneProgress(logMessage);
       if (!progress) {
@@ -102,7 +107,7 @@ class WasmGitWorker {
         percent = 100;
       }
       progressCallback(percent, `${phase} - ${percent} %`);
-    }
+    };
     this.setCurrentRepository(gitRepoURL);
     await this.ensureRepositoryIsPublic();
     this.mountIDBFS();
@@ -112,14 +117,18 @@ class WasmGitWorker {
       this.FS.unlink(`/repos/${repoIdentifier}/.git/index`);
     } catch (error: any) {
       if (error?.code !== "ENOENT") {
-        console.error(`${this.wasmGitLogPrefix} Failed to remove Git index`, error);
+        console.error(
+          `${this.wasmGitLogPrefix} Failed to remove Git index`,
+          error
+        );
         throw error;
       }
     }
     // NOTE: When syncing the fs to indexed DB, for some repos we get an error (code 43), here. For example the wasm-git repo itself. I am assuming this could be bacause the repo links
     // 2 alias files, and due to a bug in emscripten, this causes an error
     await this.FS.syncfs((err: any) => {
-      if (err) console.error(`${this.wasmGitLogPrefix} syncfs(save) error:`, err);
+      if (err)
+        console.error(`${this.wasmGitLogPrefix} syncfs(save) error:`, err);
     });
   }
 
@@ -150,7 +159,9 @@ class WasmGitWorker {
         );
       }
       if (response.status === 404) {
-        throw new Error("The repository could not be found. Please check the URL.");
+        throw new Error(
+          "The repository could not be found. Please check the URL."
+        );
       }
       throw new Error(
         `Failed to verify repository accessibility (status ${response.status}).`

@@ -7,7 +7,6 @@ const IndexPage = observer(() => {
   const indexingStore = useStores().indexingStore;
   const wasmGixStore = useStores().wasmGixStore;
 
-
   return (
     <div className="p-10 pb-14 mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen">
       <div className="max-w-3xl mx-auto">

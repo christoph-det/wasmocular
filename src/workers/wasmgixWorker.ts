@@ -29,7 +29,6 @@ class WasmGixWorker {
 
     await this.syncFs(true);
 
-    
     try {
       const resultFilePath = this.gitoxide.ccall(
         "gitoxide_run_git_indexer",
@@ -72,7 +71,6 @@ class WasmGixWorker {
     const repoPath = `${PERSIST_ROOT}/${identifier}`;
     await this.syncFs(true);
     console.log(`Repository remounted at ${repoPath}`);
-  
   }
 
   async mountRepository(
@@ -403,8 +401,6 @@ class WasmGixWorker {
 
     return tracked;
   }
-
-  
 }
 
 onmessage = () => {
@@ -433,7 +429,7 @@ const wasmGixWorker = new WasmGixWorker();
         // For now, re-mounting is the same as mounting
         wasmGixWorker.remountRepository(receivedMessage.identifier);
         break;
-      } 
+      }
       case "START_INDEXING": {
         console.log(
           "Starting indexing for repository:",

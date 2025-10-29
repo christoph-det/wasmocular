@@ -20,10 +20,16 @@ export class WasmGitStore {
     this.rpcWorker = wrap(this.worker);
   }
 
-  cloneRepository(gitRepoURL: string, repoIdentifier: string, progressCallback: (progress: number, message: string) => void): Promise<void> {
+  cloneRepository(
+    gitRepoURL: string,
+    repoIdentifier: string,
+    progressCallback: (progress: number, message: string) => void
+  ): Promise<void> {
     const progressProxy = proxy(progressCallback);
-    return this.rpcWorker.cloneRepository(gitRepoURL, repoIdentifier, progressProxy);
+    return this.rpcWorker.cloneRepository(
+      gitRepoURL,
+      repoIdentifier,
+      progressProxy
+    );
   }
-
-
 }

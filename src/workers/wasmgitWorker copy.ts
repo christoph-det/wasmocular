@@ -32,7 +32,6 @@ class WasmGitWorkerAlt {
 
     this.FS = this.lg.FS;
     this.IDBFS = this.lg.IDBFS;
-
   }
 
   flushStdout() {
@@ -62,12 +61,11 @@ class WasmGitWorkerAlt {
 
   mountIDBFS(loadExisting: boolean) {
     //const mountPath = `/${this.currentRepoRootDir}`;
-    const mountPath = "/repos"
+    const mountPath = "/repos";
     const repoPath = `${mountPath}`;
     try {
       this.FS.mkdir(mountPath);
       this.FS.mkdir(`${mountPath}/123`);
-
     } catch {
       console.log("Mount path already exists");
     }
@@ -76,9 +74,7 @@ class WasmGitWorkerAlt {
       this.FS.syncfs(true, (err: any) => {
         if (err) console.error("syncfs(load) error:", err);
         if (
-          this.FS.readdir(mountPath).find(
-            (file: string) => file === ".git"
-          )
+          this.FS.readdir(mountPath).find((file: string) => file === ".git")
         ) {
           this.FS.chdir(mountPath);
           postMessage({ dircontents: this.FS.readdir(".") });

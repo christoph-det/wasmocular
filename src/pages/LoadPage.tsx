@@ -1,6 +1,6 @@
 import { useEffect, useState, SetStateAction } from "react";
 import Button from "../components/button/Button";
-import { Button as ButtonShadCN } from "@/components/ui/button"
+import { Button as ButtonShadCN } from "@/components/ui/button";
 import init, { sum_rs } from "wasm-lib";
 import { observer } from "mobx-react-lite";
 import { useStores } from "../store/StoreContext";
@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/useToast";
 import { useNavigate } from "react-router-dom";
 import { generateRepoIdentifier } from "@/utils/utils";
 import { Progress } from "@/components/ui/progress";
-import { Spinner } from "@/components/ui/spinner"
+import { Spinner } from "@/components/ui/spinner";
 
 // initialize rust code
 init().catch((err) => {
@@ -32,7 +32,8 @@ const LoadPage = observer(() => {
     useState<FileSystemDirectoryHandle | null>(null);
   const [projectCreationError, setProjectCreationError] = useState<string>("");
   const [loadingProgress, setLoadingProgress] = useState<number>(-1);
-  const [loadingProgressMessage, setLoadingProgressMessage] = useState<string>("");
+  const [loadingProgressMessage, setLoadingProgressMessage] =
+    useState<string>("");
 
   const handleprojectNameInputChange = (event: {
     target: { value: SetStateAction<string> };
@@ -132,7 +133,7 @@ const LoadPage = observer(() => {
                 <p className="text-center mb-4"> {loadingProgressMessage}</p>
               </>
             ) : null}
-            
+
             <Button text={"Connect API Data (optional)"} secondary />
             <div className="mt-8 flex justify-center">
               <ButtonShadCN
@@ -140,13 +141,12 @@ const LoadPage = observer(() => {
                 disabled={loadingProgress >= 0}
               >
                 Create Project
-                {loadingProgress >= 0 && (
-                  <Spinner />
-                )}
+                {loadingProgress >= 0 && <Spinner />}
               </ButtonShadCN>
             </div>
-            <p className="text-sm text-red-500 mt-2 text-center">{projectCreationError}</p>
-            
+            <p className="text-sm text-red-500 mt-2 text-center">
+              {projectCreationError}
+            </p>
           </div>
         </div>
 
@@ -182,12 +182,16 @@ const LoadPage = observer(() => {
 
     // Ensure a repository source is chosen
     if (!localRepoDirHandle && gitRepoUrl.trim() === "") {
-      setProjectCreationError("Select a local repository or paste a public GitHub URL.");
+      setProjectCreationError(
+        "Select a local repository or paste a public GitHub URL."
+      );
       return;
     }
 
     setLoadingProgress(0);
-    setLoadingProgressMessage("Counting and compressing objects... (might take a while for large repositories)");
+    setLoadingProgressMessage(
+      "Counting and compressing objects... (might take a while for large repositories)"
+    );
 
     const repoIdentifier = generateRepoIdentifier(); // Simple unique ID based on timestamp
 
@@ -197,30 +201,39 @@ const LoadPage = observer(() => {
     const progressCallback = (progress: number, message: string) => {
       setLoadingProgress(progress);
       setLoadingProgressMessage(message);
-    }
+    };
 
     if (trimmedUrl) {
       showInfo("Cloning repository in the background...");
-      wasmGitStore.cloneRepository(trimmedUrl, repoIdentifier, progressCallback).then(() => {
-        showInfo("Repository successfully cloned.");
-        wasmGixStore.reloadRepository(repoIdentifier);
-        indexingStore.createNewProject(projectName, repoIdentifier);
-        indexingStore.setDataLoadingState(DataLoadingState.REPOSITORY_LOADED);
-        globalThis.location.hash = "#index";
-        showSuccess("Project created successfully.");
-      }).catch((error) => {
-        console.error("Error cloning repository:", error.message);
-        showError("Failed to clone the repository. Please check the URL and try again. Error: " + error.message);
-        setProjectCreationError("Failed to clone the repository. Please check the URL and try again.");
-        setLoadingProgress(-1);
-        setLoadingProgressMessage("");
-      });
+      wasmGitStore
+        .cloneRepository(trimmedUrl, repoIdentifier, progressCallback)
+        .then(() => {
+          showInfo("Repository successfully cloned.");
+          wasmGixStore.reloadRepository(repoIdentifier);
+          indexingStore.createNewProject(projectName, repoIdentifier);
+          indexingStore.setDataLoadingState(DataLoadingState.REPOSITORY_LOADED);
+          globalThis.location.hash = "#index";
+          showSuccess("Project created successfully.");
+        })
+        .catch((error) => {
+          console.error("Error cloning repository:", error.message);
+          showError(
+            "Failed to clone the repository. Please check the URL and try again. Error: " +
+              error.message
+          );
+          setProjectCreationError(
+            "Failed to clone the repository. Please check the URL and try again."
+          );
+          setLoadingProgress(-1);
+          setLoadingProgressMessage("");
+        });
     } else {
       wasmGixStore.loadRepository(repoIdentifier, localRepoDirHandle!);
       indexingStore.createNewProject(projectName, repoIdentifier);
       indexingStore.setDataLoadingState(DataLoadingState.REPOSITORY_LOADED);
       globalThis.location.hash = "#index";
-      showSuccess("Project created successfully.");}
+      showSuccess("Project created successfully.");
+    }
   }
 
   async function handleDirectoryPicker() {
@@ -265,9 +278,6 @@ const LoadPage = observer(() => {
   function resetCB() {
     wasmGixStore.copyClonedRepository("FLBadgePrinting.git");
   }
-
-
-
 });
 
 export default LoadPage;
