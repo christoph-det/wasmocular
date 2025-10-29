@@ -1,4 +1,4 @@
-import { wrap } from "comlink";
+import { proxy, wrap } from "comlink";
 
 export class WasmGitStore {
   worker: Worker | null = null;
@@ -20,8 +20,10 @@ export class WasmGitStore {
     this.rpcWorker = wrap(this.worker);
   }
 
-  cloneRepository(gitRepoURL: string, repoIdentifier: string): Promise<void> {
-    return this.rpcWorker.cloneRepository(gitRepoURL, repoIdentifier);
+  cloneRepository(gitRepoURL: string, repoIdentifier: string, progressCallback: (progress: number, message: string) => void): Promise<void> {
+    const progressProxy = proxy(progressCallback);
+    return this.rpcWorker.cloneRepository(gitRepoURL, repoIdentifier, progressProxy);
   }
+
 
 }
