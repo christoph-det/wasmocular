@@ -6,7 +6,7 @@ const RESOLVING_MARKER = "resolving deltas";
 const DOWNLOAD_MARKER = "net";
 
 function extractPercent(line: string): number | undefined {
-  const match = line.match(/(\d+)%/);
+  const match = /(\d+)%/.exec(line);
   return match ? Number(match[1]) : undefined;
 }
 
@@ -30,14 +30,18 @@ function parseCloneProgress(
   }
   return null;
 }
-class WasmGitWorker {
-  private lg: any;
+export class WasmGitWorker {
+  private lg!: WebAssembly.Module & {
+    callMain: (args: string[]) => void;
+    FS: typeof FS;
+    IDBFS: Emscripten.FileSystemType;
+  };
   private repoURL = "";
-  private FS: any;
-  private IDBFS: any;
+  private FS!: typeof FS;
+  private IDBFS!: Emscripten.FileSystemType;
   private baseOrigin = "";
   private readonly wasmGitLogPrefix = "[wasm-git] ";
-  private isMounted: boolean = false;
+  private isMounted = false;
   private logCallback: ((logMessage: string) => void) | null = null;
 
   async init(baseOrigin: string) {

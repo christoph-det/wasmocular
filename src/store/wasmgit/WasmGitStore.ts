@@ -1,8 +1,9 @@
-import { proxy, wrap } from "comlink";
+import { WasmGitWorker } from "@/workers/wasmgitWorker";
+import { proxy, Remote, wrap } from "comlink";
 
 export class WasmGitStore {
-  worker: Worker | null = null;
-  rpcWorker: any = null;
+  private worker: Worker | null = null;
+  private rpcWorker: Remote<WasmGitWorker> | null = null;
 
   constructor() {
     this.init();
@@ -25,6 +26,9 @@ export class WasmGitStore {
     repoIdentifier: string,
     progressCallback: (progress: number, message: string) => void
   ): Promise<void> {
+    if (!this.rpcWorker) {
+      throw new Error("WasmGitStore not initialized");
+    }
     const progressProxy = proxy(progressCallback);
     return this.rpcWorker.cloneRepository(
       gitRepoURL,

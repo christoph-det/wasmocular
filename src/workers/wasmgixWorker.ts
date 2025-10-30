@@ -1,5 +1,4 @@
 /// <reference lib="webworker" />
-import { generateRepoIdentifier } from "@/utils/utils.js";
 import initGitoxide from "./wasm-gix-library/wasm_gix.js";
 import { WasmGixWorkerMessage } from "./wasmGixWorker.types.js";
 
@@ -15,7 +14,7 @@ const PERSIST_ROOT = "/repos";
 
 class WasmGixWorker {
   gitoxide: any = null;
-  createdDirs = new Set<string>(["/"]);
+  createdDirs: Set<string> = new Set<string>(["/"]);
   storedRepositories: string[] = [];
 
   async init() {
