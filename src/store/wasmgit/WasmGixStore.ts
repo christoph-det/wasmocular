@@ -7,7 +7,6 @@ export class WasmGixStore {
   private rpcWorker: Remote<WasmGixWorker> | null = null;
   private readonly rootStore: RootStore;
 
-
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
     this.init();
@@ -48,12 +47,15 @@ export class WasmGixStore {
       console.error("WasmGix worker not initialized");
       return;
     }
-    this.rpcWorker.startIndexing(identifier).then((buffer) => {
-      if (buffer) {
-        this.rootStore.dbStore.receiveIndexerResults(identifier, buffer);
-      }
-    }).catch((error) => {
-      console.error("Indexing failed:", error);
-    });
+    this.rpcWorker
+      .startIndexing(identifier)
+      .then((buffer) => {
+        if (buffer) {
+          this.rootStore.dbStore.receiveIndexerResults(identifier, buffer);
+        }
+      })
+      .catch((error) => {
+        console.error("Indexing failed:", error);
+      });
   }
 }

@@ -107,7 +107,10 @@ export class WasmGitWorker {
         return;
       }
       const { phase, percent } = progress;
-      progressCallback(percent, `${phase} - ${Number.isNaN(percent) ? 100 : percent} %`);
+      progressCallback(
+        percent,
+        `${phase} - ${Number.isNaN(percent) ? 100 : percent} %`
+      );
     };
     this.setCurrentRepository(gitRepoURL);
     await this.ensureRepositoryIsPublic();

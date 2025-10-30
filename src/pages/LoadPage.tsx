@@ -12,9 +12,15 @@ import { generateRepoIdentifier } from "@/utils/utils";
 import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
 
+declare global {
+  function showDirectoryPicker({
+    mode
+  }: {
+    mode: "read" | "write";
+  }): Promise<FileSystemDirectoryHandle>;
+}
 
 const LoadPage = observer(() => {
-
   const wasmGitStore = useStores().wasmGitStore;
   const wasmGixStore = useStores().wasmGixStore;
   const indexingStore = useStores().indexingStore;
@@ -35,14 +41,15 @@ const LoadPage = observer(() => {
     setProjectName(event.target.value);
   };
 
-
   useEffect(() => {
     if (indexingStore.dataLoadingState === DataLoadingState.INDEXING_FINISHED) {
-      navigate("/explore-customquery", { replace: true })?.then(() => {
-        globalThis.location.hash = "#explore-customquery";
-      }).catch((error) => {
-        console.error("Navigation error:", error);
-      });
+      navigate("/explore-customquery", { replace: true })
+        ?.then(() => {
+          globalThis.location.hash = "#explore-customquery";
+        })
+        .catch((error) => {
+          console.error("Navigation error:", error);
+        });
     }
   }, [indexingStore.dataLoadingState, navigate]);
 
@@ -133,8 +140,6 @@ const LoadPage = observer(() => {
             </p>
           </div>
         </div>
-
-
       </div>
     </div>
   );
@@ -205,29 +210,30 @@ const LoadPage = observer(() => {
   }
 
   function handleDirectoryPicker() {
-    if (typeof (globalThis as any).showDirectoryPicker !== "function") {
+    if (typeof globalThis.showDirectoryPicker !== "function") {
       console.error("Directory Picker API is not supported in this browser.");
       showInfo("Directory Picker API is not available in this browser.");
       return;
     }
 
-    (globalThis as any).showDirectoryPicker({ mode: "read" }).then((dirHandle: FileSystemDirectoryHandle) => {
-      setLocalRepoDirHandle(dirHandle);
-      showSuccess("Local repository selected.");
-    }).catch((error: Error | unknown) => {
-      setLocalRepoDirHandle(null);
-      if (error && (error as Error).name === "AbortError") {
-        return;
-      }
-      console.error("Error during directory selection:", error);
-      showError(
-        "Failed to open the directory picker. Please try again. Cause: " +
-          (error as Error)?.message
-      );
-    });
+    globalThis
+      .showDirectoryPicker({ mode: "read" })
+      .then((dirHandle: FileSystemDirectoryHandle) => {
+        setLocalRepoDirHandle(dirHandle);
+        showSuccess("Local repository selected.");
+      })
+      .catch((error: Error) => {
+        setLocalRepoDirHandle(null);
+        if (error?.name === "AbortError") {
+          return;
+        }
+        console.error("Error during directory selection:", error);
+        showError(
+          "Failed to open the directory picker. Please try again. Cause: " +
+            error.message
+        );
+      });
   }
-
-  
 });
 
 export default LoadPage;

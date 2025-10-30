@@ -1,6 +1,5 @@
 import { makeAutoObservable, reaction } from "mobx";
 import { RootStore } from "./RootStore";
-import { DatabaseAccessMode } from "../workers/dbWorker.types";
 import { DuckDBAccessMode } from "@duckdb/duckdb-wasm";
 
 export enum DataLoadingState {

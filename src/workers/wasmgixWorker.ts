@@ -372,7 +372,7 @@ export class WasmGixWorker {
     const tracked = new Set<string>();
 
     try {
-      const trackedList = this.gitoxide.ccall(
+      const trackedList: string | undefined = this.gitoxide.ccall(
         "gitoxide_tracked_paths",
         "string",
         ["string"],
@@ -395,8 +395,6 @@ export class WasmGixWorker {
   }
 }
 
-
 const wasmGixWorker = new WasmGixWorker();
 await wasmGixWorker.init();
 Comlink.expose(wasmGixWorker);
-

@@ -1,11 +1,6 @@
 import { DatabaseWorker } from "@/workers/dbWorker";
 import { DuckDBAccessMode } from "@duckdb/duckdb-wasm";
-import {
-  DatabaseAccessMode,
-  DatabaseWorkerInboundMessage,
-  DatabaseWorkerOutboundMessage
-} from "../../workers/dbWorker.types";
-import { proxy, Remote, wrap, transfer } from "comlink";
+import { Remote, wrap, transfer } from "comlink";
 
 export class DatabaseStore {
   private worker: Worker | null = null;
@@ -17,9 +12,8 @@ export class DatabaseStore {
       reject: (reason?: unknown) => void;
     }
   >();
-  private requestCounter = 0;
   private currentRepositoryIdentifier: string | null = null;
-  private currentAccessMode:  DuckDBAccessMode | null = null;
+  private currentAccessMode: DuckDBAccessMode | null = null;
 
   constructor() {
     this.init();
@@ -36,7 +30,10 @@ export class DatabaseStore {
     this.currentAccessMode = null;
     await this.ensureInitialization(identifier, DuckDBAccessMode.READ_WRITE);
 
-    this.rpcWorker.insertIndexerData(identifier, transfer(resultBuffer, [resultBuffer.buffer]));
+    this.rpcWorker.insertIndexerData(
+      identifier,
+      transfer(resultBuffer, [resultBuffer.buffer])
+    );
   }
 
   async ensureInitialization(
@@ -65,11 +62,14 @@ export class DatabaseStore {
       return Promise.reject(new Error("Database worker not initialized"));
     }
 
-    return this.rpcWorker.query(sql).then((result) => {
-      return result;
-    }).catch((error) => {
-      throw error;
-    });
+    return this.rpcWorker
+      .query(sql)
+      .then((result) => {
+        return result;
+      })
+      .catch((error) => {
+        throw error;
+      });
   }
 
   init() {
@@ -80,5 +80,4 @@ export class DatabaseStore {
 
     this.rpcWorker = wrap(this.worker);
   }
-
 }
