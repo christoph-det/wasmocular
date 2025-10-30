@@ -1,6 +1,5 @@
 /// <reference lib="webworker" />
 import initGitoxide from "./wasm-gix-library/wasm_gix.js";
-import { WasmGixWorkerMessage } from "./wasmGixWorker.types.js";
 import * as Comlink from "comlink";
 
 const GITOXIDE_LOG_PREFIX = "[gitoxide]";

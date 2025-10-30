@@ -1,7 +1,6 @@
 import { useEffect, useState, SetStateAction } from "react";
 import Button from "../components/button/Button";
 import { Button as ButtonShadCN } from "@/components/ui/button";
-import init, { sum_rs } from "wasm-lib";
 import { observer } from "mobx-react-lite";
 import { useStores } from "../store/StoreContext";
 import { DataLoadingState } from "@/store/IndexingStore";
@@ -13,16 +12,11 @@ import { generateRepoIdentifier } from "@/utils/utils";
 import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
 
-// initialize rust code
-init().catch((err) => {
-  console.error("Error initializing Rust WASM module:", err);
-});
 
 const LoadPage = observer(() => {
-  const [worker, setWorker] = useState<Worker | null>(null);
+
   const wasmGitStore = useStores().wasmGitStore;
   const wasmGixStore = useStores().wasmGixStore;
-  const sumStore = useStores().testStore;
   const indexingStore = useStores().indexingStore;
   const { showError, showInfo, showSuccess } = useToast();
   const navigate = useNavigate();
@@ -41,19 +35,6 @@ const LoadPage = observer(() => {
     setProjectName(event.target.value);
   };
 
-  useEffect(() => {
-    const newWorker = new Worker(
-      new URL("../workers/sumWorker.js", import.meta.url)
-    );
-    newWorker.onmessage = (event: MessageEvent) => {
-      sumStore.setCalcSum(Number(event.data));
-    };
-    setWorker(newWorker);
-
-    return () => {
-      newWorker.terminate();
-    };
-  }, [sumStore]);
 
   useEffect(() => {
     if (indexingStore.dataLoadingState === DataLoadingState.INDEXING_FINISHED) {
@@ -153,23 +134,7 @@ const LoadPage = observer(() => {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 mt-5">
-          <div className="px-6 py-4 border-b bg-blue-50 rounded-t-2xl">
-            <h3 className="text-lg font-semibold text-blue-800">Testing</h3>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-              <Button text={"Test WASM"} onClick={() => clickButtonCB_WASM()} />
-              <Button text={"Test JS"} onClick={() => clickButtonCB_JS()} />
-              <Button text={"Reset"} onClick={() => resetCB()} />
-            </div>
-            <div className="mt-4">
-              <div className="inline-block px-6 py-3 rounded-xl bg-blue-50 border border-blue-200 shadow text-blue-900 font-mono text-lg">
-                <span className="font-semibold">Sum:</span> {sumStore.calc_sum}
-              </div>
-            </div>
-          </div>
-        </div>
+
       </div>
     </div>
   );
@@ -262,17 +227,7 @@ const LoadPage = observer(() => {
     });
   }
 
-  function clickButtonCB_WASM() {
-    const startTS = Date.now();
-    sumStore.setCalcSum(sum_rs(1, 11));
-    console.log("WASM Button clicked, time: ", Date.now() - startTS);
-  }
-
-  function clickButtonCB_JS() {
-    if (worker) {
-      worker.postMessage({ a: 1, b: 11 });
-    }
-  }
+  
 });
 
 export default LoadPage;
