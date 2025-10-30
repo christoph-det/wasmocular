@@ -1,6 +1,7 @@
 import { makeAutoObservable, reaction } from "mobx";
 import { RootStore } from "./RootStore";
 import { DatabaseAccessMode } from "../workers/dbWorker.types";
+import { DuckDBAccessMode } from "@duckdb/duckdb-wasm";
 
 export enum DataLoadingState {
   NOT_STARTED = "NOT_STARTED",
@@ -129,10 +130,10 @@ export class IndexingStore {
       return;
     }
 
-    const mode: DatabaseAccessMode =
+    const mode: DuckDBAccessMode =
       this.dataLoadingState === DataLoadingState.INDEXING_FINISHED
-        ? "READ_ONLY"
-        : "READ_WRITE";
+        ? DuckDBAccessMode.READ_ONLY
+        : DuckDBAccessMode.READ_WRITE;
 
     this.rootStore.dbStore.ensureInitialization(
       this.project.repositoryIdentifier,

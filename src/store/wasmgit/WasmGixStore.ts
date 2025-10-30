@@ -1,4 +1,3 @@
-import { WasmGixWorkerOutboundMessage } from "../../workers/wasmGixWorker.types";
 import { RootStore } from "../RootStore";
 import { proxy, Remote, wrap } from "comlink";
 import { WasmGixWorker } from "@/workers/wasmGixWorker";

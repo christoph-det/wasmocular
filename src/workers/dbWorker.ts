@@ -1,13 +1,9 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
+import * as Comlink from "comlink";
 import duckdb_wasm from "@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm?url";
 import mvp_worker from "@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?url";
 import duckdb_wasm_eh from "@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url";
 import eh_worker from "@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url";
-import {
-  DatabaseAccessMode,
-  DatabaseWorkerInboundMessage,
-  DatabaseWorkerOutboundMessage
-} from "./dbWorker.types";
 
 const MANUAL_BUNDLES: duckdb.DuckDBBundles = {
   mvp: {
@@ -20,7 +16,7 @@ const MANUAL_BUNDLES: duckdb.DuckDBBundles = {
   }
 };
 
-class DatabaseWorker {
+export class DatabaseWorker {
   worker: Worker | null = null;
   db: duckdb.AsyncDuckDB | null = null;
   connection: duckdb.AsyncDuckDBConnection | null = null;
@@ -160,7 +156,19 @@ class DatabaseWorker {
     }
 
     const result = await this.connection.query(sql);
-    return result;
+    const rows = result
+      .toArray()
+      .map((row: unknown) =>
+        row && typeof (row as { toJSON?: () => unknown }).toJSON === "function"
+          ? (row as { toJSON: () => unknown }).toJSON()
+          : row
+      );
+    const cloneableResult: unknown = JSON.parse(
+      JSON.stringify(rows, (_, value: unknown) =>
+        typeof value === "bigint" ? value.toString() : value
+      )
+    );
+    return cloneableResult;
   }
 
   async insertIndexerData(identifier: string, buffer: Uint8Array) {
@@ -198,111 +206,6 @@ class DatabaseWorker {
   }
 }
 
-const resolveAccessMode = (
-  mode: DatabaseAccessMode
-): duckdb.DuckDBAccessMode => {
-  return mode === "READ_WRITE"
-    ? duckdb.DuckDBAccessMode.READ_WRITE
-    : duckdb.DuckDBAccessMode.READ_ONLY;
-};
-
 const dbWorker = new DatabaseWorker();
 
-onmessage = async function (event: MessageEvent<DatabaseWorkerInboundMessage>) {
-  const receivedMessage = event.data;
-
-  switch (receivedMessage.type) {
-    case "INIT": {
-      try {
-        const accessMode = resolveAccessMode(receivedMessage.accessMode);
-        await dbWorker.initialize(
-          receivedMessage.repositoryIdentifier,
-          accessMode
-        );
-      } catch (error) {
-        const errorMessage: DatabaseWorkerOutboundMessage = {
-          type: "ERROR",
-          error: error instanceof Error ? error.message : String(error)
-        };
-        postMessage(errorMessage);
-      }
-      break;
-    }
-    case "QUERY": {
-      try {
-        const result = await dbWorker.query(receivedMessage.sql);
-        if (receivedMessage.returnResult) {
-          if (!receivedMessage.requestId) {
-            console.warn(
-              "Database worker received QUERY without requestId for result response."
-            );
-            break;
-          }
-          const arrayResult = result.toArray();
-          const cloneableResult: unknown = JSON.parse(
-            JSON.stringify(arrayResult, (_, v: unknown) =>
-              typeof v === "bigint" ? v.toString() : v
-            )
-          );
-          const resultMessage: DatabaseWorkerOutboundMessage = {
-            type: "RESULT",
-            result: cloneableResult,
-            requestId: receivedMessage.requestId
-          };
-          postMessage(resultMessage);
-        }
-      } catch (error) {
-        const errorMessage: DatabaseWorkerOutboundMessage = {
-          type: "ERROR",
-          error: error instanceof Error ? error.message : String(error),
-          requestId: receivedMessage.requestId
-        };
-        postMessage(errorMessage);
-      }
-      break;
-    }
-    case "TERMINATE": {
-      try {
-        await dbWorker.terminate();
-        const disconnectedMessage: DatabaseWorkerOutboundMessage = {
-          type: "DISCONNECTED"
-        };
-        postMessage(disconnectedMessage);
-      } catch (error) {
-        const errorMessage: DatabaseWorkerOutboundMessage = {
-          type: "ERROR",
-          error: error instanceof Error ? error.message : String(error)
-        };
-        postMessage(errorMessage);
-      }
-      break;
-    }
-    case "INDEXER_RESULT": {
-      console.log(
-        "DB Worker: Received INDEXER_RESULT message with buffer size:",
-        receivedMessage.buffer.byteLength
-      );
-      try {
-        await dbWorker.insertIndexerData(
-          receivedMessage.identifier,
-          receivedMessage.buffer
-        );
-      } catch (error) {
-        const errorMessage: DatabaseWorkerOutboundMessage = {
-          type: "ERROR",
-          error: error instanceof Error ? error.message : String(error)
-        };
-        postMessage(errorMessage);
-      }
-      break;
-    }
-    default: {
-      const errorMessage: DatabaseWorkerOutboundMessage = {
-        type: "ERROR",
-        error: "Unsupported message type"
-      };
-      postMessage(errorMessage);
-      break;
-    }
-  }
-};
+Comlink.expose(dbWorker);

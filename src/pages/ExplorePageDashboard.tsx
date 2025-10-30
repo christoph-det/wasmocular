@@ -20,7 +20,7 @@ const ExplorePageDashboard = () => {
     const query = `SELECT additions, -CAST(deletions AS INTEGER) AS deletions FROM commits LIMIT 1000`;
 
     dbStore
-      .runQuery(query, true)
+      .runQuery(query)
       .then((result) => {
         console.log("Query result for chart data:", result);
         if (Array.isArray(result)) {
