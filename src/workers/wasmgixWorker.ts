@@ -1,5 +1,6 @@
-/// <reference lib="webworker" />
-import initGitoxide from "./wasm-gix-library/wasm_gix.js";
+import initGitoxide, {
+  type GitoxideModule
+} from "./wasm-gix-library/wasm_gix.js";
 import * as Comlink from "comlink";
 
 const GITOXIDE_LOG_PREFIX = "[gitoxide]";
@@ -13,7 +14,7 @@ const PERSIST_ROOT = "/repos";
 // TODO: progress callbacks
 
 export class WasmGixWorker {
-  gitoxide: any = null;
+  gitoxide!: GitoxideModule;
   createdDirs: Set<string> = new Set<string>(["/"]);
   storedRepositories: string[] = [];
 

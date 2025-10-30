@@ -23,15 +23,15 @@ export class WasmGixStore {
     this.rpcWorker = wrap(this.worker);
   }
 
-  reloadRepository(identifier: string) {
+  async reloadRepository(identifier: string) {
     if (!this.rpcWorker) {
       console.error("WasmGix worker not initialized");
       return;
     }
-    this.rpcWorker.remountRepository(identifier);
+    await this.rpcWorker.remountRepository(identifier);
   }
 
-  loadRepository(
+  async loadRepository(
     identifier: string,
     localFileHandle: FileSystemDirectoryHandle
   ) {
@@ -39,23 +39,20 @@ export class WasmGixStore {
       console.error("WasmGix worker not initialized");
       return;
     }
-    this.rpcWorker.mountRepository(identifier, localFileHandle);
+    await this.rpcWorker.mountRepository(identifier, localFileHandle);
   }
 
-  startIndexing(identifier: string) {
+  async startIndexing(identifier: string) {
     if (!this.rpcWorker) {
       console.error("WasmGix worker not initialized");
       return;
     }
-    this.rpcWorker
-      .startIndexing(identifier)
-      .then((buffer) => {
-        if (buffer) {
-          this.rootStore.dbStore.receiveIndexerResults(identifier, buffer);
-        }
-      })
-      .catch((error) => {
-        console.error("Indexing failed:", error);
-      });
+    try {
+      const buffer = await this.rpcWorker.startIndexing(identifier);
+      await this.rootStore.dbStore.receiveIndexerResults(identifier, buffer!);
+    } catch (error) {
+      console.error("Error starting indexing:", error);
+      return;
+    }
   }
 }

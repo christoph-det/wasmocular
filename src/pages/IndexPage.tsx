@@ -33,7 +33,7 @@ const IndexPage = observer(() => {
             <Button
               text={"Start Indexing"}
               center
-              onClick={handleStartIndexingClick}
+              onClick={void handleStartIndexingClick().catch(console.error)}
             />
             <div className="mt-4"></div>
             {indexingStore.indexingProgress > 0 ? (
@@ -55,14 +55,16 @@ const IndexPage = observer(() => {
     </div>
   );
 
-  function handleStartIndexingClick() {
+  async function handleStartIndexingClick() {
     // increase indexing progress every second
     const repositoryIdentifier = indexingStore.project!.repositoryIdentifier;
 
-    wasmGixStore.startIndexing(repositoryIdentifier);
-    const interval = setInterval(() => {
+    await wasmGixStore.startIndexing(repositoryIdentifier);
+    const interval = setInterval(async () => {
       if (indexingStore.indexingProgress < 100) {
-        indexingStore.setIndexingProgress(indexingStore.indexingProgress + 1);
+        await indexingStore.setIndexingProgress(
+          indexingStore.indexingProgress + 1
+        );
       } else {
         clearInterval(interval);
       }

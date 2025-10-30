@@ -1,41 +1,19 @@
 import * as Comlink from "comlink";
+import { parseCloneProgress } from "../utils/utils.ts";
 
-const COUNTING_MARKER = "counting objects";
-const COMPRESSING_MARKER = "compressing objects";
-const RESOLVING_MARKER = "resolving deltas";
-const DOWNLOAD_MARKER = "net";
+type WasmGitInstance = WebAssembly.Module & {
+  callMain: (args: string[]) => void;
+  FS: typeof FS;
+  IDBFS: Emscripten.FileSystemType;
+};
 
-function extractPercent(line: string): number | undefined {
-  const match = /(\d+)%/.exec(line);
-  return match ? Number(match[1]) : undefined;
-}
+type WasmGitFactory = (overrides: {
+  print: (text: string) => void;
+  printErr: (text: string) => void;
+}) => Promise<WasmGitInstance>;
 
-// we only get seperate lines for the download phase, so we can parse percent there
-function parseCloneProgress(
-  line: string
-): { phase: string; percent: number } | null {
-  const lowered = line.toLowerCase();
-  if (lowered.includes(DOWNLOAD_MARKER)) {
-    const percent = extractPercent(line);
-    return percent === undefined ? null : { phase: "Downloading", percent };
-  }
-  if (lowered.includes(COUNTING_MARKER)) {
-    return { phase: "Counting", percent: 0 };
-  }
-  if (lowered.includes(COMPRESSING_MARKER)) {
-    return { phase: "Compressing", percent: 0 };
-  }
-  if (lowered.includes(RESOLVING_MARKER)) {
-    return { phase: "Resolving", percent: 100 };
-  }
-  return null;
-}
 export class WasmGitWorker {
-  private lg!: WebAssembly.Module & {
-    callMain: (args: string[]) => void;
-    FS: typeof FS;
-    IDBFS: Emscripten.FileSystemType;
-  };
+  private lg!: WasmGitInstance;
   private repoURL = "";
   private FS!: typeof FS;
   private IDBFS!: Emscripten.FileSystemType;
@@ -46,12 +24,13 @@ export class WasmGitWorker {
 
   async init(baseOrigin: string) {
     this.baseOrigin = baseOrigin;
-    const lg2mod = await import(
+    const moduleUrl = new URL("wasm-git-library/lg2.js", import.meta.url).href;
+    const { default: createWasmGitModule } = (await import(
       /* @vite-ignore */
-      new URL("wasm-git-library/lg2.js", import.meta.url).href
-    );
+      moduleUrl
+    )) as { default: WasmGitFactory };
     // Prevent lg2 from printing to the console by overriding Emscripten print handlers
-    this.lg = await lg2mod.default({
+    this.lg = await createWasmGitModule({
       print: (text: string) => {
         if (this.logCallback) {
           this.logCallback(text);
@@ -64,31 +43,6 @@ export class WasmGitWorker {
 
     this.FS = this.lg.FS;
     this.IDBFS = this.lg.IDBFS;
-  }
-
-  /**
-   * Sets the current repository URL.
-   * @param url
-   */
-  private setCurrentRepository(url: string) {
-    // if the url contains github remove everything before and including github.com/
-    if (url.includes("https://github.com/")) {
-      this.repoURL = url.substring(url.indexOf("https://github.com/") + 19);
-    } else {
-      this.repoURL = url;
-    }
-    // use git-proxy to avoid CORS issues
-    this.repoURL = this.baseOrigin + `/git-proxy/` + this.repoURL;
-  }
-
-  private mountIDBFS() {
-    if (this.isMounted) {
-      return;
-    }
-    const mountPath = "/repos";
-    this.isMounted = true;
-    this.FS.mkdir(mountPath);
-    this.FS.mount(this.IDBFS, {}, mountPath);
   }
 
   /**
@@ -135,6 +89,31 @@ export class WasmGitWorker {
       if (err)
         console.error(`${this.wasmGitLogPrefix} syncfs(save) error:`, err);
     });
+  }
+
+  /**
+   * Sets the current repository URL.
+   * @param url
+   */
+  private setCurrentRepository(url: string) {
+    // if the url contains github remove everything before and including github.com/
+    if (url.includes("https://github.com/")) {
+      this.repoURL = url.substring(url.indexOf("https://github.com/") + 19);
+    } else {
+      this.repoURL = url;
+    }
+    // use git-proxy to avoid CORS issues
+    this.repoURL = this.baseOrigin + `/git-proxy/` + this.repoURL;
+  }
+
+  private mountIDBFS() {
+    if (this.isMounted) {
+      return;
+    }
+    const mountPath = "/repos";
+    this.isMounted = true;
+    this.FS.mkdir(mountPath);
+    this.FS.mount(this.IDBFS, {}, mountPath);
   }
 
   private async ensureRepositoryIsPublic() {

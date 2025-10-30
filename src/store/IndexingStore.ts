@@ -30,6 +30,7 @@ export class IndexingStore {
   rootStore: RootStore;
   indexingProgress = 0; // Percentage of indexing progress
   dataLoadingState = DataLoadingState.NOT_STARTED;
+  readonly ready: Promise<void>;
 
   project: RepminerProject | null = null;
 
@@ -39,7 +40,7 @@ export class IndexingStore {
     this.rootStore = rootStore;
     makeAutoObservable(this);
 
-    this.loadFromStorage();
+    this.ready = this.loadFromStorage();
 
     // trigger auto-save on changes
     reaction(
@@ -65,7 +66,7 @@ export class IndexingStore {
     }
   }
 
-  private loadFromStorage() {
+  private async loadFromStorage() {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
@@ -77,7 +78,7 @@ export class IndexingStore {
           data.dataLoadingState ?? DataLoadingState.NOT_STARTED;
         if (data.project) {
           this.project = Object.assign(new RepminerProject(), data.project);
-          this.updateDatabaseAccessMode();
+          await this.updateDatabaseAccessMode();
         }
       }
     } catch (error) {
@@ -91,11 +92,12 @@ export class IndexingStore {
     this.indexingProgress = 0;
   }
 
-  createNewProject(name: string, repositoryIdentifier: string) {
+  async createNewProject(name: string, repositoryIdentifier: string) {
+    await this.ready;
     this.project = new RepminerProject();
     this.project.name = name;
     this.project.repositoryIdentifier = repositoryIdentifier;
-    this.updateDatabaseAccessMode();
+    await this.updateDatabaseAccessMode();
   }
 
   changeProjectName(name: string) {
@@ -107,24 +109,26 @@ export class IndexingStore {
     }
   }
 
-  setIndexingProgress(progress: number) {
+  async setIndexingProgress(progress: number) {
+    await this.ready;
     this.indexingProgress = progress;
     if (progress >= 100) {
-      this.setDataLoadingState(DataLoadingState.INDEXING_FINISHED);
+      await this.setDataLoadingState(DataLoadingState.INDEXING_FINISHED);
     } else if (
       this.dataLoadingState != DataLoadingState.INDEXING_STARTED &&
       progress > 0
     ) {
-      this.setDataLoadingState(DataLoadingState.INDEXING_STARTED);
+      await this.setDataLoadingState(DataLoadingState.INDEXING_STARTED);
     }
   }
 
-  setDataLoadingState(state: DataLoadingState) {
+  async setDataLoadingState(state: DataLoadingState) {
+    await this.ready;
     this.dataLoadingState = state;
-    this.updateDatabaseAccessMode();
+    await this.updateDatabaseAccessMode();
   }
 
-  private updateDatabaseAccessMode() {
+  private async updateDatabaseAccessMode() {
     if (!this.project) {
       return;
     }
@@ -134,7 +138,7 @@ export class IndexingStore {
         ? DuckDBAccessMode.READ_ONLY
         : DuckDBAccessMode.READ_WRITE;
 
-    this.rootStore.dbStore.ensureInitialization(
+    await this.rootStore.dbStore.ensureInitialization(
       this.project.repositoryIdentifier,
       mode
     );

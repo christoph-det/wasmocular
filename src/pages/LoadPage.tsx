@@ -128,7 +128,11 @@ const LoadPage = observer(() => {
             <Button text={"Connect API Data (optional)"} secondary />
             <div className="mt-8 flex justify-center">
               <ButtonShadCN
-                onClick={clickCreateProject}
+                onClick={
+                  void clickCreateProject().catch((e: Error) => {
+                    showError("Error creating project: " + e.message);
+                  })
+                }
                 disabled={loadingProgress >= 0}
               >
                 Create Project
@@ -144,7 +148,7 @@ const LoadPage = observer(() => {
     </div>
   );
 
-  function clickCreateProject() {
+  async function clickCreateProject() {
     setProjectCreationError("");
     // Get project name from input
     if (!projectName || projectName.trim() === "") {
@@ -180,11 +184,13 @@ const LoadPage = observer(() => {
       showInfo("Cloning repository in the background...");
       wasmGitStore
         .cloneRepository(trimmedUrl, repoIdentifier, progressCallback)
-        .then(() => {
+        .then(async () => {
           showInfo("Repository successfully cloned.");
-          wasmGixStore.reloadRepository(repoIdentifier);
-          indexingStore.createNewProject(projectName, repoIdentifier);
-          indexingStore.setDataLoadingState(DataLoadingState.REPOSITORY_LOADED);
+          await wasmGixStore.reloadRepository(repoIdentifier);
+          await indexingStore.createNewProject(projectName, repoIdentifier);
+          await indexingStore.setDataLoadingState(
+            DataLoadingState.REPOSITORY_LOADED
+          );
           globalThis.location.hash = "#index";
           showSuccess("Project created successfully.");
         })
@@ -201,9 +207,11 @@ const LoadPage = observer(() => {
           setLoadingProgressMessage("");
         });
     } else {
-      wasmGixStore.loadRepository(repoIdentifier, localRepoDirHandle!);
-      indexingStore.createNewProject(projectName, repoIdentifier);
-      indexingStore.setDataLoadingState(DataLoadingState.REPOSITORY_LOADED);
+      await wasmGixStore.loadRepository(repoIdentifier, localRepoDirHandle!);
+      await indexingStore.createNewProject(projectName, repoIdentifier);
+      await indexingStore.setDataLoadingState(
+        DataLoadingState.REPOSITORY_LOADED
+      );
       globalThis.location.hash = "#index";
       showSuccess("Project created successfully.");
     }

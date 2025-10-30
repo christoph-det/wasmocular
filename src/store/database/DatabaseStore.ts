@@ -30,7 +30,7 @@ export class DatabaseStore {
     this.currentAccessMode = null;
     await this.ensureInitialization(identifier, DuckDBAccessMode.READ_WRITE);
 
-    this.rpcWorker.insertIndexerData(
+    await this.rpcWorker.insertIndexerData(
       identifier,
       transfer(resultBuffer, [resultBuffer.buffer])
     );
