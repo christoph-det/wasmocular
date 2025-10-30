@@ -143,7 +143,7 @@ class DatabaseWorker {
     if (!this.connection) {
       throw new Error("No active database connection for checkpointing");
     }
-    this.connection.query("CHECKPOINT;");
+    await this.connection.query("CHECKPOINT;");
   }
 
   async query(sql: string) {

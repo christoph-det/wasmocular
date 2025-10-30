@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 import initGitoxide from "./wasm-gix-library/wasm_gix.js";
 import { WasmGixWorkerMessage } from "./wasmGixWorker.types.js";
+import * as Comlink from "comlink";
 
 const GITOXIDE_LOG_PREFIX = "[gitoxide]";
 const PERSIST_ROOT = "/repos";
@@ -12,7 +13,7 @@ const PERSIST_ROOT = "/repos";
 // TODO: handle data deletion
 // TODO: progress callbacks
 
-class WasmGixWorker {
+export class WasmGixWorker {
   gitoxide: any = null;
   createdDirs: Set<string> = new Set<string>(["/"]);
   storedRepositories: string[] = [];
@@ -23,7 +24,7 @@ class WasmGixWorker {
     await this.setupPersistentFs();
   }
 
-  async startIndexing(identifier: string) {
+  async startIndexing(identifier: string): Promise<Uint8Array | undefined> {
     const repoPath = `${PERSIST_ROOT}/${identifier}`;
 
     await this.syncFs(true);
@@ -49,14 +50,7 @@ class WasmGixWorker {
       console.log(
         `${GITOXIDE_LOG_PREFIX} Indexing completed for repository at ${repoPath}. Result sent to DB worker.`
       );
-      self.postMessage(
-        {
-          type: "INDEXING_COMPLETED",
-          identifier,
-          buffer
-        },
-        [buffer.buffer]
-      );
+      return buffer;
     } catch (error) {
       console.error(
         `${GITOXIDE_LOG_PREFIX} Indexing failed for repository at ${repoPath}:`,
@@ -402,45 +396,8 @@ class WasmGixWorker {
   }
 }
 
-onmessage = () => {
-  console.log("wasmGixWorker: Received message but not initialized yet!");
-};
 
 const wasmGixWorker = new WasmGixWorker();
+await wasmGixWorker.init();
+Comlink.expose(wasmGixWorker);
 
-(async function () {
-  await wasmGixWorker.init();
-
-  onmessage = async function (event: MessageEvent<WasmGixWorkerMessage>) {
-    const receivedMessage: WasmGixWorkerMessage = event.data;
-
-    switch (receivedMessage.type) {
-      case "LOAD_REPOSITORY": {
-        console.log("Loading repository:", receivedMessage.identifier);
-        await wasmGixWorker.mountRepository(
-          receivedMessage.identifier,
-          receivedMessage.localFileHandle
-        );
-        break;
-      }
-      case "RELOAD_REPOSITORY": {
-        console.log("Reloading repository:", receivedMessage.identifier);
-        // For now, re-mounting is the same as mounting
-        wasmGixWorker.remountRepository(receivedMessage.identifier);
-        break;
-      }
-      case "START_INDEXING": {
-        console.log(
-          "Starting indexing for repository:",
-          receivedMessage.identifier
-        );
-        wasmGixWorker.startIndexing(receivedMessage.identifier);
-        break;
-      }
-      default:
-        console.warn("wasmGixWorker: Unknown message type:", receivedMessage);
-    }
-
-    //
-  };
-})();

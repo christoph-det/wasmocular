@@ -1,9 +1,13 @@
 import { WasmGixWorkerOutboundMessage } from "../../workers/wasmGixWorker.types";
 import { RootStore } from "../RootStore";
+import { proxy, Remote, wrap } from "comlink";
+import { WasmGixWorker } from "@/workers/wasmGixWorker";
 
 export class WasmGixStore {
-  worker: Worker | null = null;
+  private worker: Worker | null = null;
+  private rpcWorker: Remote<WasmGixWorker> | null = null;
   private readonly rootStore: RootStore;
+
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
@@ -18,85 +22,39 @@ export class WasmGixStore {
         type: "module"
       }
     );
-
-    this.worker.onmessage = (
-      event: MessageEvent<WasmGixWorkerOutboundMessage>
-    ) => {
-      const receivedMessage = event.data;
-      switch (receivedMessage.type) {
-        case "INDEXING_COMPLETED": {
-          this.rootStore.dbStore.receiveIndexerResults(
-            receivedMessage.identifier,
-            receivedMessage.buffer
-          );
-          break;
-        }
-        default:
-          console.warn(
-            "WasmGixStore: Unknown message from worker",
-            receivedMessage
-          );
-      }
-    };
+    this.rpcWorker = wrap(this.worker);
   }
 
   reloadRepository(identifier: string) {
-    if (!this.worker) {
+    if (!this.rpcWorker) {
       console.error("WasmGix worker not initialized");
       return;
     }
-
-    this.worker.postMessage({
-      type: "RELOAD_REPOSITORY",
-      identifier
-    });
+    this.rpcWorker.remountRepository(identifier);
   }
 
   loadRepository(
     identifier: string,
     localFileHandle: FileSystemDirectoryHandle
   ) {
-    if (!this.worker) {
+    if (!this.rpcWorker) {
       console.error("WasmGix worker not initialized");
       return;
     }
-
-    this.worker.postMessage({
-      type: "LOAD_REPOSITORY",
-      identifier,
-      localFileHandle
-    });
-  }
-
-  copyClonedRepository(identifier: string) {
-    if (!this.worker) {
-      console.error("WasmGix worker not initialized");
-      return;
-    }
-
-    this.worker.postMessage({
-      type: "COPY_CLONED_REPOSITORY",
-      identifier
-    });
+    this.rpcWorker.mountRepository(identifier, localFileHandle);
   }
 
   startIndexing(identifier: string) {
-    if (!this.worker) {
+    if (!this.rpcWorker) {
       console.error("WasmGix worker not initialized");
       return;
     }
-
-    this.worker.postMessage({
-      type: "START_INDEXING",
-      identifier
+    this.rpcWorker.startIndexing(identifier).then((buffer) => {
+      if (buffer) {
+        this.rootStore.dbStore.receiveIndexerResults(identifier, buffer);
+      }
+    }).catch((error) => {
+      console.error("Indexing failed:", error);
     });
-  }
-
-  postMessage(message: any) {
-    if (!this.worker) {
-      console.error("WasmGit worker not initialized");
-      return;
-    }
-    this.worker.postMessage(message);
   }
 }

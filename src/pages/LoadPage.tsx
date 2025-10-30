@@ -57,8 +57,11 @@ const LoadPage = observer(() => {
 
   useEffect(() => {
     if (indexingStore.dataLoadingState === DataLoadingState.INDEXING_FINISHED) {
-      navigate("/explore-customquery", { replace: true });
-      window.location.hash = "#explore-customquery";
+      navigate("/explore-customquery", { replace: true })?.then(() => {
+        globalThis.location.hash = "#explore-customquery";
+      }).catch((error) => {
+        console.error("Navigation error:", error);
+      });
     }
   }, [indexingStore.dataLoadingState, navigate]);
 
@@ -215,7 +218,7 @@ const LoadPage = observer(() => {
           globalThis.location.hash = "#index";
           showSuccess("Project created successfully.");
         })
-        .catch((error) => {
+        .catch((error: Error) => {
           console.error("Error cloning repository:", error.message);
           showError(
             "Failed to clone the repository. Please check the URL and try again. Error: " +
@@ -236,31 +239,27 @@ const LoadPage = observer(() => {
     }
   }
 
-  async function handleDirectoryPicker() {
+  function handleDirectoryPicker() {
     if (typeof (globalThis as any).showDirectoryPicker !== "function") {
       console.error("Directory Picker API is not supported in this browser.");
       showInfo("Directory Picker API is not available in this browser.");
       return;
     }
 
-    try {
-      const dirHandle: FileSystemDirectoryHandle = await (
-        globalThis as any
-      ).showDirectoryPicker({ mode: "read" });
+    (globalThis as any).showDirectoryPicker({ mode: "read" }).then((dirHandle: FileSystemDirectoryHandle) => {
       setLocalRepoDirHandle(dirHandle);
       showSuccess("Local repository selected.");
-      //await importRepository(dirHandle);
-    } catch (error: any) {
+    }).catch((error: Error | unknown) => {
       setLocalRepoDirHandle(null);
-      if (error && error.name === "AbortError") {
+      if (error && (error as Error).name === "AbortError") {
         return;
       }
       console.error("Error during directory selection:", error);
       showError(
         "Failed to open the directory picker. Please try again. Cause: " +
-          error?.message
+          (error as Error)?.message
       );
-    }
+    });
   }
 
   function clickButtonCB_WASM() {
@@ -273,10 +272,6 @@ const LoadPage = observer(() => {
     if (worker) {
       worker.postMessage({ a: 1, b: 11 });
     }
-  }
-
-  function resetCB() {
-    wasmGixStore.copyClonedRepository("FLBadgePrinting.git");
   }
 });
 

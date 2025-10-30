@@ -52,12 +52,12 @@ export class WasmGitWorker {
     );
     // Prevent lg2 from printing to the console by overriding Emscripten print handlers
     this.lg = await lg2mod.default({
-      print: (text: any) => {
+      print: (text: string) => {
         if (this.logCallback) {
           this.logCallback(text);
         }
       },
-      printErr: (text: any) => {
+      printErr: (text: string) => {
         console.log(this.wasmGitLogPrefix + text);
       }
     });
@@ -106,11 +106,8 @@ export class WasmGitWorker {
       if (!progress) {
         return;
       }
-      let { phase, percent } = progress;
-      if (Number.isNaN(percent)) {
-        percent = 100;
-      }
-      progressCallback(percent, `${phase} - ${percent} %`);
+      const { phase, percent } = progress;
+      progressCallback(percent, `${phase} - ${Number.isNaN(percent) ? 100 : percent} %`);
     };
     this.setCurrentRepository(gitRepoURL);
     await this.ensureRepositoryIsPublic();
@@ -119,8 +116,9 @@ export class WasmGitWorker {
     try {
       // remove git index to reduce memory usage and bc gitoxide runs into memory issues with it
       this.FS.unlink(`/repos/${repoIdentifier}/.git/index`);
-    } catch (error: any) {
-      if (error?.code !== "ENOENT") {
+    } catch (error: unknown) {
+      const err = error as { code?: string | number } | undefined;
+      if (err?.code !== "ENOENT") {
         console.error(
           `${this.wasmGitLogPrefix} Failed to remove Git index`,
           error
@@ -130,7 +128,7 @@ export class WasmGitWorker {
     }
     // NOTE: When syncing the fs to indexed DB, for some repos we get an error (code 43), here. For example the wasm-git repo itself. I am assuming this could be bacause the repo links
     // 2 alias files, and due to a bug in emscripten, this causes an error
-    await this.FS.syncfs((err: any) => {
+    this.FS.syncfs((err: unknown) => {
       if (err)
         console.error(`${this.wasmGitLogPrefix} syncfs(save) error:`, err);
     });
