@@ -26,8 +26,7 @@ const IndexPage = observer(() => {
           </div>
           <div className="p-6">
             <p className="text-lg mb-4">
-              Respository successfully loaded. X files have been successfully
-              loaded into the browser storage.
+              Repository successfully loaded into the browser storage.
             </p>
             <p className="text-gray-600">
               You can now proceed to analyze the data.
