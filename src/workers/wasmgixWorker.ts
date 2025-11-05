@@ -127,6 +127,8 @@ export class WasmGixWorker {
         error
       );
       return;
+    } finally {
+      this.gitoxideLogListener = undefined;
     }
   }
 

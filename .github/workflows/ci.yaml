@@ -15,15 +15,6 @@ jobs:
       - name: Install dependencies
         run: npm install -g pnpm && pnpm install
 
-      - name: Install Rust and wasm-pack
-        run: |
-          rustup update stable
-          rustup target add wasm32-unknown-unknown
-          cargo install -f wasm-pack
-
-      - name: Build WebAssembly Package
-        run: pnpm run build:wasm
-
       - name: Run ESLint
         run: pnpm eslint --version && pnpm run lint
 
