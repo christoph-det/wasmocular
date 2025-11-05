@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Button from "../components/button/Button";
 import { useStores } from "../store/StoreContext";
 import { Progress } from "@/components/ui/progress";
@@ -6,6 +7,8 @@ import { observer } from "mobx-react-lite";
 const IndexPage = observer(() => {
   const indexingStore = useStores().indexingStore;
   const wasmGixStore = useStores().wasmGixStore;
+  const [indexingProgressMessage, setIndexingProgressMessage] =
+    useState<string>("");
 
   return (
     <div className="p-10 pb-14 mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen">
@@ -39,7 +42,10 @@ const IndexPage = observer(() => {
             />
             <div className="mt-4"></div>
             {indexingStore.indexingProgress > 0 ? (
-              <Progress value={indexingStore.indexingProgress} />
+              <>
+                <Progress value={indexingStore.indexingProgress} />
+                <p className="text-center mb-4"> {indexingProgressMessage}</p>
+              </>
             ) : null}
             <div className="mt-6"></div>
             {indexingStore.indexingProgress > 0 ? (
@@ -61,8 +67,12 @@ const IndexPage = observer(() => {
     // increase indexing progress every second
     const repositoryIdentifier = indexingStore.project!.repositoryIdentifier;
 
-    await wasmGixStore.startIndexing(repositoryIdentifier);
-    await indexingStore.setIndexingProgress(100);
+    const progressCallback = (progress: number, message: string) => {
+      indexingStore.setIndexingProgress(progress).catch(console.error);
+      setIndexingProgressMessage(message);
+    };
+
+    await wasmGixStore.startIndexing(repositoryIdentifier, progressCallback);
   }
 });
 

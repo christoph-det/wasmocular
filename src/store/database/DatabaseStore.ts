@@ -5,13 +5,6 @@ import { Remote, wrap, transfer } from "comlink";
 export class DatabaseStore {
   private worker: Worker | null = null;
   private rpcWorker: Remote<DatabaseWorker> | null = null;
-  private readonly pendingQueries = new Map<
-    string,
-    {
-      resolve: (value: unknown) => void;
-      reject: (reason?: unknown) => void;
-    }
-  >();
   private currentRepositoryIdentifier: string | null = null;
   private currentAccessMode: DuckDBAccessMode | null = null;
 
