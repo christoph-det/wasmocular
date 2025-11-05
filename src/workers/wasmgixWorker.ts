@@ -17,17 +17,89 @@ export class WasmGixWorker {
   gitoxide!: GitoxideModule;
   createdDirs: Set<string> = new Set<string>(["/"]);
   storedRepositories: string[] = [];
+  private gitoxideLogListener?: (message: string) => void;
 
   async init() {
-    this.gitoxide = await initGitoxide();
+    this.gitoxide = await initGitoxide({
+      print: (text: string) => this.forwardGitoxideLog(text, false),
+      printErr: (text: string) => this.forwardGitoxideLog(text, true)
+    });
     console.log("gitoxide wasm module loaded");
     await this.setupPersistentFs();
   }
 
-  async startIndexing(identifier: string): Promise<Uint8Array | undefined> {
+  private forwardGitoxideLog(message: string, isError: boolean) {
+    if (message.startsWith(GITOXIDE_LOG_PREFIX)) {
+      const trimmed = message.slice(GITOXIDE_LOG_PREFIX.length).trim();
+      if (this.gitoxideLogListener) {
+        this.gitoxideLogListener(trimmed);
+      } else if (trimmed.length > 0) {
+        (isError ? console.error : console.log)(trimmed);
+      }
+      return;
+    }
+    (isError ? console.error : console.log)(message);
+  }
+
+  async startIndexing(
+    identifier: string,
+    progressCallback: (progress: number, message: string) => void
+  ): Promise<Uint8Array | undefined> {
     const repoPath = `${PERSIST_ROOT}/${identifier}`;
 
     await this.syncFs(true);
+
+    // TODO: catch log messages from gitoxide and forward them via the progressCallback
+    progressCallback(1, "Starting indexing process...");
+
+    let commitCount = 0;
+    let timestampLastEstimateUpdate = Date.now();
+    let lastIndexedCommitCountForEstimate = 0;
+    let currentEstimatedTimeLeft = "...";
+    const estimateHistoryMs: number[] = [];
+    const MAX_ESTIMATE_HISTORY = 8;
+
+    this.gitoxideLogListener = (message: string) => {
+      let currentlyIndexedCommits = 0;
+      if (message.startsWith("Commit count: ")) {
+        commitCount = parseInt(message.slice("Commit count: ".length - 1));
+        lastIndexedCommitCountForEstimate = 0;
+        timestampLastEstimateUpdate = Date.now();
+      }
+      if (message.startsWith("Indexed commits:")) {
+        currentlyIndexedCommits = parseInt(
+          message.slice("Indexed commits: ".length - 1)
+        );
+        const commitsSinceLastEstimate =
+          currentlyIndexedCommits - lastIndexedCommitCountForEstimate;
+        const remainingCommits = Math.max(
+          0,
+          commitCount - currentlyIndexedCommits
+        );
+        const commitsPerMs =
+          commitsSinceLastEstimate / (Date.now() - timestampLastEstimateUpdate);
+        const remainingMs = remainingCommits / commitsPerMs;
+        estimateHistoryMs.push(remainingMs);
+        if (estimateHistoryMs.length > MAX_ESTIMATE_HISTORY) {
+          estimateHistoryMs.shift();
+        }
+        const averageRemainingMs =
+          estimateHistoryMs.reduce((sum, value) => sum + value, 0) /
+          estimateHistoryMs.length;
+        currentEstimatedTimeLeft = Math.max(
+          0,
+          Math.round(averageRemainingMs / 1000)
+        ).toString();
+        timestampLastEstimateUpdate = Date.now();
+        lastIndexedCommitCountForEstimate = currentlyIndexedCommits;
+      }
+      const progress =
+        commitCount > 0
+          ? Math.floor((currentlyIndexedCommits / commitCount) * 98) + 1
+          : 1;
+      const progressMessage = `Indexing commits: ${currentlyIndexedCommits} of ${commitCount}. Estimated ${currentEstimatedTimeLeft} seconds remaining.`;
+      progressCallback(progress, progressMessage);
+    };
 
     try {
       const resultFilePath = this.gitoxide.ccall(
@@ -42,13 +114,11 @@ export class WasmGixWorker {
       const bytes = this.gitoxide.FS.readFile(resultFilePath, {
         encoding: "binary"
       });
-      console.log(
-        `${GITOXIDE_LOG_PREFIX} Indexing produced result file at ${resultFilePath} for repository at ${repoPath}.`
-      );
       const buffer: Uint8Array =
         bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
-      console.log(
-        `${GITOXIDE_LOG_PREFIX} Indexing completed for repository at ${repoPath}. Result sent to DB worker.`
+      progressCallback(
+        99,
+        "Indexing process completed. Inserting data into database..."
       );
       return buffer;
     } catch (error) {

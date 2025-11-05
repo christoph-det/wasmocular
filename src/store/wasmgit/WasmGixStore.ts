@@ -1,6 +1,6 @@
 import { RootStore } from "../RootStore";
 import { proxy, Remote, wrap } from "comlink";
-import { WasmGixWorker } from "@/workers/wasmGixWorker";
+import { WasmGixWorker } from "../../workers/wasmgixWorker";
 
 export class WasmGixStore {
   private worker: Worker | null = null;
@@ -48,14 +48,22 @@ export class WasmGixStore {
     );
   }
 
-  async startIndexing(identifier: string) {
+  async startIndexing(
+    identifier: string,
+    progressCallback: (progress: number, message: string) => void
+  ) {
     if (!this.rpcWorker) {
       console.error("WasmGix worker not initialized");
       return;
     }
     try {
-      const buffer = await this.rpcWorker.startIndexing(identifier);
+      const progressProxy = proxy(progressCallback);
+      const buffer = await this.rpcWorker.startIndexing(
+        identifier,
+        progressProxy
+      );
       await this.rootStore.dbStore.receiveIndexerResults(identifier, buffer!);
+      progressCallback(100, "Indexing completed successfully.");
     } catch (error) {
       console.error("Error starting indexing:", error);
       return;
