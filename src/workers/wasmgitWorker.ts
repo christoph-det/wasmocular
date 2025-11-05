@@ -155,6 +155,8 @@ export class WasmGitWorker {
 }
 
 const wasmGitWorker = new WasmGitWorker();
-await wasmGitWorker.init(self.location.origin);
 
-Comlink.expose(wasmGitWorker);
+(async function () {
+  await wasmGitWorker.init(self.location.origin);
+  Comlink.expose(wasmGitWorker);
+})().catch(console.error);
