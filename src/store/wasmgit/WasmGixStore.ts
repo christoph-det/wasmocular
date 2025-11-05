@@ -1,6 +1,6 @@
 import { RootStore } from "../RootStore";
 import { proxy, Remote, wrap } from "comlink";
-import { WasmGixWorker } from "../../workers/wasmgixWorker";
+import { WasmGixWorker } from "@/workers/wasmgixWorker";
 
 export class WasmGixStore {
   private worker: Worker | null = null;
