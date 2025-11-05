@@ -128,11 +128,11 @@ const LoadPage = observer(() => {
             <Button text={"Connect API Data (optional)"} secondary />
             <div className="mt-8 flex justify-center">
               <ButtonShadCN
-                onClick={
+                onClick={() => {
                   void clickCreateProject().catch((e: Error) => {
                     showError("Error creating project: " + e.message);
-                  })
-                }
+                  });
+                }}
                 disabled={loadingProgress >= 0}
               >
                 Create Project
@@ -207,7 +207,12 @@ const LoadPage = observer(() => {
           setLoadingProgressMessage("");
         });
     } else {
-      await wasmGixStore.loadRepository(repoIdentifier, localRepoDirHandle!);
+      showInfo("Loading local repository...");
+      await wasmGixStore.loadRepository(
+        repoIdentifier,
+        localRepoDirHandle!,
+        progressCallback
+      );
       await indexingStore.createNewProject(projectName, repoIdentifier);
       await indexingStore.setDataLoadingState(
         DataLoadingState.REPOSITORY_LOADED

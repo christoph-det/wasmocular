@@ -1,5 +1,5 @@
 import { RootStore } from "../RootStore";
-import { Remote, wrap } from "comlink";
+import { proxy, Remote, wrap } from "comlink";
 import { WasmGixWorker } from "@/workers/wasmGixWorker";
 
 export class WasmGixStore {
@@ -33,13 +33,19 @@ export class WasmGixStore {
 
   async loadRepository(
     identifier: string,
-    localFileHandle: FileSystemDirectoryHandle
+    localFileHandle: FileSystemDirectoryHandle,
+    progressCallback: (progress: number, message: string) => void
   ) {
     if (!this.rpcWorker) {
       console.error("WasmGix worker not initialized");
       return;
     }
-    await this.rpcWorker.mountRepository(identifier, localFileHandle);
+    const progressProxy = proxy(progressCallback);
+    await this.rpcWorker.mountRepository(
+      identifier,
+      localFileHandle,
+      progressProxy
+    );
   }
 
   async startIndexing(identifier: string) {

@@ -33,7 +33,9 @@ const IndexPage = observer(() => {
             <Button
               text={"Start Indexing"}
               center
-              onClick={void handleStartIndexingClick().catch(console.error)}
+              onClick={() => {
+                handleStartIndexingClick().catch(console.error);
+              }}
             />
             <div className="mt-4"></div>
             {indexingStore.indexingProgress > 0 ? (
@@ -44,7 +46,7 @@ const IndexPage = observer(() => {
               <Button
                 text={"Continue to Data Exploration"}
                 onClick={() => {
-                  window.location.hash = "#explore-customquery";
+                  globalThis.location.hash = "#explore-customquery";
                 }}
                 center
               />
@@ -60,15 +62,7 @@ const IndexPage = observer(() => {
     const repositoryIdentifier = indexingStore.project!.repositoryIdentifier;
 
     await wasmGixStore.startIndexing(repositoryIdentifier);
-    const interval = setInterval(async () => {
-      if (indexingStore.indexingProgress < 100) {
-        await indexingStore.setIndexingProgress(
-          indexingStore.indexingProgress + 1
-        );
-      } else {
-        clearInterval(interval);
-      }
-    }, 100);
+    await indexingStore.setIndexingProgress(100);
   }
 });
 

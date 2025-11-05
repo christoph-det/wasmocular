@@ -68,7 +68,8 @@ export class WasmGixWorker {
 
   async mountRepository(
     identifier: string,
-    localFileHandle: FileSystemDirectoryHandle
+    localFileHandle: FileSystemDirectoryHandle,
+    progressCallback: (progress: number, message: string) => void
   ) {
     const repoPath = `${PERSIST_ROOT}/${identifier}`;
     this.ensureDirExists(repoPath);
@@ -94,7 +95,10 @@ export class WasmGixWorker {
     const { files: gitFiles } = await this.collectGitDirectoryEntries(
       localFileHandle,
       (count: number) => {
-        // TODO: Implement progress callback
+        progressCallback(
+          5,
+          `Preparing to mount repository: processed ${count} .git entries...`
+        );
       }
     );
 
@@ -117,7 +121,10 @@ export class WasmGixWorker {
         localFileHandle,
         trackedList,
         (processed, total) => {
-          // TODO: Implement progress callback
+          progressCallback(
+            5 + Math.floor((processed / total) * 50),
+            `Mounting repository: enumerating ${processed} of ${total} tracked files...`
+          );
         }
       );
 
@@ -125,9 +132,18 @@ export class WasmGixWorker {
         if (await writeFile(entry)) {
           writtenFiles += 1;
           copiedTracked += 1;
+          progressCallback(
+            55 + Math.floor((copiedTracked / trackedList.length) * 45),
+            `Copy repository: copied ${copiedTracked} of ${trackedList.length} tracked files...`
+          );
         }
       }
     }
+
+    progressCallback(
+      99,
+      "Finalizing repository mount, syncronizing file system..."
+    );
 
     await this.syncFs(false);
 
@@ -138,15 +154,18 @@ export class WasmGixWorker {
 
   async collectGitDirectoryEntries(
     localFileHandle: FileSystemDirectoryHandle,
-    onProgress: any
+    onProgress: (number: number) => void
   ) {
     let gitHandle;
     try {
       gitHandle = await localFileHandle.getDirectoryHandle(".git", {
         create: false
       });
-    } catch (error) {
-      throw new Error("Selected directory does not contain a .git directory.");
+    } catch (error: unknown) {
+      throw new Error(
+        "Selected directory does not contain a .git directory." +
+          (error instanceof Error ? error.message : "")
+      );
     }
 
     const files = [];
@@ -162,13 +181,13 @@ export class WasmGixWorker {
         handle,
         path
       }: {
-        handle: FileSystemDirectoryHandle | undefined;
-        path: string | undefined;
+        handle: FileSystemDirectoryHandle;
+        path: string;
       } = popped;
       if (!handle) {
         continue;
       }
-      for await (const entry of (handle as any).values()) {
+      for await (const entry of handle.values()) {
         const nextPath = `${path}/${entry.name}`;
         if (entry.kind === "file") {
           // Avoid copying the Git index to the virtual FS. The index is large
@@ -179,7 +198,8 @@ export class WasmGixWorker {
             continue;
           }
           try {
-            const file = await entry.getFile();
+            const fileHandle = entry as FileSystemFileHandle;
+            const file = await fileHandle.getFile();
             files.push({ file, relativePath: nextPath });
             count += 1;
             if (typeof onProgress === "function") {
@@ -189,7 +209,10 @@ export class WasmGixWorker {
             console.warn("Failed to read .git entry", nextPath, error);
           }
         } else if (entry.kind === "directory") {
-          stack.push({ handle: entry, path: nextPath });
+          stack.push({
+            handle: entry as FileSystemDirectoryHandle,
+            path: nextPath
+          });
         }
       }
     }
@@ -204,7 +227,7 @@ export class WasmGixWorker {
     onProgress: (processed: number, total: number) => void
   ) {
     const entries = [];
-    const directoryCache = new Map();
+    const directoryCache = new Map<string, FileSystemDirectoryHandle | null>();
     directoryCache.set("", localFileHandle);
 
     const total = trackedPaths.length;
@@ -339,7 +362,7 @@ export class WasmGixWorker {
     await this.syncFs(true);
     this.createdDirs.add(PERSIST_ROOT);
     //persistentReady = true;
-    await this.refreshStoredRepos();
+    this.refreshStoredRepos();
   }
 
   async syncFs(populate: boolean) {
@@ -357,7 +380,7 @@ export class WasmGixWorker {
     });
   }
 
-  async refreshStoredRepos() {
+  refreshStoredRepos() {
     let repos: string[] = [];
     try {
       repos = this.gitoxide.FS.readdir(PERSIST_ROOT)
