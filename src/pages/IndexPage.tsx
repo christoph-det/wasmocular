@@ -3,7 +3,6 @@ import Button from "../components/button/Button";
 import { useStores } from "../store/StoreContext";
 import { Progress } from "@/components/ui/progress";
 import { observer } from "mobx-react-lite";
-import { set } from "mobx";
 
 const IndexPage = observer(() => {
   const indexingStore = useStores().indexingStore;
@@ -69,7 +68,7 @@ const IndexPage = observer(() => {
     const repositoryIdentifier = indexingStore.project!.repositoryIdentifier;
 
     const progressCallback = (progress: number, message: string) => {
-      indexingStore.setIndexingProgress(progress);
+      indexingStore.setIndexingProgress(progress).catch(console.error);
       setIndexingProgressMessage(message);
     };
 
