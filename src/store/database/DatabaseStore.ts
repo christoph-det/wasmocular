@@ -1,42 +1,83 @@
-import {
-  DatabaseMessageType,
-  DatabaseWorkerMessage
-} from "../../workers/dbWorker.types";
+import { DatabaseWorker } from "@/workers/dbWorker";
+import { DuckDBAccessMode } from "@duckdb/duckdb-wasm";
+import { Remote, wrap, transfer } from "comlink";
 
 export class DatabaseStore {
-  worker: Worker | null = null;
+  private worker: Worker | null = null;
+  private rpcWorker: Remote<DatabaseWorker> | null = null;
+  private readonly pendingQueries = new Map<
+    string,
+    {
+      resolve: (value: unknown) => void;
+      reject: (reason?: unknown) => void;
+    }
+  >();
+  private currentRepositoryIdentifier: string | null = null;
+  private currentAccessMode: DuckDBAccessMode | null = null;
 
   constructor() {
     this.init();
     console.log("DatabaseStore initialized");
   }
 
-  init() {
-    // Use new URL for correct worker path resolution
-    this.worker = new Worker(
-      new URL("../workers/dbWorker.ts", import.meta.url),
-      { type: "module" }
+  async receiveIndexerResults(identifier: string, resultBuffer: Uint8Array) {
+    if (!this.rpcWorker) {
+      console.error("Database worker not initialized");
+      return;
+    }
+    // Ensure we are in write mode before pushing indexing data.
+    this.currentRepositoryIdentifier = identifier;
+    this.currentAccessMode = null;
+    await this.ensureInitialization(identifier, DuckDBAccessMode.READ_WRITE);
+
+    await this.rpcWorker.insertIndexerData(
+      identifier,
+      transfer(resultBuffer, [resultBuffer.buffer])
     );
-    this.worker.onmessage = (event: MessageEvent<DatabaseWorkerMessage>) => {
-      const receivedMessage = event.data;
-      // handle db query result
-      if (receivedMessage.type === DatabaseMessageType.RESULT) {
-        console.log("DuckDB Worker Result:", receivedMessage.result);
-      } else if (receivedMessage.type === DatabaseMessageType.ERROR) {
-        console.error("DuckDB Worker Error:", receivedMessage.error);
-      } else if (receivedMessage.type === DatabaseMessageType.DISCONNECTED) {
-        console.log("DuckDB Worker Terminated");
-      } else {
-        console.warn("DuckDB Store Unknown Message:", receivedMessage);
-      }
-    };
   }
 
-  postMessage(message: DatabaseWorkerMessage) {
-    if (this.worker) {
-      this.worker.postMessage(message);
-    } else {
-      console.error("Worker not initialized");
+  async ensureInitialization(
+    repositoryIdentifier: string,
+    accessMode: DuckDBAccessMode
+  ) {
+    if (!this.rpcWorker) {
+      throw new Error("Database worker not initialized");
     }
+    const hasMatchingIdentifier =
+      this.currentRepositoryIdentifier === repositoryIdentifier;
+    const hasMatchingMode = this.currentAccessMode === accessMode;
+
+    if (hasMatchingIdentifier && hasMatchingMode) {
+      return;
+    }
+
+    this.currentRepositoryIdentifier = repositoryIdentifier;
+    this.currentAccessMode = accessMode;
+
+    await this.rpcWorker.initialize(repositoryIdentifier, accessMode);
+  }
+
+  runQuery(sql: string): Promise<unknown> {
+    if (!this.rpcWorker) {
+      return Promise.reject(new Error("Database worker not initialized"));
+    }
+
+    return this.rpcWorker
+      .query(sql)
+      .then((result) => {
+        return result;
+      })
+      .catch((error) => {
+        throw error;
+      });
+  }
+
+  init() {
+    this.worker = new Worker(
+      new URL("../../workers/dbWorker.ts", import.meta.url),
+      { type: "module" }
+    );
+
+    this.rpcWorker = wrap(this.worker);
   }
 }

@@ -36,7 +36,8 @@ const SettingsPage = observer(() => {
 
   async function exportDuckDB() {
     const opfsRoot = await navigator.storage.getDirectory();
-    const fileHandle = await opfsRoot.getFileHandle("repminer_database.db");
+    const databaseFileName = `repminer_database_${indexingStore.project?.repositoryIdentifier}.db`;
+    const fileHandle = await opfsRoot.getFileHandle(databaseFileName);
     fileHandle
       .getFile()
       .then((file) => {
@@ -50,7 +51,7 @@ const SettingsPage = observer(() => {
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = "repminer_database.db";
+            a.download = databaseFileName;
             document.body.appendChild(a);
             a.click();
             URL.revokeObjectURL(url);
@@ -79,6 +80,11 @@ const SettingsPage = observer(() => {
             </h3>
           </div>
           <div className="p-6">
+            <p className="mb-6 text-gray-600">
+              Project ID:{" "}
+              {indexingStore.project?.repositoryIdentifier ??
+                "No Project Loaded"}
+            </p>
             <Label className="mb-2" htmlFor="text">
               Change Project Name:
             </Label>

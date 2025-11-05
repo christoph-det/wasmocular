@@ -1,28 +1,39 @@
 import { useEffect, useState, SetStateAction } from "react";
 import Button from "../components/button/Button";
-import init, { sum_rs } from "wasm-lib";
+import { Button as ButtonShadCN } from "@/components/ui/button";
 import { observer } from "mobx-react-lite";
 import { useStores } from "../store/StoreContext";
-import {
-  DatabaseMessageType,
-  DatabaseQueryMessage,
-  DatabaseTerminateMessage
-} from "../workers/dbWorker.types";
 import { DataLoadingState } from "@/store/IndexingStore";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/useToast";
+import { useNavigate } from "react-router-dom";
+import { generateRepoIdentifier } from "@/utils/utils";
+import { Progress } from "@/components/ui/progress";
+import { Spinner } from "@/components/ui/spinner";
 
-// initialize rust code
-init().catch((err) => {
-  console.error("Error initializing Rust WASM module:", err);
-});
+declare global {
+  function showDirectoryPicker({
+    mode
+  }: {
+    mode: "read" | "write";
+  }): Promise<FileSystemDirectoryHandle>;
+}
 
 const LoadPage = observer(() => {
-  const [worker, setWorker] = useState<Worker | null>(null);
-  const sumStore = useStores().testStore;
-  const dbStore = useStores().dbStore;
+  const wasmGitStore = useStores().wasmGitStore;
+  const wasmGixStore = useStores().wasmGixStore;
   const indexingStore = useStores().indexingStore;
+  const { showError, showInfo, showSuccess } = useToast();
+  const navigate = useNavigate();
   const [projectName, setProjectName] = useState<string>("");
+  const [gitRepoUrl, setGitRepoUrl] = useState<string>("");
+  const [localRepoDirHandle, setLocalRepoDirHandle] =
+    useState<FileSystemDirectoryHandle | null>(null);
+  const [projectCreationError, setProjectCreationError] = useState<string>("");
+  const [loadingProgress, setLoadingProgress] = useState<number>(-1);
+  const [loadingProgressMessage, setLoadingProgressMessage] =
+    useState<string>("");
 
   const handleprojectNameInputChange = (event: {
     target: { value: SetStateAction<string> };
@@ -31,18 +42,16 @@ const LoadPage = observer(() => {
   };
 
   useEffect(() => {
-    const newWorker = new Worker(
-      new URL("../workers/sumWorker.js", import.meta.url)
-    );
-    newWorker.onmessage = (event: MessageEvent) => {
-      sumStore.setCalcSum(Number(event.data));
-    };
-    setWorker(newWorker);
-
-    return () => {
-      newWorker.terminate();
-    };
-  }, [sumStore]);
+    if (indexingStore.dataLoadingState === DataLoadingState.INDEXING_FINISHED) {
+      navigate("/explore-customquery", { replace: true })
+        ?.then(() => {
+          globalThis.location.hash = "#explore-customquery";
+        })
+        .catch((error) => {
+          console.error("Navigation error:", error);
+        });
+    }
+  }, [indexingStore.dataLoadingState, navigate]);
 
   return (
     <div className="p-10 pb-14 mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen">
@@ -75,109 +84,168 @@ const LoadPage = observer(() => {
               onChange={handleprojectNameInputChange}
               hasError={projectName == "state::Error"}
             />
-            <Label className="mt-8 mb-2" htmlFor="email">
-              Select Repository Folder:
+            <Label className="mt-8 mb-2">
+              Select Repository Folder or paste a public GitHub URL:
             </Label>
             {
               // TODO: add file picker functionality and error handling
             }
-            <Input className="mb-8" type="file" id="repository" />
-            <Button text={"Connect API Data (optional)"} secondary />
-            <Button
-              text={"Create Project"}
-              onClick={clickCreateProject}
-              center
-              className="mt-8"
+            <Input
+              id="directory-button"
+              className="mt-4 cursor-pointer hover:bg-gray-100"
+              type="button"
+              disabled={gitRepoUrl.trim() !== ""}
+              placeholder="No directory selected"
+              onClick={handleDirectoryPicker}
+              value={
+                localRepoDirHandle
+                  ? "Local directory selected!"
+                  : "Select local repository"
+              }
             />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 mt-5">
-          <div className="px-6 py-4 border-b bg-blue-50 rounded-t-2xl">
-            <h3 className="text-lg font-semibold text-blue-800">Testing</h3>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-              <Button text={"Test WASM"} onClick={() => clickButtonCB_WASM()} />
-              <Button text={"Test JS"} onClick={() => clickButtonCB_JS()} />
-              <Button text={"Reset"} onClick={() => resetCB()} />
-              <Button text={"Test DuckDB"} onClick={() => testDuckDB()} />
-              <Button text={"Read DuckDB"} onClick={() => readDuckDB()} />
-              <Button
-                text={"Disconnect DuckDB"}
-                onClick={() => disconnectDuckDB()}
+            <div className="mt-0 pt-4 mb-8">
+              <Input
+                id="github-url"
+                type="text"
+                placeholder="https://github.com/user/repo"
+                value={gitRepoUrl}
+                disabled={localRepoDirHandle !== null}
+                onChange={(e) => setGitRepoUrl(e.target.value)}
               />
+              <p className="text-sm text-gray-500 mt-2">
+                {localRepoDirHandle == null
+                  ? "Only public repositories are supported. Format: https://github.com/user/repo.git"
+                  : "Disabled because a local repository is selected."}
+              </p>
             </div>
-            <div className="mt-4">
-              <div className="inline-block px-6 py-3 rounded-xl bg-blue-50 border border-blue-200 shadow text-blue-900 font-mono text-lg">
-                <span className="font-semibold">Sum:</span> {sumStore.calc_sum}
-              </div>
+            {loadingProgress >= 0 ? (
+              <>
+                <Progress className="" value={loadingProgress} />
+                <p className="text-center mb-4"> {loadingProgressMessage}</p>
+              </>
+            ) : null}
+
+            <Button text={"Connect API Data (optional)"} secondary />
+            <div className="mt-8 flex justify-center">
+              <ButtonShadCN
+                onClick={() => {
+                  void clickCreateProject().catch((e: Error) => {
+                    showError("Error creating project: " + e.message);
+                  });
+                }}
+                disabled={loadingProgress >= 0}
+              >
+                Create Project
+                {loadingProgress >= 0 && <Spinner />}
+              </ButtonShadCN>
             </div>
+            <p className="text-sm text-red-500 mt-2 text-center">
+              {projectCreationError}
+            </p>
           </div>
         </div>
       </div>
     </div>
   );
 
-  function clickCreateProject() {
+  async function clickCreateProject() {
+    setProjectCreationError("");
     // Get project name from input
     if (!projectName || projectName.trim() === "") {
       setProjectName("state::Error");
-      alert("Please enter a project name.");
+      setProjectCreationError("Please enter a project name before continuing.");
       return;
     }
 
-    //navigate to index page
-    window.location.hash = "#index";
-    indexingStore.setDataLoadingState(DataLoadingState.REPOSITORY_LOADED);
+    // Ensure a repository source is chosen
+    if (!localRepoDirHandle && gitRepoUrl.trim() === "") {
+      setProjectCreationError(
+        "Select a local repository or paste a public GitHub URL."
+      );
+      return;
+    }
 
-    indexingStore.createNewProject(projectName);
-  }
+    setLoadingProgress(0);
+    setLoadingProgressMessage(
+      "Counting and compressing objects... (might take a while for large repositories)"
+    );
 
-  function clickButtonCB_WASM() {
-    const startTS = Date.now();
-    sumStore.setCalcSum(sum_rs(1, 11));
-    console.log("WASM Button clicked, time: ", Date.now() - startTS);
-  }
+    const repoIdentifier = generateRepoIdentifier(); // Simple unique ID based on timestamp
 
-  function clickButtonCB_JS() {
-    if (worker) {
-      worker.postMessage({ a: 1, b: 11 });
+    // If a GitHub URL is provided, trigger clone in the background
+    const trimmedUrl = gitRepoUrl.trim();
+
+    const progressCallback = (progress: number, message: string) => {
+      setLoadingProgress(progress);
+      setLoadingProgressMessage(message);
+    };
+
+    if (trimmedUrl) {
+      showInfo("Cloning repository in the background...");
+      wasmGitStore
+        .cloneRepository(trimmedUrl, repoIdentifier, progressCallback)
+        .then(async () => {
+          showInfo("Repository successfully cloned.");
+          await wasmGixStore.reloadRepository(repoIdentifier);
+          await indexingStore.createNewProject(projectName, repoIdentifier);
+          await indexingStore.setDataLoadingState(
+            DataLoadingState.REPOSITORY_LOADED
+          );
+          globalThis.location.hash = "#index";
+          showSuccess("Project created successfully.");
+        })
+        .catch((error: Error) => {
+          console.error("Error cloning repository:", error.message);
+          showError(
+            "Failed to clone the repository. Please check the URL and try again. Error: " +
+              error.message
+          );
+          setProjectCreationError(
+            "Failed to clone the repository. Please check the URL and try again."
+          );
+          setLoadingProgress(-1);
+          setLoadingProgressMessage("");
+        });
+    } else {
+      showInfo("Loading local repository...");
+      await wasmGixStore.loadRepository(
+        repoIdentifier,
+        localRepoDirHandle!,
+        progressCallback
+      );
+      await indexingStore.createNewProject(projectName, repoIdentifier);
+      await indexingStore.setDataLoadingState(
+        DataLoadingState.REPOSITORY_LOADED
+      );
+      globalThis.location.hash = "#index";
+      showSuccess("Project created successfully.");
     }
   }
 
-  function resetCB() {
-    sumStore.setCalcSum(0);
-  }
-
-  function testDuckDB() {
-    // Send queries to dbWorker instead of running directly
-    for (let i = 0; i < 10000; i++) {
-      const queryMessage: DatabaseQueryMessage = {
-        type: DatabaseMessageType.QUERY,
-        sql: "INSERT INTO people VALUES (1, 'Alice'), (2, 'Bob')",
-        returnResult: false
-      };
-      dbStore.postMessage(queryMessage);
+  function handleDirectoryPicker() {
+    if (typeof globalThis.showDirectoryPicker !== "function") {
+      console.error("Directory Picker API is not supported in this browser.");
+      showInfo("Directory Picker API is not available in this browser.");
+      return;
     }
 
-    // Results will be logged in the dbWorker.onmessage handler
-  }
-
-  function readDuckDB() {
-    const queryMessage: DatabaseQueryMessage = {
-      type: DatabaseMessageType.QUERY,
-      sql: "SELECT count(*) FROM people",
-      returnResult: true
-    };
-    dbStore.postMessage(queryMessage);
-  }
-
-  function disconnectDuckDB() {
-    const terminateMessage: DatabaseTerminateMessage = {
-      type: DatabaseMessageType.TERMINATE
-    };
-    dbStore.postMessage(terminateMessage);
+    globalThis
+      .showDirectoryPicker({ mode: "read" })
+      .then((dirHandle: FileSystemDirectoryHandle) => {
+        setLocalRepoDirHandle(dirHandle);
+        showSuccess("Local repository selected.");
+      })
+      .catch((error: Error) => {
+        setLocalRepoDirHandle(null);
+        if (error?.name === "AbortError") {
+          return;
+        }
+        console.error("Error during directory selection:", error);
+        showError(
+          "Failed to open the directory picker. Please try again. Cause: " +
+            error.message
+        );
+      });
   }
 });
 

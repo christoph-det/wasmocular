@@ -5,6 +5,7 @@ import { observer } from "mobx-react-lite";
 
 const IndexPage = observer(() => {
   const indexingStore = useStores().indexingStore;
+  const wasmGixStore = useStores().wasmGixStore;
 
   return (
     <div className="p-10 pb-14 mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen">
@@ -32,7 +33,9 @@ const IndexPage = observer(() => {
             <Button
               text={"Start Indexing"}
               center
-              onClick={handleStartIndexingClick}
+              onClick={() => {
+                handleStartIndexingClick().catch(console.error);
+              }}
             />
             <div className="mt-4"></div>
             {indexingStore.indexingProgress > 0 ? (
@@ -43,7 +46,7 @@ const IndexPage = observer(() => {
               <Button
                 text={"Continue to Data Exploration"}
                 onClick={() => {
-                  window.location.hash = "#explore-customquery";
+                  globalThis.location.hash = "#explore-customquery";
                 }}
                 center
               />
@@ -54,15 +57,12 @@ const IndexPage = observer(() => {
     </div>
   );
 
-  function handleStartIndexingClick() {
+  async function handleStartIndexingClick() {
     // increase indexing progress every second
-    const interval = setInterval(() => {
-      if (indexingStore.indexingProgress < 100) {
-        indexingStore.setIndexingProgress(indexingStore.indexingProgress + 1);
-      } else {
-        clearInterval(interval);
-      }
-    }, 100);
+    const repositoryIdentifier = indexingStore.project!.repositoryIdentifier;
+
+    await wasmGixStore.startIndexing(repositoryIdentifier);
+    await indexingStore.setIndexingProgress(100);
   }
 });
 
