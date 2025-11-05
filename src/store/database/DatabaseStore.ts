@@ -1,4 +1,5 @@
-import { DatabaseWorker } from "@/workers/dbWorker";
+import DatabaseWorkerFactory from "@/workers/dbWorker?worker";
+import type { DatabaseWorker } from "@/workers/dbWorker";
 import { DuckDBAccessMode } from "@duckdb/duckdb-wasm";
 import { Remote, wrap, transfer } from "comlink";
 
@@ -66,11 +67,7 @@ export class DatabaseStore {
   }
 
   init() {
-    this.worker = new Worker(
-      new URL("../../workers/dbWorker.ts", import.meta.url),
-      { type: "module" }
-    );
-
+    this.worker = new DatabaseWorkerFactory();
     this.rpcWorker = wrap(this.worker);
   }
 }

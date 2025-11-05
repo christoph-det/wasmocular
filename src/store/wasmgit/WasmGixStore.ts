@@ -1,6 +1,7 @@
 import { RootStore } from "../RootStore";
 import { proxy, Remote, wrap } from "comlink";
-import { WasmGixWorker } from "@/workers/wasmgixWorker";
+import WasmGixWorkerFactory from "@/workers/wasmgixWorker?worker";
+import type { WasmGixWorker } from "@/workers/wasmgixWorker";
 
 export class WasmGixStore {
   private worker: Worker | null = null;
@@ -14,12 +15,7 @@ export class WasmGixStore {
   }
 
   init() {
-    this.worker = new Worker(
-      new URL("../../workers/wasmGixWorker.ts", import.meta.url),
-      {
-        type: "module"
-      }
-    );
+    this.worker = new WasmGixWorkerFactory();
     this.rpcWorker = wrap(this.worker);
   }
 

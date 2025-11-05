@@ -1,4 +1,5 @@
-import { WasmGitWorker } from "@/workers/wasmgitWorker";
+import WasmGitWorkerFactory from "@/workers/wasmgitWorker?worker";
+import type { WasmGitWorker } from "@/workers/wasmgitWorker";
 import { proxy, Remote, wrap } from "comlink";
 
 export class WasmGitStore {
@@ -11,12 +12,7 @@ export class WasmGitStore {
   }
 
   init() {
-    this.worker = new Worker(
-      new URL("../../workers/wasmgitWorker.ts", import.meta.url),
-      {
-        type: "module"
-      }
-    );
+    this.worker = new WasmGitWorkerFactory();
 
     this.rpcWorker = wrap(this.worker);
   }

@@ -207,5 +207,4 @@ export class DatabaseWorker {
 }
 
 const dbWorker = new DatabaseWorker();
-
 Comlink.expose(dbWorker);
