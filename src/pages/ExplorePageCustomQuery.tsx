@@ -2,7 +2,7 @@ import ExploreNavigationBar from "@/components/ExploreNavigationBar";
 import DatabaseSchemaSidebar from "@/components/DatabaseSchemaSidebar";
 import { DatabaseDataModel } from "@/store/database/DatabaseModel";
 import { useState } from "react";
-import Button from "@/components/button/Button";
+import { Button } from "@/components/ui/button";
 
 const ExplorePageCustomQuery = () => {
   const [queryState, setQueryState] = useState({
@@ -138,14 +138,12 @@ const ExplorePageCustomQuery = () => {
                     </div>
                   </div>
                 </div>
-                <div className="flex justify-end">
-                  <Button
-                    secondary
-                    text="(Todo) Switch to Manual Query mode"
-                    className="font-light"
-                  />
+                <div className="flex justify-between space-x-4 mt-4">
+                  <Button>Run Query</Button>
+                  <Button className="font-light">
+                    (Todo) Switch to Manual Query mode
+                  </Button>
                 </div>
-                <Button text="Run Query" className="" />
               </div>
             </div>
             <div className="mb-8">

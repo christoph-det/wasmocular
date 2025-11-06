@@ -1,6 +1,5 @@
 import { useState } from "react";
-import Button from "../components/button/Button";
-import { Button as ButtonShadCN } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { useStores } from "../store/StoreContext";
 import { Progress } from "@/components/ui/progress";
 import { observer } from "mobx-react-lite";
@@ -35,16 +34,17 @@ const IndexPage = observer(() => {
             </p>
             <div className="mt-4"></div>
             <div className="mt-8 flex justify-center">
-            <ButtonShadCN
+              <Button
                 onClick={() => {
-                handleStartIndexingClick().catch(console.error);
+                  handleStartIndexingClick().catch(console.error);
                 }}
                 disabled={indexingStore.indexingProgress > 0}
               >
                 Start Indexing
-                {indexingStore.indexingProgress > 0 && indexingStore.indexingProgress < 100 && <Spinner />}
-                {indexingStore.indexingProgress >= 100 &&  " ✅"}
-              </ButtonShadCN>
+                {indexingStore.indexingProgress > 0 &&
+                  indexingStore.indexingProgress < 100 && <Spinner />}
+                {indexingStore.indexingProgress >= 100 && " ✅"}
+              </Button>
             </div>
             <div className="mt-4"></div>
             {indexingStore.indexingProgress > 0 ? (
@@ -53,16 +53,17 @@ const IndexPage = observer(() => {
                 <p className="text-center mb-4"> {indexingProgressMessage}</p>
               </>
             ) : null}
-            <div className="mt-6"></div>
-            {indexingStore.indexingProgress > 0 ? (
-              <Button
-                text={"Continue to Data Exploration"}
-                onClick={() => {
-                  globalThis.location.hash = "#explore-customquery";
-                }}
-                center
-              />
-            ) : null}
+            <div className="mt-6 flex justify-center">
+              {indexingStore.indexingProgress > 0 ? (
+                <Button
+                  onClick={() => {
+                    globalThis.location.hash = "#explore-customquery";
+                  }}
+                >
+                  Continue to Data Exploration
+                </Button>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>

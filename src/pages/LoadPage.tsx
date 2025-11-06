@@ -1,6 +1,5 @@
 import { useEffect, useState, SetStateAction } from "react";
-import Button from "../components/button/Button";
-import { Button as ButtonShadCN } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { observer } from "mobx-react-lite";
 import { useStores } from "../store/StoreContext";
 import { DataLoadingState } from "@/store/IndexingStore";
@@ -115,7 +114,8 @@ const LoadPage = observer(() => {
               />
             </div>
             <p className="text-sm text-gray-500 mt-2 mb-8">
-              URL Format: https://github.com/user/repo.git, only public repos and proxy server is used for cloning.
+              URL Format: https://github.com/user/repo.git, only public repos
+              and proxy server is used for cloning.
             </p>
             {loadingProgress >= 0 ? (
               <>
@@ -124,9 +124,9 @@ const LoadPage = observer(() => {
               </>
             ) : null}
 
-            <Button text={"Connect API Data (optional)"} secondary />
+            <Button>Connect API Data (optional)</Button>
             <div className="mt-8 flex justify-center">
-              <ButtonShadCN
+              <Button
                 onClick={() => {
                   void clickCreateProject().catch((e: Error) => {
                     showError("Error creating project: " + e.message);
@@ -136,7 +136,7 @@ const LoadPage = observer(() => {
               >
                 Create Project
                 {loadingProgress >= 0 && <Spinner />}
-              </ButtonShadCN>
+              </Button>
             </div>
             <p className="text-sm text-red-500 mt-2 text-center">
               {projectCreationError}
