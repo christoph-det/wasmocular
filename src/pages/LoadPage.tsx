@@ -87,37 +87,36 @@ const LoadPage = observer(() => {
             <Label className="mt-8 mb-2">
               Select Repository Folder or paste a public GitHub URL:
             </Label>
-            {
-              // TODO: add file picker functionality and error handling
-            }
-            <Input
-              id="directory-button"
-              className="mt-4 cursor-pointer hover:bg-gray-100"
-              type="button"
-              disabled={gitRepoUrl.trim() !== ""}
-              placeholder="No directory selected"
-              onClick={handleDirectoryPicker}
-              value={
-                localRepoDirHandle
-                  ? "Local directory selected!"
-                  : "Select local repository"
-              }
-            />
-            <div className="mt-0 pt-4 mb-8">
+            <div className="mt-4 flex flex-col md:flex-row md:items-center gap-4">
+              <Input
+                id="directory-button"
+                className="w-full cursor-pointer hover:bg-gray-100 md:flex-1"
+                type="button"
+                disabled={gitRepoUrl.trim() !== ""}
+                placeholder="No directory selected"
+                onClick={handleDirectoryPicker}
+                value={
+                  localRepoDirHandle
+                    ? "✅ Local directory selected!"
+                    : "Select local repository"
+                }
+              />
+              <span className="text-center text-gray-500 font-semibold">
+                OR
+              </span>
               <Input
                 id="github-url"
+                className="w-full md:flex-1"
                 type="text"
                 placeholder="https://github.com/user/repo"
                 value={gitRepoUrl}
                 disabled={localRepoDirHandle !== null}
                 onChange={(e) => setGitRepoUrl(e.target.value)}
               />
-              <p className="text-sm text-gray-500 mt-2">
-                {localRepoDirHandle == null
-                  ? "Only public repositories are supported. Format: https://github.com/user/repo.git"
-                  : "Disabled because a local repository is selected."}
-              </p>
             </div>
+            <p className="text-sm text-gray-500 mt-2 mb-8">
+              URL Format: https://github.com/user/repo.git, only public repos and proxy server is used for cloning.
+            </p>
             {loadingProgress >= 0 ? (
               <>
                 <Progress className="" value={loadingProgress} />

@@ -1,8 +1,10 @@
 import { useState } from "react";
 import Button from "../components/button/Button";
+import { Button as ButtonShadCN } from "@/components/ui/button";
 import { useStores } from "../store/StoreContext";
 import { Progress } from "@/components/ui/progress";
 import { observer } from "mobx-react-lite";
+import { Spinner } from "@/components/ui/spinner";
 
 const IndexPage = observer(() => {
   const indexingStore = useStores().indexingStore;
@@ -32,13 +34,18 @@ const IndexPage = observer(() => {
               You can now proceed to analyze the data.
             </p>
             <div className="mt-4"></div>
-            <Button
-              text={"Start Indexing"}
-              center
-              onClick={() => {
+            <div className="mt-8 flex justify-center">
+            <ButtonShadCN
+                onClick={() => {
                 handleStartIndexingClick().catch(console.error);
-              }}
-            />
+                }}
+                disabled={indexingStore.indexingProgress > 0}
+              >
+                Start Indexing
+                {indexingStore.indexingProgress > 0 && indexingStore.indexingProgress < 100 && <Spinner />}
+                {indexingStore.indexingProgress >= 100 &&  " ✅"}
+              </ButtonShadCN>
+            </div>
             <div className="mt-4"></div>
             {indexingStore.indexingProgress > 0 ? (
               <>
