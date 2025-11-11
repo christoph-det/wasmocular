@@ -1,8 +1,28 @@
 import { DatabaseDataModel } from "@/store/database/DatabaseModel";
-import { useState } from "react";
+import { useStores } from "@/store/StoreContext";
+import { useEffect, useState } from "react";
 
 const DatabaseSchemaSidebar = () => {
   const [expandedTables, setExpandedTables] = useState<Set<string>>(new Set());
+  const [tablesAndColumns, setTablesAndColumns] = useState<
+      Record<string, string[]>
+  >({});
+  const databaseStore = useStores().dbStore;
+
+
+  useEffect(() => {
+    databaseStore.listTablesAndColumns().then((result) => {
+      const reducedByTable = result.reduce((acc, { table_name, column_name }) => {
+        if (!acc[table_name]) {
+          acc[table_name] = [];
+        }
+        acc[table_name].push(column_name);
+        return acc;
+      }, {} as Record<string, string[]>);
+      setTablesAndColumns(reducedByTable);
+    });
+  }, []);
+  
 
   const toggleTable = (tableName: string) => {
     const newExpanded = new Set(expandedTables);
@@ -22,26 +42,25 @@ const DatabaseSchemaSidebar = () => {
         queries.
       </p>
       <div className="space-y-2">
-        {Object.entries(DatabaseDataModel).map(([tableName, fields]) => (
-          <div key={tableName} className="border border-gray-200">
+        {Object.entries(tablesAndColumns).map(([table_name, column_name]) => (
+          <div key={table_name} className="border border-gray-200">
             <button
-              onClick={() => toggleTable(tableName)}
+              onClick={() => toggleTable(table_name)}
               className="w-full px-3 py-2 text-left hover:bg-gray-50 focus:outline-none focus:bg-gray-50 flex items-center justify-between"
             >
-              <span className="font-medium text-gray-700">{tableName}</span>
+              <span className="font-medium text-gray-700">{table_name}</span>
               <span className="text-gray-400">
-                {expandedTables.has(tableName) ? "-" : "+"}
+                {expandedTables.has(table_name) ? "-" : "+"}
               </span>
             </button>
-            {expandedTables.has(tableName) && (
+            {expandedTables.has(table_name) && (
               <div className="px-3 pb-2 border-t border-gray-100">
-                {Object.entries(fields).map(([fieldName, fieldType]) => (
+                {column_name.map((fieldName) => (
                   <div
                     key={fieldName}
                     className="py-1 text-sm flex justify-between"
                   >
                     <span className="text-gray-600">{fieldName}</span>
-                    <span className="text-gray-400 text-xs">{fieldType}</span>
                   </div>
                 ))}
               </div>

@@ -13,7 +13,6 @@ export class WasmGitStore {
 
   init() {
     this.worker = new WasmGitWorkerFactory();
-
     this.rpcWorker = wrap(this.worker);
   }
 

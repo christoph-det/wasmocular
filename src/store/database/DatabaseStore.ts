@@ -8,13 +8,21 @@ export class DatabaseStore {
   private rpcWorker: Remote<DatabaseWorker> | null = null;
   private currentRepositoryIdentifier: string | null = null;
   private currentAccessMode: DuckDBAccessMode | null = null;
+  private awaitDatabaseInitialization: Promise<void>;
 
   constructor() {
+    this.awaitDatabaseInitialization = new Promise(() => {});
     this.init();
     console.log("DatabaseStore initialized");
   }
 
+  private init() {
+    this.worker = new DatabaseWorkerFactory();
+    this.rpcWorker = wrap(this.worker);
+  }
+
   async receiveIndexerResults(identifier: string, resultBuffer: Uint8Array) {
+    await this.awaitDatabaseInitialization;
     if (!this.rpcWorker) {
       console.error("Database worker not initialized");
       return;
@@ -48,13 +56,18 @@ export class DatabaseStore {
     this.currentRepositoryIdentifier = repositoryIdentifier;
     this.currentAccessMode = accessMode;
 
-    await this.rpcWorker.initialize(repositoryIdentifier, accessMode);
+    this.awaitDatabaseInitialization = this.rpcWorker.initialize(
+      repositoryIdentifier,
+      accessMode
+    );
   }
 
-  runQuery(sql: string): Promise<unknown> {
+  async runQuery(sql: string): Promise<unknown> {
+    await this.awaitDatabaseInitialization;
     if (!this.rpcWorker) {
-      return Promise.reject(new Error("Database worker not initialized"));
+      throw new Error("Database worker not initialized");
     }
+    
 
     return this.rpcWorker
       .query(sql)
@@ -66,8 +79,15 @@ export class DatabaseStore {
       });
   }
 
-  init() {
-    this.worker = new DatabaseWorkerFactory();
-    this.rpcWorker = wrap(this.worker);
+  async listTablesAndColumns(): Promise<Array<{ table_name: string; column_name: string }>> {
+    const sql = `
+      SELECT table_name, column_name
+      FROM information_schema.columns
+      WHERE table_schema = 'main'
+      ORDER BY table_name, ordinal_position;
+    `;
+    return await this.runQuery(sql) as Array<{ table_name: string; column_name: string }>;
   }
+
+  
 }

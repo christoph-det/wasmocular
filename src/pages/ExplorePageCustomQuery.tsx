@@ -1,21 +1,55 @@
 import ExploreNavigationBar from "@/components/ExploreNavigationBar";
 import DatabaseSchemaSidebar from "@/components/DatabaseSchemaSidebar";
 import { DatabaseDataModel } from "@/store/database/DatabaseModel";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useStores } from "@/store/StoreContext";
+import { Spinner } from "@/components/ui/spinner";
 
 const ExplorePageCustomQuery = () => {
   const [queryState, setQueryState] = useState({
     select: [] as string[],
     from: "" as string,
-    limit: 0 as number
+    limit: 100 as number
   });
+  const [tablesAndColumns, setTablesAndColumns] = useState<
+      Record<string, string[]>
+  >({});
+  const [queryResult, setQueryResult] = useState<any[]>([]);
+  const [queryError , setQueryError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const getAllFields = () => {
-    return Object.entries(DatabaseDataModel).flatMap(([table, tableFields]) =>
-      Object.entries(tableFields).map((field) => `${table}.${field[0]}`)
-    );
-  };
+
+  const databaseStore = useStores().dbStore;
+
+  const handleRunQuery = () => {
+    setLoading(true);
+    databaseStore.runQuery(
+      `SELECT ${queryState.select.length > 0 ? queryState.select.join(", ") : "*"} FROM ${queryState.from} ${
+        queryState.limit > 0 ? `LIMIT ${queryState.limit}` : ""}`
+    ).then((result) => {
+      console.log("Query result:", result);
+      setQueryResult(result as any[]);
+      setLoading(false);
+    }).catch((error) => {
+      console.error("Error running query:", error);
+      setQueryError(error.message || "Unknown error");
+      setLoading(false);
+    });
+  }
+
+  useEffect(() => {
+    databaseStore.listTablesAndColumns().then((result) => {
+      const reducedByTable = result.reduce((acc, { table_name, column_name }) => {
+        if (!acc[table_name]) {
+          acc[table_name] = [];
+        }
+        acc[table_name].push(column_name);
+        return acc;
+      }, {} as Record<string, string[]>);
+      setTablesAndColumns(reducedByTable);
+    });
+  }, []);
 
   return (
     <div className="mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen">
@@ -50,7 +84,7 @@ const ExplorePageCustomQuery = () => {
                       setQueryState({ ...queryState, select: values });
                     }}
                   >
-                    {getAllFields().map((field) => (
+                    {tablesAndColumns[queryState.from]?.map((field) => (
                       <option key={field} value={field}>
                         {field}
                       </option>
@@ -75,7 +109,7 @@ const ExplorePageCustomQuery = () => {
                     }
                   >
                     <option value="">Select table...</option>
-                    {Object.entries(DatabaseDataModel).map(([tableName]) => (
+                    {Object.entries(tablesAndColumns).map(([tableName]) => (
                       <option key={tableName} value={tableName}>
                         {tableName}
                       </option>
@@ -99,7 +133,7 @@ const ExplorePageCustomQuery = () => {
                     onChange={(e) =>
                       setQueryState({
                         ...queryState,
-                        limit: parseInt(e.target.value) || 0
+                        limit: parseInt(e.target.value) || 100
                       })
                     }
                   />
@@ -139,7 +173,7 @@ const ExplorePageCustomQuery = () => {
                   </div>
                 </div>
                 <div className="flex justify-between space-x-4 mt-4">
-                  <Button>Run Query</Button>
+                  <Button onClick={handleRunQuery}>Run Query {loading && <Spinner />}</Button>
                   <Button className="font-light">
                     (Todo) Switch to Manual Query mode
                   </Button>
@@ -150,7 +184,46 @@ const ExplorePageCustomQuery = () => {
               <h2 className="text-2xl font-bold mb-4">Results</h2>
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <p className="text-gray-500">
-                  Query results will appear here...
+                  {loading ? <Spinner /> : `${queryResult.length} rows returned.`}
+                </p>
+                {queryError && (
+                  <p className="text-red-600 font-medium mt-2">
+                    Error: {queryError}
+                  </p>
+                )}
+                <p className="mt-4">
+                  {/* Simple table to display results */}
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full table-auto border-collapse border border-gray-200">
+                      <thead>
+                        <tr>
+                          {queryResult.length > 0 &&
+                            Object.keys(queryResult[0]).map((col) => (
+                              <th
+                                key={col}
+                                className="border border-gray-300 px-4 py-2 bg-gray-100 text-left"
+                              >
+                                {col}
+                              </th>
+                            ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {queryResult.map((row, rowIndex) => (
+                          <tr key={rowIndex} className={rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                            {Object.values(row).map((value, colIndex) => (
+                              <td
+                                key={colIndex}
+                                className="border border-gray-300 px-4 py-2"
+                              >
+                                {String(value)}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </p>
               </div>
             </div>
