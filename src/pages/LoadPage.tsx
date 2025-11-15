@@ -42,13 +42,7 @@ const LoadPage = observer(() => {
 
   useEffect(() => {
     if (indexingStore.dataLoadingState === DataLoadingState.INDEXING_FINISHED) {
-      navigate("/explore-customquery", { replace: true })
-        ?.then(() => {
-          globalThis.location.hash = "#explore-customquery";
-        })
-        .catch((error) => {
-          console.error("Navigation error:", error);
-        });
+      globalThis.location.hash = "#explore-customquery";
     }
   }, [indexingStore.dataLoadingState, navigate]);
 
