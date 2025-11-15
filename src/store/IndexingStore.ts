@@ -40,7 +40,7 @@ export class IndexingStore {
     this.rootStore = rootStore;
     makeAutoObservable(this);
 
-    this.ready = this.loadFromStorage();
+    this.ready = Promise.resolve(this.loadFromStorage());
 
     // trigger auto-save on changes
     reaction(
@@ -66,7 +66,7 @@ export class IndexingStore {
     }
   }
 
-  private async loadFromStorage() {
+  private loadFromStorage() {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
@@ -78,7 +78,7 @@ export class IndexingStore {
           data.dataLoadingState ?? DataLoadingState.NOT_STARTED;
         if (data.project) {
           this.project = Object.assign(new RepminerProject(), data.project);
-          await this.updateDatabaseAccessMode();
+          this.updateDatabaseAccessMode();
         }
       }
     } catch (error) {
@@ -97,7 +97,7 @@ export class IndexingStore {
     this.project = new RepminerProject();
     this.project.name = name;
     this.project.repositoryIdentifier = repositoryIdentifier;
-    await this.updateDatabaseAccessMode();
+    this.updateDatabaseAccessMode();
   }
 
   changeProjectName(name: string) {
@@ -125,10 +125,10 @@ export class IndexingStore {
   async setDataLoadingState(state: DataLoadingState) {
     await this.ready;
     this.dataLoadingState = state;
-    await this.updateDatabaseAccessMode();
+    this.updateDatabaseAccessMode();
   }
 
-  private async updateDatabaseAccessMode() {
+  private updateDatabaseAccessMode() {
     if (!this.project) {
       return;
     }
@@ -138,7 +138,7 @@ export class IndexingStore {
         ? DuckDBAccessMode.READ_ONLY
         : DuckDBAccessMode.READ_WRITE;
 
-    await this.rootStore.dbStore.ensureInitialization(
+    this.rootStore.dbStore.ensureInitialization(
       this.project.repositoryIdentifier,
       mode
     );

@@ -10,7 +10,10 @@ export class DatabaseStore {
   private currentRepositoryIdentifier: string | null = null;
   private currentAccessMode: DuckDBAccessMode | null = null;
   private awaitDatabaseInitialization: Promise<void>;
-  tablesAndColumns: Record<string, { column_name: string; data_type: string }[]> = {};
+  tablesAndColumns: Record<
+    string,
+    { column_name: string; data_type: string }[]
+  > = {};
 
   constructor() {
     makeAutoObservable(this);
@@ -33,7 +36,7 @@ export class DatabaseStore {
     // Ensure we are in write mode before pushing indexing data.
     this.currentRepositoryIdentifier = identifier;
     this.currentAccessMode = null;
-    await this.ensureInitialization(identifier, DuckDBAccessMode.READ_WRITE);
+    this.ensureInitialization(identifier, DuckDBAccessMode.READ_WRITE);
 
     await this.rpcWorker.insertIndexerData(
       identifier,
@@ -41,7 +44,7 @@ export class DatabaseStore {
     );
   }
 
-  async ensureInitialization(
+  ensureInitialization(
     repositoryIdentifier: string,
     accessMode: DuckDBAccessMode
   ) {
@@ -70,7 +73,6 @@ export class DatabaseStore {
     if (!this.rpcWorker) {
       throw new Error("Database worker not initialized");
     }
-    
 
     return this.rpcWorker
       .query(sql)
@@ -82,32 +84,41 @@ export class DatabaseStore {
       });
   }
 
-  async getTableAndColumnNames(): Promise<Record<string, { column_name: string; data_type: string }[]>> {
+  async getTableAndColumnNames(): Promise<
+    Record<string, { column_name: string; data_type: string }[]>
+  > {
     await this.awaitDatabaseInitialization;
     if (Object.keys(this.tablesAndColumns).length > 0) {
       return this.tablesAndColumns;
     }
     const result = await this.listTablesAndColumns();
-    const reducedByTable = result.reduce((acc, { table_name, column_name, data_type }) => {
+    const reducedByTable = result.reduce(
+      (acc, { table_name, column_name, data_type }) => {
         if (!acc[table_name]) {
           acc[table_name] = [];
         }
         acc[table_name].push({ column_name, data_type });
         return acc;
-      }, {} as Record<string, { column_name: string; data_type: string }[]>);
+      },
+      {} as Record<string, { column_name: string; data_type: string }[]>
+    );
     this.tablesAndColumns = reducedByTable;
     return this.tablesAndColumns;
   }
 
-  async listTablesAndColumns(): Promise<Array<{ table_name: string; column_name: string, data_type: string }>> {
+  async listTablesAndColumns(): Promise<
+    { table_name: string; column_name: string; data_type: string }[]
+  > {
     const sql = `
       SELECT table_name, column_name, data_type
       FROM information_schema.columns
       WHERE table_schema = 'main'
       ORDER BY table_name, ordinal_position;
     `;
-    return await this.runQuery(sql) as Array<{ table_name: string; column_name: string, data_type: string }>;
+    return (await this.runQuery(sql)) as {
+      table_name: string;
+      column_name: string;
+      data_type: string;
+    }[];
   }
-
-  
 }
