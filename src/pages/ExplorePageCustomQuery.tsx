@@ -183,7 +183,7 @@ const ExplorePageCustomQuery = () => {
                 {manualQueryMode && (
                   <div
                     ref={editorRef}
-                    className="h-48 border border-gray-300 rounded-md"
+                    className="border border-gray-300 rounded-md"
                   ></div>
                 )}
                 {!manualQueryMode && (
