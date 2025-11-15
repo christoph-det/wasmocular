@@ -1,4 +1,4 @@
-import { RootStore } from "../RootStore";
+import { RootStore } from "./RootStore";
 import { proxy, Remote, wrap } from "comlink";
 import WasmGixWorkerFactory from "@/workers/wasmgixWorker?worker";
 import type { WasmGixWorker } from "@/workers/wasmgixWorker";
