@@ -26,7 +26,7 @@ const DatabaseSchemaSidebar = () => {
   };
 
   return (
-    <div className="w-full md:w-64 bg-white shadow-md p-4 md:min-h-[calc(100vh-64px)]">
+    <div className="w-full md:w-64 flex-shrink-0 bg-white shadow-md p-4 md:min-h-[calc(100vh-64px)]">
       <h2 className="text-xl font-semibold mb-4 text-gray-800">Data Schema</h2>
       <p className="text-sm text-gray-600 mb-5">
         Use this to explore the data model of the database and create your own

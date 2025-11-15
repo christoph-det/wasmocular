@@ -6,6 +6,41 @@ import { useStores } from "@/store/StoreContext";
 import { Spinner } from "@/components/ui/spinner";
 import { EditorView, basicSetup } from "codemirror"
 import { sql } from "@codemirror/lang-sql"
+import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
+import { tags } from "@lezer/highlight";
+
+const customSQLTheme = EditorView.theme(
+  {
+    "&": {
+      backgroundColor: "#0f172a",
+    },
+    ".cm-activeLine": {
+      backgroundColor: "transparent",
+    },
+    ".cm-activeLineGutter": {
+      backgroundColor: "transparent",
+    },
+    ".cm-content": {
+      fontFamily: '"JetBrains Mono", Menlo, monospace',
+      fontSize: "0.85rem",
+      padding: "0.75rem",
+    }
+  },
+  { dark: true }
+);
+
+const customSQLHighlighting = HighlightStyle.define([
+  { tag: tags.keyword, color: "#7dd3fc", fontWeight: 600 },
+  {
+    tag: [tags.name, tags.variableName],
+    color: "#c4b5fd",
+  },
+  { tag: tags.string, color: "#fbbf24" },
+  { tag: tags.number, color: "#fb7185" },
+  { tag: [tags.operator, tags.punctuation], color: "#6ee7b7" },
+  { tag: tags.comment, color: "#94a3b8", fontStyle: "italic" },
+  { tag: tags.literal, color: "#f87171" }
+]);
 
 
 const ExplorePageCustomQuery = () => {
@@ -28,6 +63,8 @@ const ExplorePageCustomQuery = () => {
 
   const editorRef: React.MutableRefObject<HTMLDivElement | null> = useRef(null);
   const viewRef: React.MutableRefObject<EditorView | null> = useRef(null);
+  const sqlDisplayRef: React.MutableRefObject<HTMLDivElement | null> = useRef(null);
+  const sqlDisplayViewRef: React.MutableRefObject<EditorView | null> = useRef(null);
 
 
   const handleRunQuery = () => {
@@ -35,9 +72,7 @@ const ExplorePageCustomQuery = () => {
     setQueryError(null);
     setQueryTime(null);
     const startTime = performance.now();
-    const sqlToRun = manualQueryMode ? manualSQLQuery :
-      `SELECT ${queryState.select.length > 0 ? queryState.select.join(", ") : "*"} FROM ${queryState.from} ${
-        queryState.limit > 0 ? `LIMIT ${queryState.limit}` : ""}`;
+    const sqlToRun = manualQueryMode ? manualSQLQuery : buildSqlQueryString();
     databaseStore.runQuery(sqlToRun).then((result) => {
       setQueryResult(result as any[]);
       setQueryTime(performance.now() - startTime);
@@ -49,6 +84,11 @@ const ExplorePageCustomQuery = () => {
     });
   }
 
+  const buildSqlQueryString = () => {
+    return `SELECT ${queryState.select.length > 0 ? queryState.select.join(", ") : "*"} FROM ${queryState.from} ${
+      queryState.limit > 0 ? `LIMIT ${queryState.limit}` : ""}`;
+  }
+
   useEffect(() => {
       databaseStore.getTableAndColumnNames().then((result) => {
         setTablesAndColumns(result);
@@ -56,13 +96,14 @@ const ExplorePageCustomQuery = () => {
     }, [databaseStore.tablesAndColumns]);
 
   useEffect(() => {
-    console.log("Initializing CodeMirror editor");
     if (editorRef.current) {
       const view = new EditorView({
         doc: '-- Write your SQL query here',
         extensions: [
           basicSetup,
           sql(),
+          customSQLTheme,
+          syntaxHighlighting(customSQLHighlighting),
           EditorView.updateListener.of((update) => {
             if (update.docChanged) {
               const value = update.state.doc.toString();
@@ -80,6 +121,30 @@ const ExplorePageCustomQuery = () => {
     }
   }, [manualQueryMode]);
 
+  useEffect(() => {
+    if (sqlDisplayRef.current) {
+      if (sqlDisplayViewRef.current) {
+        sqlDisplayViewRef.current.destroy();
+      }
+      const view = new EditorView({
+        doc: buildSqlQueryString(),
+        extensions: [
+          basicSetup,
+          sql(),
+          customSQLTheme,
+          syntaxHighlighting(customSQLHighlighting),
+          EditorView.editable.of(false)
+        ],
+        parent: sqlDisplayRef.current,
+      });
+      sqlDisplayViewRef.current = view;
+
+      return () => {
+        view.destroy();
+      };
+    }
+  }, [manualQueryMode, queryState]);
+
 
   return (
     <div className="mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen">
@@ -87,7 +152,7 @@ const ExplorePageCustomQuery = () => {
       <div className="flex flex-col md:flex-row">
         <DatabaseSchemaSidebar />
 
-        <div className="flex-1 p-4">
+        <div className="flex-1 min-w-0 p-4">
           <div className="mx-auto">
             <div className="mb-8">
               <div className="flex items-center mb-4 cursor-pointer">
@@ -106,7 +171,7 @@ const ExplorePageCustomQuery = () => {
                 <div>
                   <label
                     htmlFor="select-fields"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-gray-700 mb-1"
                   >
                     SELECT
                   </label>
@@ -135,7 +200,7 @@ const ExplorePageCustomQuery = () => {
                 <div>
                   <label
                     htmlFor="from-table-select"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-gray-700 mt-3 mb-1"
                   >
                     FROM
                   </label>
@@ -160,7 +225,7 @@ const ExplorePageCustomQuery = () => {
                 <div>
                   <label
                     htmlFor="limit-input"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-gray-700 mt-3 mb-1"
                   >
                     LIMIT
                   </label>
@@ -178,39 +243,10 @@ const ExplorePageCustomQuery = () => {
                   />
                 </div>
 
-                {/* SQL Query Display */}
-                <div className="mt-6">
-                  <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm">
-                    <div className="text-gray-300">
-                      <span className="text-blue-400 font-semibold">
-                        SELECT
-                      </span>{" "}
-                      <span className="text-green-300">
-                        {queryState.select.length > 0
-                          ? queryState.select.join(", ")
-                          : "*"}
-                      </span>
-                      <br />
-                      <span className="text-blue-400 font-semibold">
-                        FROM
-                      </span>{" "}
-                      <span className="text-yellow-300">
-                        {queryState.from || "?"}
-                      </span>
-                      {queryState.limit > 0 && (
-                        <>
-                          <br />
-                          <span className="text-blue-400 font-semibold">
-                            LIMIT
-                          </span>{" "}
-                          <span className="text-purple-300">
-                            {queryState.limit}
-                          </span>
-                        </>
-                      )}
-                    </div>
+              {/* Display SQL Query  CodeMirror*/}
+                <div ref={sqlDisplayRef} className="border border-gray-300 rounded-md mt-5">
+
                   </div>
-                </div>
                 </div>
                 )}
                 <div className="flex justify-between space-x-4 mt-4">
@@ -231,7 +267,7 @@ const ExplorePageCustomQuery = () => {
                 )}
                 <div className="mt-4">
                   {/* Simple table to display results */}
-                  <div className="overflow-scroll">
+                  <div className="overflow-x-auto">
                     <table className="min-w-full table-auto border-collapse border border-gray-200">
                       <thead>
                         <tr>
