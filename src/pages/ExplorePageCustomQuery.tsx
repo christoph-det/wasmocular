@@ -18,6 +18,7 @@ const ExplorePageCustomQuery = () => {
       Record<string, { column_name: string; data_type: string }[]>
   >({});
   const [queryResult, setQueryResult] = useState<any[]>([]);
+  const [queryTime, setQueryTime] = useState<number | null>(null);
   const [queryError , setQueryError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [manualQueryMode, setManualQueryMode] = useState(false);
@@ -32,12 +33,14 @@ const ExplorePageCustomQuery = () => {
   const handleRunQuery = () => {
     setLoading(true);
     setQueryError(null);
+    setQueryTime(null);
+    const startTime = performance.now();
     const sqlToRun = manualQueryMode ? manualSQLQuery :
       `SELECT ${queryState.select.length > 0 ? queryState.select.join(", ") : "*"} FROM ${queryState.from} ${
         queryState.limit > 0 ? `LIMIT ${queryState.limit}` : ""}`;
     databaseStore.runQuery(sqlToRun).then((result) => {
-      console.log("Query result:", result);
       setQueryResult(result as any[]);
+      setQueryTime(performance.now() - startTime);
       setLoading(false);
     }).catch((error) => {
       console.error("Error running query:", error);
@@ -219,7 +222,7 @@ const ExplorePageCustomQuery = () => {
               <h2 className="text-2xl font-bold mb-4">Results</h2>
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <p className="text-gray-500">
-                  {loading ? <Spinner /> : `${queryResult.length} rows returned.`}
+                  {loading ? <Spinner /> : `${queryResult.length} rows returned in ${queryTime ? queryTime.toFixed(2) : "0"} ms.`}
                 </p>
                 {queryError && (
                   <p className="text-red-600 font-medium mt-2">
@@ -228,7 +231,7 @@ const ExplorePageCustomQuery = () => {
                 )}
                 <div className="mt-4">
                   {/* Simple table to display results */}
-                  <div className="overflow-x-auto">
+                  <div className="overflow-scroll">
                     <table className="min-w-full table-auto border-collapse border border-gray-200">
                       <thead>
                         <tr>
