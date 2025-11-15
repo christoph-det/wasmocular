@@ -2,6 +2,7 @@ import DatabaseWorkerFactory from "@/workers/dbWorker?worker";
 import type { DatabaseWorker } from "@/workers/dbWorker";
 import { DuckDBAccessMode } from "@duckdb/duckdb-wasm";
 import { Remote, wrap, transfer } from "comlink";
+import { makeAutoObservable } from "mobx";
 
 export class DatabaseStore {
   private worker: Worker | null = null;
@@ -9,8 +10,10 @@ export class DatabaseStore {
   private currentRepositoryIdentifier: string | null = null;
   private currentAccessMode: DuckDBAccessMode | null = null;
   private awaitDatabaseInitialization: Promise<void>;
+  tablesAndColumns: Record<string, { column_name: string; data_type: string }[]> = {};
 
   constructor() {
+    makeAutoObservable(this);
     this.awaitDatabaseInitialization = new Promise(() => {});
     this.init();
     console.log("DatabaseStore initialized");
@@ -79,14 +82,31 @@ export class DatabaseStore {
       });
   }
 
-  async listTablesAndColumns(): Promise<Array<{ table_name: string; column_name: string }>> {
+  async getTableAndColumnNames(): Promise<Record<string, { column_name: string; data_type: string }[]>> {
+    await this.awaitDatabaseInitialization;
+    if (Object.keys(this.tablesAndColumns).length > 0) {
+      return this.tablesAndColumns;
+    }
+    const result = await this.listTablesAndColumns();
+    const reducedByTable = result.reduce((acc, { table_name, column_name, data_type }) => {
+        if (!acc[table_name]) {
+          acc[table_name] = [];
+        }
+        acc[table_name].push({ column_name, data_type });
+        return acc;
+      }, {} as Record<string, { column_name: string; data_type: string }[]>);
+    this.tablesAndColumns = reducedByTable;
+    return this.tablesAndColumns;
+  }
+
+  async listTablesAndColumns(): Promise<Array<{ table_name: string; column_name: string, data_type: string }>> {
     const sql = `
-      SELECT table_name, column_name
+      SELECT table_name, column_name, data_type
       FROM information_schema.columns
       WHERE table_schema = 'main'
       ORDER BY table_name, ordinal_position;
     `;
-    return await this.runQuery(sql) as Array<{ table_name: string; column_name: string }>;
+    return await this.runQuery(sql) as Array<{ table_name: string; column_name: string, data_type: string }>;
   }
 
   

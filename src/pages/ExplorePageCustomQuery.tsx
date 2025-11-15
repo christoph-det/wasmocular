@@ -1,10 +1,12 @@
 import ExploreNavigationBar from "@/components/ExploreNavigationBar";
 import DatabaseSchemaSidebar from "@/components/DatabaseSchemaSidebar";
-import { DatabaseDataModel } from "@/store/database/DatabaseModel";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useStores } from "@/store/StoreContext";
 import { Spinner } from "@/components/ui/spinner";
+import { EditorView, basicSetup } from "codemirror"
+import { sql } from "@codemirror/lang-sql"
+
 
 const ExplorePageCustomQuery = () => {
   const [queryState, setQueryState] = useState({
@@ -13,21 +15,27 @@ const ExplorePageCustomQuery = () => {
     limit: 100 as number
   });
   const [tablesAndColumns, setTablesAndColumns] = useState<
-      Record<string, string[]>
+      Record<string, { column_name: string; data_type: string }[]>
   >({});
   const [queryResult, setQueryResult] = useState<any[]>([]);
   const [queryError , setQueryError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
+  const [manualQueryMode, setManualQueryMode] = useState(false);
+  const [manualSQLQuery, setManualSQLQuery] = useState("");
 
   const databaseStore = useStores().dbStore;
 
+  const editorRef: React.MutableRefObject<HTMLDivElement | null> = useRef(null);
+  const viewRef: React.MutableRefObject<EditorView | null> = useRef(null);
+
+
   const handleRunQuery = () => {
     setLoading(true);
-    databaseStore.runQuery(
+    setQueryError(null);
+    const sqlToRun = manualQueryMode ? manualSQLQuery :
       `SELECT ${queryState.select.length > 0 ? queryState.select.join(", ") : "*"} FROM ${queryState.from} ${
-        queryState.limit > 0 ? `LIMIT ${queryState.limit}` : ""}`
-    ).then((result) => {
+        queryState.limit > 0 ? `LIMIT ${queryState.limit}` : ""}`;
+    databaseStore.runQuery(sqlToRun).then((result) => {
       console.log("Query result:", result);
       setQueryResult(result as any[]);
       setLoading(false);
@@ -39,17 +47,36 @@ const ExplorePageCustomQuery = () => {
   }
 
   useEffect(() => {
-    databaseStore.listTablesAndColumns().then((result) => {
-      const reducedByTable = result.reduce((acc, { table_name, column_name }) => {
-        if (!acc[table_name]) {
-          acc[table_name] = [];
-        }
-        acc[table_name].push(column_name);
-        return acc;
-      }, {} as Record<string, string[]>);
-      setTablesAndColumns(reducedByTable);
-    });
-  }, []);
+      databaseStore.getTableAndColumnNames().then((result) => {
+        setTablesAndColumns(result);
+      });
+    }, [databaseStore.tablesAndColumns]);
+
+  useEffect(() => {
+    console.log("Initializing CodeMirror editor");
+    if (editorRef.current) {
+      const view = new EditorView({
+        doc: '-- Write your SQL query here',
+        extensions: [
+          basicSetup,
+          sql(),
+          EditorView.updateListener.of((update) => {
+            if (update.docChanged) {
+              const value = update.state.doc.toString();
+              setManualSQLQuery(value);
+            }
+          }),
+        ],
+        parent: editorRef.current,
+      });
+      viewRef.current = view;
+
+      return () => {
+        view.destroy();
+      };
+    }
+  }, [manualQueryMode]);
+
 
   return (
     <div className="mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen">
@@ -60,9 +87,18 @@ const ExplorePageCustomQuery = () => {
         <div className="flex-1 p-4">
           <div className="mx-auto">
             <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-5">Query Builder</h2>
-
+              <div className="flex items-center mb-4 cursor-pointer">
+              <h2 className={`text-2xl font-bold mb-4 mr-5 border-1 px-3 py-1 ${!manualQueryMode ? "bg-gray-600 text-white" : ""}`} onClick={()=> setManualQueryMode(false)}>Query Builder</h2>
+              <h2 className={`text-2xl font-bold mb-4 mr-5 border-1 px-3 py-1 ${manualQueryMode ? "bg-gray-600 text-white" : ""}`} onClick={()=> setManualQueryMode(true)}>Manual Query Mode</h2>
+              </div>
               <div className="bg-white rounded-lg shadow-sm p-5 space-y-5">
+                {manualQueryMode && (
+                  <div ref={editorRef} className="h-48 border border-gray-300 rounded-md">
+
+                  </div>
+                )}
+                {!manualQueryMode && (
+                <div id="query-builder">
                 {/* SELECT */}
                 <div>
                   <label
@@ -84,9 +120,9 @@ const ExplorePageCustomQuery = () => {
                       setQueryState({ ...queryState, select: values });
                     }}
                   >
-                    {tablesAndColumns[queryState.from]?.map((field) => (
-                      <option key={field} value={field}>
-                        {field}
+                    {tablesAndColumns[queryState.from]?.map(({ column_name }) => (
+                      <option key={column_name} value={column_name}>
+                        {column_name }
                       </option>
                     ))}
                   </select>
@@ -172,11 +208,10 @@ const ExplorePageCustomQuery = () => {
                     </div>
                   </div>
                 </div>
+                </div>
+                )}
                 <div className="flex justify-between space-x-4 mt-4">
                   <Button onClick={handleRunQuery}>Run Query {loading && <Spinner />}</Button>
-                  <Button className="font-light">
-                    (Todo) Switch to Manual Query mode
-                  </Button>
                 </div>
               </div>
             </div>
@@ -191,7 +226,7 @@ const ExplorePageCustomQuery = () => {
                     Error: {queryError}
                   </p>
                 )}
-                <p className="mt-4">
+                <div className="mt-4">
                   {/* Simple table to display results */}
                   <div className="overflow-x-auto">
                     <table className="min-w-full table-auto border-collapse border border-gray-200">
@@ -224,7 +259,7 @@ const ExplorePageCustomQuery = () => {
                       </tbody>
                     </table>
                   </div>
-                </p>
+                </div>
               </div>
             </div>
           </div>

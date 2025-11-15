@@ -1,28 +1,19 @@
-import { DatabaseDataModel } from "@/store/database/DatabaseModel";
 import { useStores } from "@/store/StoreContext";
 import { useEffect, useState } from "react";
+import { Spinner } from "./ui/spinner";
 
 const DatabaseSchemaSidebar = () => {
   const [expandedTables, setExpandedTables] = useState<Set<string>>(new Set());
   const [tablesAndColumns, setTablesAndColumns] = useState<
-      Record<string, string[]>
+      Record<string, { column_name: string; data_type: string }[]>
   >({});
   const databaseStore = useStores().dbStore;
 
-
   useEffect(() => {
-    databaseStore.listTablesAndColumns().then((result) => {
-      const reducedByTable = result.reduce((acc, { table_name, column_name }) => {
-        if (!acc[table_name]) {
-          acc[table_name] = [];
-        }
-        acc[table_name].push(column_name);
-        return acc;
-      }, {} as Record<string, string[]>);
-      setTablesAndColumns(reducedByTable);
+    databaseStore.getTableAndColumnNames().then((result) => {
+      setTablesAndColumns(result);
     });
-  }, []);
-  
+  }, [databaseStore.tablesAndColumns]);
 
   const toggleTable = (tableName: string) => {
     const newExpanded = new Set(expandedTables);
@@ -42,7 +33,7 @@ const DatabaseSchemaSidebar = () => {
         queries.
       </p>
       <div className="space-y-2">
-        {Object.entries(tablesAndColumns).map(([table_name, column_name]) => (
+        {Object.keys(tablesAndColumns).length === 0 ? <Spinner /> : Object.entries(tablesAndColumns).map(([table_name, column_name]) => (
           <div key={table_name} className="border border-gray-200">
             <button
               onClick={() => toggleTable(table_name)}
@@ -55,12 +46,13 @@ const DatabaseSchemaSidebar = () => {
             </button>
             {expandedTables.has(table_name) && (
               <div className="px-3 pb-2 border-t border-gray-100">
-                {column_name.map((fieldName) => (
+                {column_name.map(({ column_name, data_type }) => (
                   <div
-                    key={fieldName}
+                    key={column_name}
                     className="py-1 text-sm flex justify-between"
                   >
-                    <span className="text-gray-600">{fieldName}</span>
+                    <span className="text-gray-600">{column_name}</span>
+                    <span className="text-gray-400">{data_type}</span>  
                   </div>
                 ))}
               </div>
