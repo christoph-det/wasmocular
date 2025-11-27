@@ -63,6 +63,11 @@ export class DashboardStore {
         this.activeDashboard = new DashboardData(newDashboardId, dashboardName, []);
         this.activeDashboardId = newDashboardId;
         this.saveToStorage();
+        reaction(
+            () => this.activeDashboard ? JSON.stringify(this.activeDashboard.toJSON()) : null,
+            () => this.saveToStorage(),
+            { delay: 100 } 
+        );
         return newDashboardId;
     }
     
