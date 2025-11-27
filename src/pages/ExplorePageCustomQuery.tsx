@@ -9,11 +9,15 @@ import { sql } from "@codemirror/lang-sql";
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { tags } from "@lezer/highlight";
 import { useToast } from "@/hooks/useToast";
+import CreateDashboardWidgetDialog from "@/components/CreateDashboardWidgetDialog";
 
 const customSQLTheme = EditorView.theme(
   {
     "&": {
       backgroundColor: "#0f172a"
+    },
+    ".cm-content, .cm-gutters": {
+      color: "#e2e8f0" // default text (affects punctuation that keeps the base color)
     },
     ".cm-activeLine": {
       backgroundColor: "transparent"
@@ -38,9 +42,11 @@ const customSQLHighlighting = HighlightStyle.define([
   },
   { tag: tags.string, color: "#fbbf24" },
   { tag: tags.number, color: "#fb7185" },
-  { tag: [tags.operator, tags.punctuation], color: "#6ee7b7" },
+  { tag: tags.operator, color: "#6ee7b7" },
   { tag: tags.comment, color: "#94a3b8", fontStyle: "italic" },
-  { tag: tags.literal, color: "#f87171" }
+  { tag: tags.literal, color: "#f87171" },
+  // make delimiters (semicolon, commas, parens) stand out
+  { tag: [tags.punctuation, tags.separator], color: "#ffffff" }
 ]);
 
 const ExplorePageCustomQuery = () => {
@@ -88,12 +94,16 @@ const ExplorePageCustomQuery = () => {
       });
   };
 
+
+
   const buildSqlQueryString = () => {
     return `SELECT ${queryState.select.length > 0 ? queryState.select.join(", ") : "*"} FROM ${queryState.from} ${
-      queryState.limit > 0 ? `LIMIT ${queryState.limit}` : ""
+      queryState.limit > 0 ? `LIMIT ${queryState.limit};` : ";"
     }`;
   };
 
+  const currentSqlQuery = manualQueryMode ? manualSQLQuery : buildSqlQueryString();
+  
   const { showError } = useToast();
   useEffect(() => {
     databaseStore
@@ -281,7 +291,16 @@ const ExplorePageCustomQuery = () => {
               </div>
             </div>
             <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-4">Results</h2>
+              <div className="flex items-center">
+                <h2 className="text-2xl font-bold my-1 mx-2">Results</h2>
+                <CreateDashboardWidgetDialog
+                  sqlQuery={currentSqlQuery}
+                  trigger={
+                    <Button type="button">Create Dashboard Widget from Query</Button>
+                  }
+                />
+              </div>
+              <br />
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <p className="text-gray-500">
                   {loading ? (
