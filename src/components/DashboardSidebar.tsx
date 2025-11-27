@@ -46,7 +46,7 @@ const DashboardSidebar = () => {
             representation.
           </p>
           <p>
-            Authors, Date range, Granularity, (file types)
+            TODO
           </p>
           {/* TODO: Implement actual settings controls here */}
         </div>
