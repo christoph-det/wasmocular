@@ -15,12 +15,14 @@ interface StoredIndexingData {
   project?: {
     name: string;
     repositoryIdentifier: string;
+    defaultDashboardId: string | null;
   };
 }
 
 export class RepminerProject {
   name = "";
   repositoryIdentifier = "";
+  defaultDashboardId: string | null = null;
 
   constructor() {
     makeAutoObservable(this);
@@ -92,11 +94,12 @@ export class IndexingStore {
     this.indexingProgress = 0;
   }
 
-  async createNewProject(name: string, repositoryIdentifier: string) {
+  async createNewProject(name: string, repositoryIdentifier: string, dashboardId: string) {
     await this.ready;
     this.project = new RepminerProject();
     this.project.name = name;
     this.project.repositoryIdentifier = repositoryIdentifier;
+    this.project.defaultDashboardId = dashboardId;
     this.updateDatabaseAccessMode();
   }
 
