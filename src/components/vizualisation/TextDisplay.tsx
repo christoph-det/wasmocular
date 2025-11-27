@@ -1,5 +1,5 @@
 const TextDisplay = ({ data, error }: { data: Object[]; error: string | null }) => {
-  return (data.length === 0) ? (<div>No data available: {error}</div>
+  return (!data ||data.length === 0) ? (<div>No data available: {error}</div>
   ) : (
     <table className="w-full table-auto border-collapse border border-gray-300">
       <thead>
