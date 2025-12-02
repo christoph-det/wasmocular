@@ -1,13 +1,13 @@
 /* eslint-disable */
-// @ts-nocheck 
+// @ts-nocheck
 /* Source: https://github.com/INSO-World/Binocular/blob/main/binocular-frontend/src/components/ScalableBaseChart/index.tsx
 Accessed: 2025-11-18
 */
 
-import * as React from 'react';
-import * as d3 from 'd3';
-import baseStyles from './scalable-base-chart.module.css';
-import { hash } from './cryptoUtils';
+import * as React from "react";
+import * as d3 from "d3";
+import baseStyles from "./scalable-base-chart.module.css";
+import { hash } from "./cryptoUtils";
 
 /**
  * ScalableBaseChartComponent
@@ -80,9 +80,9 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
       zoomedVertical: false,
       verticalZoomDims: [0, 0],
       d3offset: props.d3offset,
-      data: { data: [], stackedData: [] },
+      data: { data: [], stackedData: [] }
     };
-    window.addEventListener('resize', () => this.updateElement());
+    window.addEventListener("resize", () => this.updateElement());
   }
 
   /**
@@ -94,17 +94,17 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * @param scales
    * @returns {*}
    */
-  
+
   createAreaFunction(scales: any) {
-    throw new Error('Base class is abstract and requires implementation!');
+    throw new Error("Base class is abstract and requires implementation!");
   }
 
   getXDims() {
-    throw new Error('Base class is abstract and requires implementation!');
+    throw new Error("Base class is abstract and requires implementation!");
   }
 
   getYDims(): any {
-    throw new Error('Base class is abstract and requires implementation!');
+    throw new Error("Base class is abstract and requires implementation!");
   }
 
   /**
@@ -114,9 +114,9 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * @param brushArea
    * @param area
    */
-  
+
   resetZoom(scales: any, axes: any, brushArea: any, area: any) {
-    throw new Error('Base class is abstract and requires implementation!');
+    throw new Error("Base class is abstract and requires implementation!");
   }
 
   /**
@@ -125,9 +125,9 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * @param order
    * @returns Stacked chart data for d3 functions and preprocessed data { stackedData, data }
    */
-  
+
   calculateChartData(data: any, order: any) {
-    throw new Error('Base class is abstract and requires implementation!');
+    throw new Error("Base class is abstract and requires implementation!");
   }
 
   /**
@@ -142,29 +142,27 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * @param scales
    */
   createdTooltipNode(
-    
     path: any,
-    
+
     bisectDate: any,
-    
+
     mouseoverDate: any,
-    
+
     tooltip: any,
-    
+
     event: any,
-    
+
     node: any,
-    
+
     brushArea: any,
-    
-    scales: any,
+
+    scales: any
   ) {
-    throw new Error('Base class is abstract and requires implementation!');
+    throw new Error("Base class is abstract and requires implementation!");
   }
 
-  
   getBrushId(data: any): any {
-    throw new Error('Base class is abstract and requires implementation!');
+    throw new Error("Base class is abstract and requires implementation!");
   }
 
   /**
@@ -175,9 +173,15 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * @param event
    * @param stream
    */
-  
-  onMouseover(path: any, tooltip: any, brushArea: any, event: any, stream: any) {
-    throw new Error('Base class is abstract and requires implementation!');
+
+  onMouseover(
+    path: any,
+    tooltip: any,
+    brushArea: any,
+    event: any,
+    stream: any
+  ) {
+    throw new Error("Base class is abstract and requires implementation!");
   }
 
   /**
@@ -188,9 +192,15 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * @param event
    * @param stream
    */
-  
-  onMouseLeave(path: any, tooltip: any, brushArea: any, event: any, stream: any) {
-    throw new Error('Base class is abstract and requires implementation!');
+
+  onMouseLeave(
+    path: any,
+    tooltip: any,
+    brushArea: any,
+    event: any,
+    stream: any
+  ) {
+    throw new Error("Base class is abstract and requires implementation!");
   }
 
   /**
@@ -218,8 +228,14 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
   render() {
     return (
       <div className={this.styles.chartDiv}>
-        <svg className={this.styles.chartSvg} ref={(svg) => (this.svgRef = svg)} />
-        <div className={this.styles.tooltip} ref={(div) => (this.tooltipRef = div)} />
+        <svg
+          className={this.styles.chartSvg}
+          ref={(svg) => (this.svgRef = svg)}
+        />
+        <div
+          className={this.styles.tooltip}
+          ref={(div) => (this.tooltipRef = div)}
+        />
       </div>
     );
   }
@@ -228,7 +244,9 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
     const keysHash = await hash(this.props.keys || []);
     return {
       hashes: { keysHash },
-      hasChanges: this.state.data.keysHash !== keysHash || this.state.d3offset !== this.props.d3offset,
+      hasChanges:
+        this.state.data.keysHash !== keysHash ||
+        this.state.d3offset !== this.props.d3offset
     };
   }
 
@@ -244,20 +262,24 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
     const { hashes, hasChanges } = await this.hasUpdate();
 
     //Get d3-friendly data
-    if (this.state.data.hash !== contentHash || this.state.data.orderHash !== orderHash || hasChanges) {
+    if (
+      this.state.data.hash !== contentHash ||
+      this.state.data.orderHash !== orderHash ||
+      hasChanges
+    ) {
       this.setState(
         {
           data: Object.assign(
             {
               hash: contentHash,
-              orderHash,
+              orderHash
             },
             hashes,
-            this.calculateChartData(this.props.content, this.props.order),
+            this.calculateChartData(this.props.content, this.props.order)
           ),
-          d3offset: this.props.d3offset,
+          d3offset: this.props.d3offset
         },
-        this.visualizeData,
+        this.visualizeData
       );
     } else {
       this.visualizeData();
@@ -279,28 +301,41 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
     const { width, height, paddings } = this.getDimsAndPaddings(svg); //Get width and height of svg in browser
 
     //Get and set all required scales, which translate data values into pixel values
-    const scales = this.createScales(this.getXDims(), [paddings.left, width - paddings.right], this.getYDims(), [
-      height - paddings.bottom,
-      paddings.top,
-    ]);
+    const scales = this.createScales(
+      this.getXDims(),
+      [paddings.left, width - paddings.right],
+      this.getYDims(),
+      [height - paddings.bottom, paddings.top]
+    );
     const area = this.createAreaFunction(scales);
 
     //Brush generator for brush-zoom functionality, with referenced callback-function
     const brush = d3.brushX().extent([
       [paddings.left, 0],
-      [width - paddings.right, height],
+      [width - paddings.right, height]
     ]);
 
     //Remove old data
-    svg.selectAll('*').remove();
+    svg.selectAll("*").remove();
 
     //Draw the chart (and brush box) using everything provided
-    const { brushArea, axes } = this.drawChart(svg, area, brush, yScale, scales, height, width, paddings);
+    const { brushArea, axes } = this.drawChart(
+      svg,
+      area,
+      brush,
+      yScale,
+      scales,
+      height,
+      width,
+      paddings
+    );
 
     //Set callback for brush-zoom functionality
-    brush.on('end', (event) => this.updateZoom(event.selection, scales, axes, brush, brushArea, area));
+    brush.on("end", (event) =>
+      this.updateZoom(event.selection, scales, axes, brush, brushArea, area)
+    );
     //Set callback to reset zoom on double-click
-    svg.on('dblclick', () => this.resetZoom(scales, axes, brushArea, area));
+    svg.on("dblclick", () => this.resetZoom(scales, axes, brushArea, area));
   }
 
   /**
@@ -310,8 +345,16 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    *          Values self-explanatory. All values in pixels.
    */
   getDimsAndPaddings(svg: any) {
-    const paddings = this.props.paddings || { left: 0, right: 0, top: 0, bottom: 0 };
-    const node = !svg || typeof svg.node !== 'function' ? { getBoundingClientRec: () => ({}) } : svg.node();
+    const paddings = this.props.paddings || {
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0
+    };
+    const node =
+      !svg || typeof svg.node !== "function"
+        ? { getBoundingClientRec: () => ({}) }
+        : svg.node();
     const clientRect = node ? node.getBoundingClientRect() : {};
     const width = clientRect.width || 0;
     const height = clientRect.height || 0;
@@ -356,7 +399,7 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    */
   getColor(d: any) {
     if (!this.props.palette) {
-      return '#000000';
+      return "#000000";
     }
     return this.props.palette[this.getBrushId(d)];
   }
@@ -376,41 +419,55 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    *               xAxis: d3 x-Axis for later transitioning (for zooming)
    */
   //@ts-ignore
-  drawChart(svg: any, area: any, brush: any, yScale: any, scales: any, height: any, width: any, paddings: any) {
-    const brushArea = svg.append('g');
+  drawChart(
+    svg: any,
+    area: any,
+    brush: any,
+    yScale: any,
+    scales: any,
+    height: any,
+    width: any,
+    paddings: any
+  ) {
+    const brushArea = svg.append("g");
 
     if (!this.tooltipRef) {
       return { brushArea: undefined, axes: { x: undefined, y: undefined } };
     }
     const tooltip = d3.select(this.tooltipRef);
 
-    this.setBrushArea(brushArea.append('g'), brush, area, tooltip, svg, scales);
+    this.setBrushArea(brushArea.append("g"), brush, area, tooltip, svg, scales);
 
     //Append visible x-axis on the bottom, with an offset so it's actually visible
     const axes = Object.assign(
       {
         x: this.createXAxis(brushArea, scales, width, height, paddings),
-        y: this.createYAxis(brushArea, scales, width, height, paddings),
+        y: this.createYAxis(brushArea, scales, width, height, paddings)
       },
-      this.additionalAxes(brushArea, scales, width, height, paddings),
+      this.additionalAxes(brushArea, scales, width, height, paddings)
     );
 
     // set vertical zoom option if available
-    svg.on('wheel', !this.props.disableVerticalZoom ? this.createScrollEvent(svg, scales, axes, brushArea, area) : null);
+    svg.on(
+      "wheel",
+      !this.props.disableVerticalZoom
+        ? this.createScrollEvent(svg, scales, axes, brushArea, area)
+        : null
+    );
 
     // required to support event handling
     svg
-      .attr('width', '100%')
-      .attr('height', '100%')
-      .attr('viewBox', '0 0 ' + width + ' ' + height)
-      .append('defs')
-      .append('svg:clipPath')
-      .attr('id', 'clip')
-      .append('svg:rect')
-      .attr('width', width - paddings.right - paddings.left)
-      .attr('height', height)
-      .attr('x', paddings.left)
-      .attr('y', 0);
+      .attr("width", "100%")
+      .attr("height", "100%")
+      .attr("viewBox", "0 0 " + width + " " + height)
+      .append("defs")
+      .append("svg:clipPath")
+      .attr("id", "clip")
+      .append("svg:rect")
+      .attr("width", width - paddings.right - paddings.left)
+      .attr("height", height)
+      .attr("x", paddings.left)
+      .attr("y", 0);
 
     return { brushArea, axes };
   }
@@ -425,18 +482,24 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * @returns {*}
    */
   //@ts-ignore
-  createXAxis(brushArea: any, scales: any, width: any, height: any, paddings: any) {
+  createXAxis(
+    brushArea: any,
+    scales: any,
+    width: any,
+    height: any,
+    paddings: any
+  ) {
     if (this.props.xAxisCenter) {
       return brushArea
-        .append('g')
-        .attr('class', this.styles.axis)
-        .attr('transform', 'translate(0,' + scales.y(0) + ')')
+        .append("g")
+        .attr("class", this.styles.axis)
+        .attr("transform", "translate(0," + scales.y(0) + ")")
         .call(d3.axisBottom(scales.x));
     }
     return brushArea
-      .append('g')
-      .attr('class', this.styles.axis)
-      .attr('transform', 'translate(0,' + (height - paddings.bottom) + ')')
+      .append("g")
+      .attr("class", this.styles.axis)
+      .attr("transform", "translate(0," + (height - paddings.bottom) + ")")
       .call(d3.axisBottom(scales.x));
   }
 
@@ -450,15 +513,25 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * @returns {*}
    */
   //@ts-ignore
-  createYAxis(brushArea: any, scales: any, width: any, height: any, paddings: any) {
+  createYAxis(
+    brushArea: any,
+    scales: any,
+    width: any,
+    height: any,
+    paddings: any
+  ) {
     const yAxis = brushArea
-      .append('g')
-      .attr('class', this.styles.axis)
-      .attr('transform', 'translate(' + paddings.left + ',0)');
+      .append("g")
+      .attr("class", this.styles.axis)
+      .attr("transform", "translate(" + paddings.left + ",0)");
 
     if (!this.props.hideVertical) {
       // @ts-ignore
-      yAxis.call(d3.axisLeft(scales.y).tickFormat((d) => (this.props.displayNegative ? d : Math.abs(d))));
+      yAxis.call(
+        d3
+          .axisLeft(scales.y)
+          .tickFormat((d) => (this.props.displayNegative ? d : Math.abs(d)))
+      );
     }
     return yAxis;
   }
@@ -472,7 +545,13 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * @param paddings
    */
   //@ts-ignore
-  additionalAxes(brushArea: any, scales: any, width: any, height: any, paddings: any) {
+  additionalAxes(
+    brushArea: any,
+    scales: any,
+    width: any,
+    height: any,
+    paddings: any
+  ) {
     return;
   }
 
@@ -485,48 +564,64 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * @param svg
    * @param scales
    */
-  setBrushArea(brushArea: any, brush: any, area: any, tooltip: any, svg: any, scales: any) {
-    brushArea.append('g').attr('class', 'brush').call(brush);
+  setBrushArea(
+    brushArea: any,
+    brush: any,
+    area: any,
+    tooltip: any,
+    svg: any,
+    scales: any
+  ) {
+    brushArea.append("g").attr("class", "brush").call(brush);
 
     const bisectDate = d3.bisector((d: any) => d.date).left;
     //Append data to svg using the area generator and palette
     const pathStreams = brushArea
-      .append('g')
-      .selectAll('path')
+      .append("g")
+      .selectAll("path")
       .data(this.state.data.stackedData)
       .enter()
-      .append('path')
-      .attr('class', () => `layers ${this.getBrushClass()}`)
+      .append("path")
+      .attr("class", () => `layers ${this.getBrushClass()}`)
       .classed(this.styles.layer, !!this.styles.layer)
-      .classed('layer', true)
-      .attr('id', this.getBrushId)
+      .classed("layer", true)
+      .attr("id", this.getBrushId)
       //Color palette with the form {author1: color1, ...}
-      .style('fill', this.getColor.bind(this))
-      .attr('stroke-width', this.getLayerStrokeWidth.bind(this))
-      .attr('stroke', this.getLayerStrokeColor.bind(this))
-      .attr('d', area)
+      .style("fill", this.getColor.bind(this))
+      .attr("stroke-width", this.getLayerStrokeWidth.bind(this))
+      .attr("stroke", this.getLayerStrokeColor.bind(this))
+      .attr("d", area)
       //.attr('clip-path', 'url(#clip)')
-      .on('mouseenter', (event: any, stream: any) => {
+      .on("mouseenter", (event: any, stream: any) => {
         return this.onMouseover(this, tooltip, brushArea, event, stream);
       })
-      .on('mouseout', (event: any, stream: any) => {
+      .on("mouseout", (event: any, stream: any) => {
         return this.onMouseLeave(this, tooltip, brushArea, event, stream);
       })
       //@ts-ignore
-      .on('mousemove', (event: any, stream: any) => {
+      .on("mousemove", (event: any, stream: any) => {
         //Calculate values and text for tooltip
         const node = svg.node();
         const pointer = d3.pointer(event, node);
         const mouseoverDate = pointer ? scales.x.invert(pointer[0]) : undefined;
 
-        brushArea.select('.' + this.styles.indicatorLine).remove();
-        brushArea.selectAll('.' + this.styles.indicatorCircle).remove();
+        brushArea.select("." + this.styles.indicatorLine).remove();
+        brushArea.selectAll("." + this.styles.indicatorCircle).remove();
 
         if (!mouseoverDate) {
           return;
         }
 
-        this.createdTooltipNode(event.target, bisectDate, mouseoverDate, tooltip, event, node, brushArea, scales);
+        this.createdTooltipNode(
+          event.target,
+          bisectDate,
+          mouseoverDate,
+          tooltip,
+          event,
+          node,
+          brushArea,
+          scales
+        );
       });
 
     this.additionalPathDefs(brushArea, pathStreams, scales);
@@ -553,7 +648,7 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
   }
 
   getBrushClass() {
-    return '';
+    return "";
   }
 
   /**
@@ -577,12 +672,18 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * @returns scroll event
    */
   //@ts-ignore
-  createScrollEvent(svg: any, scales: any, axes: any, brushArea: any, area: any) {
+  createScrollEvent(
+    svg: any,
+    scales: any,
+    axes: any,
+    brushArea: any,
+    area: any
+  ) {
     return (event: any) => {
       // prevent page scrolling
       event.preventDefault();
 
-      const direction = event.deltaY > 0 ? 'down' : 'up';
+      const direction = event.deltaY > 0 ? "down" : "up";
       let zoomedDims = [...this.getYDims()];
       let top = zoomedDims[1],
         bottom = zoomedDims[0];
@@ -594,20 +695,39 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
       if (this.state.zoomedVertical) {
         top = this.state.verticalZoomDims[1];
         bottom = this.state.verticalZoomDims[0];
-        if (direction === 'up' && top / 2 > 1 && (bottom / 2 < -1 || bottom === 0)) {
+        if (
+          direction === "up" &&
+          top / 2 > 1 &&
+          (bottom / 2 < -1 || bottom === 0)
+        ) {
           //Zoom limit
-          this.updateVerticalZoom([bottom / 2, top / 2], scales, axes, brushArea, area);
-        } else if (direction === 'down') {
-          if (top * 2 > zoomedDims[1] && (bottom * 2 < zoomedDims[0] || bottom === 0)) {
+          this.updateVerticalZoom(
+            [bottom / 2, top / 2],
+            scales,
+            axes,
+            brushArea,
+            area
+          );
+        } else if (direction === "down") {
+          if (
+            top * 2 > zoomedDims[1] &&
+            (bottom * 2 < zoomedDims[0] || bottom === 0)
+          ) {
             this.resetVerticalZoom(scales, axes, brushArea, area);
           } else {
-            this.updateVerticalZoom([bottom * 2, top * 2], scales, axes, brushArea, area);
+            this.updateVerticalZoom(
+              [bottom * 2, top * 2],
+              scales,
+              axes,
+              brushArea,
+              area
+            );
           }
         }
         return;
       }
 
-      if (direction === 'up') {
+      if (direction === "up") {
         if (bottom === 0) {
           zoomedDims = [bottom, top / 2];
         } else if (top > Math.abs(bottom)) {
@@ -628,11 +748,17 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * @param area Area that the paths are drawn on
    * @param areaGenerator Area generator for those paths
    */
-  updateVerticalZoom(dims: any, scales: any, axes: any, area: any, areaGenerator: any) {
+  updateVerticalZoom(
+    dims: any,
+    scales: any,
+    axes: any,
+    area: any,
+    areaGenerator: any
+  ) {
     scales.y.domain(dims);
 
     axes.y.call(d3.axisLeft(scales.y));
-    area.selectAll('.layer').attr('d', areaGenerator);
+    area.selectAll(".layer").attr("d", areaGenerator);
     this.setState({ zoomedVertical: true, verticalZoomDims: dims });
   }
 
@@ -647,7 +773,7 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
     scales.y.domain(this.getYDims());
 
     axes.y.call(d3.axisLeft(scales.y));
-    area.selectAll('.layer').attr('d', areaGenerator);
+    area.selectAll(".layer").attr("d", areaGenerator);
 
     this.setState({ zoomedVertical: false, verticalZoomDims: [0, 0] });
   }
@@ -661,18 +787,25 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * @param brushArea Area that the path, x/y-Axis and brush-functionality live on (see drawChart)
    * @param area d3 Area generator (for area graphs)
    */
-  updateZoom(extent: any, scales: any, axes: any, brush: any, brushArea: any, area: any) {
+  updateZoom(
+    extent: any,
+    scales: any,
+    axes: any,
+    brush: any,
+    brushArea: any,
+    area: any
+  ) {
     let zoomedDims;
     if (extent) {
       zoomedDims = [scales.x.invert(extent[0]), scales.x.invert(extent[1])];
       scales.x.domain(zoomedDims);
-      brushArea.select('.brush').call(brush.move, null);
+      brushArea.select(".brush").call(brush.move, null);
     } else {
       return;
     }
 
     axes.x.call(d3.axisBottom(scales.x));
-    brushArea.selectAll('.layer').attr('d', area);
+    brushArea.selectAll(".layer").attr("d", area);
     this.setState({ zoomed: true, zoomedDims: zoomedDims });
   }
 
@@ -686,25 +819,31 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * @param color defines the color or the cycles
    */
   paintDataPoint(brushArea: any, x: any, y0: any, y1: any, color: any) {
-    brushArea.append('line').attr('class', this.styles.indicatorLine).attr('x1', x).attr('x2', x).attr('y1', y0).attr('y2', y1);
+    brushArea
+      .append("line")
+      .attr("class", this.styles.indicatorLine)
+      .attr("x1", x)
+      .attr("x2", x)
+      .attr("y1", y0)
+      .attr("y2", y1);
     //.attr('clip-path', 'url(#clip)');
 
     brushArea
-      .append('circle')
-      .attr('class', this.styles.indicatorCircle)
-      .attr('cx', x)
-      .attr('cy', y1)
-      .attr('r', 5)
+      .append("circle")
+      .attr("class", this.styles.indicatorCircle)
+      .attr("cx", x)
+      .attr("cy", y1)
+      .attr("r", 5)
       //.attr('clip-path', 'url(#clip)')
-      .style('fill', color);
+      .style("fill", color);
 
     brushArea
-      .append('circle')
-      .attr('class', this.styles.indicatorCircle)
-      .attr('cx', x)
-      .attr('cy', y0)
-      .attr('r', 5)
+      .append("circle")
+      .attr("class", this.styles.indicatorCircle)
+      .attr("cx", x)
+      .attr("cy", y0)
+      .attr("r", 5)
       //.attr('clip-path', 'url(#clip)')
-      .style('fill', color);
+      .style("fill", color);
   }
 }

@@ -96,16 +96,16 @@ const ExplorePageCustomQuery = () => {
       });
   };
 
-
-
   const buildSqlQueryString = useCallback(() => {
     return `SELECT ${queryState.select.length > 0 ? queryState.select.join(", ") : "*"} FROM ${queryState.from} ${
       queryState.limit > 0 ? `LIMIT ${queryState.limit};` : ";"
     }`;
   }, [queryState]);
 
-  const currentSqlQuery = manualQueryMode ? manualSQLQuery : buildSqlQueryString();
-  
+  const currentSqlQuery = manualQueryMode
+    ? manualSQLQuery
+    : buildSqlQueryString();
+
   useEffect(() => {
     databaseStore
       .getTableAndColumnNames()
@@ -297,7 +297,9 @@ const ExplorePageCustomQuery = () => {
                 <CreateDashboardWidgetDialog
                   sqlQuery={currentSqlQuery}
                   trigger={
-                    <Button type="button">Create Dashboard Widget from Query</Button>
+                    <Button type="button">
+                      Create Dashboard Widget from Query
+                    </Button>
                   }
                 />
               </div>
@@ -341,14 +343,16 @@ const ExplorePageCustomQuery = () => {
                               rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
                             }
                           >
-                            {(isRecord(row) ? Object.values(row) : [row]).map((value, colIndex) => (
-                              <td
-                                key={colIndex}
-                                className="border border-gray-300 px-4 py-2"
-                              >
-                                {String(value)}
-                              </td>
-                            ))}
+                            {(isRecord(row) ? Object.values(row) : [row]).map(
+                              (value, colIndex) => (
+                                <td
+                                  key={colIndex}
+                                  className="border border-gray-300 px-4 py-2"
+                                >
+                                  {String(value)}
+                                </td>
+                              )
+                            )}
                           </tr>
                         ))}
                       </tbody>

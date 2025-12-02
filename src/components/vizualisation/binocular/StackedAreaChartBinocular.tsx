@@ -3,10 +3,10 @@
 Accessed: 2025-11-18
 */
 
-import styles from './stacked-area-chart.module.css';
-import ScalableBaseChartComponent from './ScalableBaseChartBinocular';
-import * as d3 from 'd3';
-import * as _ from 'lodash';
+import styles from "./stacked-area-chart.module.css";
+import ScalableBaseChartComponent from "./ScalableBaseChartBinocular";
+import * as d3 from "d3";
+import * as _ from "lodash";
 
 /**
  * Stacked area chart
@@ -29,38 +29,50 @@ import * as _ from 'lodash';
  *  - order (optional) (Format: [string, string, ...]) Strings containing the keys in desired order (largest to smallest).
  */
 
-const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const dayNames = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday"
+];
 
 //Formats the date for the tooltip
 function formatDate(date: Date, resolution: string) {
   const monthNames = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December"
   ];
   switch (resolution) {
-    case 'years':
-      return '' + date.getFullYear();
-    case 'months':
-      return '' + monthNames[date.getMonth()] + ' ' + date.getFullYear();
-    case 'weeks':
-      return 'Week starting at ' + dayNames[date.getDay()] + ', ' + date.toLocaleDateString();
-    case 'days':
-      return dayNames[date.getDay()] + ', ' + date.toLocaleDateString();
+    case "years":
+      return "" + date.getFullYear();
+    case "months":
+      return "" + monthNames[date.getMonth()] + " " + date.getFullYear();
+    case "weeks":
+      return (
+        "Week starting at " +
+        dayNames[date.getDay()] +
+        ", " +
+        date.toLocaleDateString()
+      );
+    case "days":
+      return dayNames[date.getDay()] + ", " + date.toLocaleDateString();
     default:
       return date.toLocaleDateString();
   }
 }
-
 
 export default class StackedAreaChart extends ScalableBaseChartComponent {
   constructor(props: any) {
@@ -72,7 +84,10 @@ export default class StackedAreaChart extends ScalableBaseChartComponent {
    * @returns {[]}
    */
   getXDims() {
-    return [d3.min(this.state.data.data, (d: any) => d.date), d3.max(this.state.data.data, (d: any) => d.date)];
+    return [
+      d3.min(this.state.data.data, (d: any) => d.date),
+      d3.max(this.state.data.data, (d: any) => d.date)
+    ];
   }
 
   //@ts-ignore
@@ -109,14 +124,20 @@ export default class StackedAreaChart extends ScalableBaseChartComponent {
    */
   calculateChartData(data: any, order: any) {
     //Keys are the names of the developers, date is excluded
-    const keys = this.props.keys && this.props.keys.length > 0 ? this.props.keys : Object.keys(data[0]).slice(1);
+    const keys =
+      this.props.keys && this.props.keys.length > 0
+        ? this.props.keys
+        : Object.keys(data[0]).slice(1);
 
     let orderedKeys: any[] = [];
     if (order) {
       _.each(order, (orderElem: any) => {
-        if (keys.includes('(Additions) ' + orderElem) && keys.includes('(Deletions) ' + orderElem)) {
-          orderedKeys.push('(Additions) ' + orderElem);
-          orderedKeys.push('(Deletions) ' + orderElem);
+        if (
+          keys.includes("(Additions) " + orderElem) &&
+          keys.includes("(Deletions) " + orderElem)
+        ) {
+          orderedKeys.push("(Additions) " + orderElem);
+          orderedKeys.push("(Deletions) " + orderElem);
         } else if (keys.includes(orderElem)) {
           orderedKeys.push(orderElem);
         }
@@ -126,7 +147,11 @@ export default class StackedAreaChart extends ScalableBaseChartComponent {
     }
 
     //Stack function for a ThemeRiver chart, using the keys provided
-    const stack = d3.stack().offset(this.props.d3offset).order(d3.stackOrderReverse).keys(orderedKeys);
+    const stack = d3
+      .stack()
+      .offset(this.props.d3offset)
+      .order(d3.stackOrderReverse)
+      .keys(orderedKeys);
 
     //Data formatted for d3
     const stackedData = stack(data);
@@ -143,10 +168,11 @@ export default class StackedAreaChart extends ScalableBaseChartComponent {
   resetZoom(scales: any, axes: any, brushArea: any, area: any) {
     scales.x.domain([
       this.state.data.stackedData[0][0].data.date,
-      this.state.data.stackedData[0][this.state.data.stackedData[0].length - 1].data.date,
+      this.state.data.stackedData[0][this.state.data.stackedData[0].length - 1]
+        .data.date
     ]);
     axes.x.call(d3.axisBottom(scales.x));
-    brushArea.selectAll('.layer').attr('d', area);
+    brushArea.selectAll(".layer").attr("d", area);
     this.setState({ zoomed: false });
   }
 
@@ -164,22 +190,41 @@ export default class StackedAreaChart extends ScalableBaseChartComponent {
    * @param stream
    */
   //@ts-ignore
-  createdTooltipNode(path: any, bisectDate: any, mouseoverDate: any, tooltip: any, event: any, node: any, brushArea: any, scales: any) {
+  createdTooltipNode(
+    path: any,
+    bisectDate: any,
+    mouseoverDate: any,
+    tooltip: any,
+    event: any,
+    node: any,
+    brushArea: any,
+    scales: any
+  ) {
     const palette = this.state.palette;
     const nearestDateIndex = bisectDate(this.state.data.data, mouseoverDate);
     const candidate1 = this.state.data.data[nearestDateIndex];
     const candidate2 = this.state.data.data[nearestDateIndex - 1];
     let nearestDataPoint;
-    if (Math.abs(mouseoverDate - candidate1.date) < Math.abs(mouseoverDate - candidate2.date)) {
+    if (
+      Math.abs(mouseoverDate - candidate1.date) <
+      Math.abs(mouseoverDate - candidate2.date)
+    ) {
       nearestDataPoint = candidate1;
     } else {
       nearestDataPoint = candidate2;
     }
-    const key = d3.select(path).attr('id');
-    const text = key.split(' <', 1); //Remove git signature email
+    const key = d3.select(path).attr("id");
+    const text = key.split(" <", 1); //Remove git signature email
     let value = nearestDataPoint[key];
-    const chartValues = this.findChartValues(this.state.data.stackedData, key, nearestDataPoint.date);
-    const formattedDate = formatDate(new Date(nearestDataPoint.date), this.props.resolution);
+    const chartValues = this.findChartValues(
+      this.state.data.stackedData,
+      key,
+      nearestDataPoint.date
+    );
+    const formattedDate = formatDate(
+      new Date(nearestDataPoint.date),
+      this.props.resolution
+    );
     if (value < 0) {
       value *= -1;
     }
@@ -187,20 +232,26 @@ export default class StackedAreaChart extends ScalableBaseChartComponent {
     tooltip
       .html(
         formattedDate +
-          '<hr/>' +
+          "<hr/>" +
           '<div style="background: ' +
           palette[key] +
           '">' +
-          '</div>' +
+          "</div>" +
           text +
-          ': ' +
-          Math.round((value + Number.EPSILON) * 100) / 100,
+          ": " +
+          Math.round((value + Number.EPSILON) * 100) / 100
       )
-      .style('position', 'absolute')
-      .style('left', event.layerX - 20 + 'px')
-      .style('top', event.layerY - 70 + 'px');
+      .style("position", "absolute")
+      .style("left", event.layerX - 20 + "px")
+      .style("top", event.layerY - 70 + "px");
 
-    this.paintDataPoint(brushArea, scales.x(nearestDataPoint.date), scales.y(chartValues.y1), scales.y(chartValues.y2), palette[key]);
+    this.paintDataPoint(
+      brushArea,
+      scales.x(nearestDataPoint.date),
+      scales.y(chartValues.y1),
+      scales.y(chartValues.y2),
+      palette[key]
+    );
   }
 
   /**
@@ -221,8 +272,14 @@ export default class StackedAreaChart extends ScalableBaseChartComponent {
    * @param stream
    */
   //@ts-ignore
-  onMouseover(path: any, tooltip: any, brushArea: any, event: any, stream: any) {
-    tooltip.style('display', 'inline');
+  onMouseover(
+    path: any,
+    tooltip: any,
+    brushArea: any,
+    event: any,
+    stream: any
+  ) {
+    tooltip.style("display", "inline");
   }
 
   /**
@@ -234,10 +291,16 @@ export default class StackedAreaChart extends ScalableBaseChartComponent {
    * @param stream
    */
   //@ts-ignore
-  onMouseLeave(path: any, tooltip: any, brushArea: any, event: any, stream: any) {
-    tooltip.style('display', 'none');
-    brushArea.select('.' + this.styles.indicatorLine).remove();
-    brushArea.selectAll('.' + this.styles.indicatorCircle).remove();
+  onMouseLeave(
+    path: any,
+    tooltip: any,
+    brushArea: any,
+    event: any,
+    stream: any
+  ) {
+    tooltip.style("display", "none");
+    brushArea.select("." + this.styles.indicatorLine).remove();
+    brushArea.selectAll("." + this.styles.indicatorCircle).remove();
   }
 
   /**

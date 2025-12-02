@@ -37,7 +37,7 @@ const formatChartTypeLabel = (type: ChartType) =>
 
 const CreateDashboardWidgetDialog = ({
   sqlQuery,
-  trigger,
+  trigger
 }: CreateDashboardWidgetDialogProps) => {
   const { dashboardStore } = useStores();
   const { showError, showSuccess } = useToast();
@@ -88,61 +88,64 @@ const CreateDashboardWidgetDialog = ({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Add Widget to Dashboard</DialogTitle>
-          </DialogHeader>
-              <Label>Chart Title</Label>
-              <Input
-                value={formState.title}
-                onChange={(event) =>
-                  setFormState((state) => ({ ...state, title: event.target.value }))
-                }
-                type="text"
-              />
-              <Label>Description</Label>
-              <textarea
-                className="border-input w-full rounded-md border px-3 py-2 text-sm"
-                value={formState.description}
-                onChange={(event) =>
-                  setFormState((state) => ({ ...state, description: event.target.value }))
-                }
-              />
-              <Label>Chart Type</Label>
-              <select
-                className="border-input w-full rounded-md border px-3 py-2 text-sm"
-                value={formState.chartType}
-                onChange={(event) =>
-                  setFormState((state) => ({
-                    ...state,
-                    chartType: event.target.value as ChartType
-                  }))
-                }
-              >
-                {CHART_TYPE_OPTIONS.map((type) => (
-                  <option key={type} value={type}>
-                    {formatChartTypeLabel(type)}
-                  </option>
-                ))}
-              </select>
-              <Label htmlFor="widget-sql">SQL Query</Label>
-              <textarea
-                id="widget-sql"
-                className="border-input min-h-[8rem] w-full rounded-md border px-3 py-2 text-sm font-mono"
-                value={formState.sql}
-                onChange={(event) =>
-                  setFormState((state) => ({ ...state, sql: event.target.value }))
-                }
-              />
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline">
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button type="button" onClick={handleSubmit}>
-              Add Widget
+        <DialogHeader>
+          <DialogTitle>Add Widget to Dashboard</DialogTitle>
+        </DialogHeader>
+        <Label>Chart Title</Label>
+        <Input
+          value={formState.title}
+          onChange={(event) =>
+            setFormState((state) => ({ ...state, title: event.target.value }))
+          }
+          type="text"
+        />
+        <Label>Description</Label>
+        <textarea
+          className="border-input w-full rounded-md border px-3 py-2 text-sm"
+          value={formState.description}
+          onChange={(event) =>
+            setFormState((state) => ({
+              ...state,
+              description: event.target.value
+            }))
+          }
+        />
+        <Label>Chart Type</Label>
+        <select
+          className="border-input w-full rounded-md border px-3 py-2 text-sm"
+          value={formState.chartType}
+          onChange={(event) =>
+            setFormState((state) => ({
+              ...state,
+              chartType: event.target.value as ChartType
+            }))
+          }
+        >
+          {CHART_TYPE_OPTIONS.map((type) => (
+            <option key={type} value={type}>
+              {formatChartTypeLabel(type)}
+            </option>
+          ))}
+        </select>
+        <Label htmlFor="widget-sql">SQL Query</Label>
+        <textarea
+          id="widget-sql"
+          className="border-input min-h-[8rem] w-full rounded-md border px-3 py-2 text-sm font-mono"
+          value={formState.sql}
+          onChange={(event) =>
+            setFormState((state) => ({ ...state, sql: event.target.value }))
+          }
+        />
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button type="button" variant="outline">
+              Cancel
             </Button>
-          </DialogFooter>
+          </DialogClose>
+          <Button type="button" onClick={handleSubmit}>
+            Add Widget
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

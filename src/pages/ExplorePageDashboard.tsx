@@ -16,14 +16,9 @@ const ExplorePageDashboard = () => {
         <div className="flex-1 p-5">
           <div className="mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-
               {dashboardStore.activeDashboard?.widgets.map((widget) => (
-                <ChartCard
-                  key={widget.id}
-                  dashboardElement={widget}
-                />
+                <ChartCard key={widget.id} dashboardElement={widget} />
               ))}
-
             </div>
           </div>
         </div>

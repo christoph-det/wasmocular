@@ -94,7 +94,11 @@ export class IndexingStore {
     this.indexingProgress = 0;
   }
 
-  async createNewProject(name: string, repositoryIdentifier: string, dashboardId: string) {
+  async createNewProject(
+    name: string,
+    repositoryIdentifier: string,
+    dashboardId: string
+  ) {
     await this.ready;
     this.project = new RepminerProject();
     this.project.name = name;

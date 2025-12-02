@@ -1,25 +1,25 @@
-import * as React from "react"
-import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { XIcon } from "lucide-react"
+import * as React from "react";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { XIcon } from "lucide-react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 function Dialog({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />
+  return <DialogPrimitive.Root data-slot="dialog" {...props} />;
 }
 
 function DialogTrigger({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Trigger>) {
-  return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
+  return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />;
 }
 
 function DialogPortal({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Portal>) {
-  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
+  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />;
 }
 
 const DialogClose = React.forwardRef<
@@ -27,9 +27,9 @@ const DialogClose = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Close>
 >(({ ...props }, ref) => (
   <DialogPrimitive.Close ref={ref} data-slot="dialog-close" {...props} />
-))
+));
 
-DialogClose.displayName = DialogPrimitive.Close.displayName
+DialogClose.displayName = DialogPrimitive.Close.displayName;
 
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
@@ -44,13 +44,13 @@ const DialogOverlay = React.forwardRef<
     )}
     {...props}
   />
-))
-DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
+));
+DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
-    showCloseButton?: boolean
+    showCloseButton?: boolean;
   }
 >(({ className, children, showCloseButton = true, ...props }, ref) => (
   <DialogPortal data-slot="dialog-portal">
@@ -76,8 +76,8 @@ const DialogContent = React.forwardRef<
       )}
     </DialogPrimitive.Content>
   </DialogPortal>
-))
-DialogContent.displayName = DialogPrimitive.Content.displayName
+));
+DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
@@ -86,7 +86,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
       className={cn("flex flex-col gap-2 text-center sm:text-left", className)}
       {...props}
     />
-  )
+  );
 }
 
 function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
@@ -99,7 +99,7 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
       )}
       {...props}
     />
-  )
+  );
 }
 
 const DialogTitle = React.forwardRef<
@@ -112,8 +112,8 @@ const DialogTitle = React.forwardRef<
     className={cn("text-lg leading-none font-semibold", className)}
     {...props}
   />
-))
-DialogTitle.displayName = DialogPrimitive.Title.displayName
+));
+DialogTitle.displayName = DialogPrimitive.Title.displayName;
 
 const DialogDescription = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Description>,
@@ -125,8 +125,8 @@ const DialogDescription = React.forwardRef<
     className={cn("text-muted-foreground text-sm", className)}
     {...props}
   />
-))
-DialogDescription.displayName = DialogPrimitive.Description.displayName
+));
+DialogDescription.displayName = DialogPrimitive.Description.displayName;
 
 export {
   Dialog,
@@ -138,5 +138,5 @@ export {
   DialogOverlay,
   DialogPortal,
   DialogTitle,
-  DialogTrigger,
-}
+  DialogTrigger
+};

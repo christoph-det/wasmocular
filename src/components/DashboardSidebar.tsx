@@ -45,9 +45,7 @@ const DashboardSidebar = () => {
             Use the options below to customize your dashboard view and data
             representation.
           </p>
-          <p>
-            TODO
-          </p>
+          <p>TODO</p>
           {/* TODO: Implement actual settings controls here */}
         </div>
       )}

@@ -181,8 +181,14 @@ const LoadPage = observer(() => {
         .then(async () => {
           showInfo("Repository successfully cloned.");
           await wasmGixStore.reloadRepository(repoIdentifier);
-          const dashboardId = dashboardStore.createNewDashboard(projectName + " - Dashboard");
-          await indexingStore.createNewProject(projectName, repoIdentifier, dashboardId);
+          const dashboardId = dashboardStore.createNewDashboard(
+            projectName + " - Dashboard"
+          );
+          await indexingStore.createNewProject(
+            projectName,
+            repoIdentifier,
+            dashboardId
+          );
           await indexingStore.setDataLoadingState(
             DataLoadingState.REPOSITORY_LOADED
           );
@@ -208,8 +214,14 @@ const LoadPage = observer(() => {
         localRepoDirHandle!,
         progressCallback
       );
-      const dashboardId = dashboardStore.createNewDashboard(projectName + " - Dashboard");
-      await indexingStore.createNewProject(projectName, repoIdentifier, dashboardId);
+      const dashboardId = dashboardStore.createNewDashboard(
+        projectName + " - Dashboard"
+      );
+      await indexingStore.createNewProject(
+        projectName,
+        repoIdentifier,
+        dashboardId
+      );
       await indexingStore.setDataLoadingState(
         DataLoadingState.REPOSITORY_LOADED
       );

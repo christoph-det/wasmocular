@@ -10,17 +10,12 @@ interface ChartCardProps {
   dashboardElement: DashboardElement;
 }
 
-const ChartCard: React.FC<ChartCardProps> = observer(({
-  dashboardElement,
-}) => {
-  
-
+const ChartCard: React.FC<ChartCardProps> = observer(({ dashboardElement }) => {
   useEffect(() => {
     dashboardElement.loadData().catch((error) => {
       console.error("Error loading dashboard element data:", error);
     });
   }, [dashboardElement]);
-
 
   return (
     <div
@@ -28,8 +23,12 @@ const ChartCard: React.FC<ChartCardProps> = observer(({
     >
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="text-xl font-semibold mb-1">{dashboardElement.title}</h3>
-          <p className="text-sm text-gray-500 mb-2">{dashboardElement.description}</p>
+          <h3 className="text-xl font-semibold mb-1">
+            {dashboardElement.title}
+          </h3>
+          <p className="text-sm text-gray-500 mb-2">
+            {dashboardElement.description}
+          </p>
         </div>
         <button
           onClick={() => dashboardElement.toggleWidth()}
@@ -41,19 +40,31 @@ const ChartCard: React.FC<ChartCardProps> = observer(({
 
       <div className="flex justify-center items-stretch m-0 p-0 flex-1 w-full">
         {dashboardElement.dataLoading ? (
-          <div className="w-full h-full flex items-center justify-center"><Spinner className="mr-2"/>Loading</div>
+          <div className="w-full h-full flex items-center justify-center">
+            <Spinner className="mr-2" />
+            Loading
+          </div>
         ) : (
-          <div className="w-full h-full overflow-auto">{resolveChartByType(dashboardElement)}</div>
+          <div className="w-full h-full overflow-auto">
+            {resolveChartByType(dashboardElement)}
+          </div>
         )}
       </div>
     </div>
   );
 });
 
-function resolveChartByType(dashboardElement: DashboardElement): React.ReactNode {
+function resolveChartByType(
+  dashboardElement: DashboardElement
+): React.ReactNode {
   switch (dashboardElement.type) {
     case ChartType.TEXT:
-      return <TextDisplay data={dashboardElement.data} error={dashboardElement.error} />;
+      return (
+        <TextDisplay
+          data={dashboardElement.data}
+          error={dashboardElement.error}
+        />
+      );
     case ChartType.STACKED_AREA_CHART: {
       const stackedDataset = Array.isArray(dashboardElement.data)
         ? convertToStackedAreaDataset(
@@ -89,17 +100,17 @@ function resolveChartByType(dashboardElement: DashboardElement): React.ReactNode
   }
 }
 
-interface LineSeriesPoint { additions: number; deletions: number; date: number };
+interface LineSeriesPoint {
+  additions: number;
+  deletions: number;
+  date: number;
+}
 type QueryRow = Record<string, unknown>;
 
 const STACKED_SERIES = {
   additions: "(Additions) Total",
   deletions: "(Deletions) Total"
 } as const;
-
-
-
-
 
 const stackedChartDefaults = {
   content: [{}],
@@ -114,10 +125,8 @@ const stackedChartDefaults = {
   keys: [STACKED_SERIES.additions, STACKED_SERIES.deletions],
   resolution: "months",
   displayNegative: true,
-  order: [ STACKED_SERIES.deletions, STACKED_SERIES.additions]
+  order: [STACKED_SERIES.deletions, STACKED_SERIES.additions]
 };
-
-
 
 const convertToStackedAreaDataset = (rows: LineSeriesPoint[]) => {
   const content = rows.map((row) => ({
@@ -141,6 +150,5 @@ const convertToStackedAreaDataset = (rows: LineSeriesPoint[]) => {
     yDims: [-safeExtent, safeExtent]
   };
 };
-
 
 export default ChartCard;
