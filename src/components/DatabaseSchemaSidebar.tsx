@@ -20,7 +20,7 @@ const DatabaseSchemaSidebar = () => {
       .catch((error: Error) => {
         showError("Failed to load database schema: " + error.message);
       });
-  });
+  }, [databaseStore, showError]);
 
   const toggleTable = (tableName: string) => {
     const newExpanded = new Set(expandedTables);

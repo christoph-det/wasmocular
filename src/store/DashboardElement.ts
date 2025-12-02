@@ -1,7 +1,6 @@
 import { makeAutoObservable } from "mobx";
 import { rootStore } from "./StoreContext";
 import type { DatabaseStore } from "./DatabaseStore";
-import { reject } from "lodash";
 
 export enum ChartType {
   TEXT = "text",
@@ -49,7 +48,7 @@ export class DashboardElement {
       console.error("Failed to load data for DashboardElement:", error);
       this.error = String(error);
       this.dataLoading = false;
-      return reject;
+      return [];
     });
     this.data = result as object[];
     this.dataLoading = false;
