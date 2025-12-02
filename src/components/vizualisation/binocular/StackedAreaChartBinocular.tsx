@@ -1,4 +1,4 @@
-// @ts-nocheck
+/* eslint-disable */
 /* Source: https://github.com/INSO-World/Binocular/blob/main/binocular-frontend/src/components/StackedAreaChart/index.tsx
 Accessed: 2025-11-18
 */

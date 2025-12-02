@@ -1,4 +1,5 @@
-// @ts-nocheck
+/* eslint-disable */
+// @ts-nocheck 
 /* Source: https://github.com/INSO-World/Binocular/blob/main/binocular-frontend/src/components/ScalableBaseChart/index.tsx
 Accessed: 2025-11-18
 */
@@ -93,7 +94,7 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * @param scales
    * @returns {*}
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  
   createAreaFunction(scales: any) {
     throw new Error('Base class is abstract and requires implementation!');
   }
@@ -113,7 +114,7 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * @param brushArea
    * @param area
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  
   resetZoom(scales: any, axes: any, brushArea: any, area: any) {
     throw new Error('Base class is abstract and requires implementation!');
   }
@@ -124,7 +125,7 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * @param order
    * @returns Stacked chart data for d3 functions and preprocessed data { stackedData, data }
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  
   calculateChartData(data: any, order: any) {
     throw new Error('Base class is abstract and requires implementation!');
   }
@@ -141,27 +142,27 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * @param scales
    */
   createdTooltipNode(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    
     path: any,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    
     bisectDate: any,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    
     mouseoverDate: any,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    
     tooltip: any,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    
     event: any,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    
     node: any,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    
     brushArea: any,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    
     scales: any,
   ) {
     throw new Error('Base class is abstract and requires implementation!');
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  
   getBrushId(data: any): any {
     throw new Error('Base class is abstract and requires implementation!');
   }
@@ -174,7 +175,7 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * @param event
    * @param stream
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  
   onMouseover(path: any, tooltip: any, brushArea: any, event: any, stream: any) {
     throw new Error('Base class is abstract and requires implementation!');
   }
@@ -187,7 +188,7 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * @param event
    * @param stream
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  
   onMouseLeave(path: any, tooltip: any, brushArea: any, event: any, stream: any) {
     throw new Error('Base class is abstract and requires implementation!');
   }
@@ -456,7 +457,6 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
       .attr('transform', 'translate(' + paddings.left + ',0)');
 
     if (!this.props.hideVertical) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       yAxis.call(d3.axisLeft(scales.y).tickFormat((d) => (this.props.displayNegative ? d : Math.abs(d))));
     }

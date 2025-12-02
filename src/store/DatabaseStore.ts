@@ -17,7 +17,9 @@ export class DatabaseStore {
 
   constructor() {
     makeAutoObservable(this);
-    this.awaitDatabaseInitialization = new Promise(() => {});
+    this.awaitDatabaseInitialization = new Promise((resolve) => {
+      resolve();
+    });
     this.init();
     console.log("DatabaseStore initialized");
   }

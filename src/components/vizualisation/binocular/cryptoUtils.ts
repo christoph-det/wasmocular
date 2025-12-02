@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 /* Source: https://github.com/INSO-World/Binocular/blob/main/binocular-frontend/src/utils/crypto-utils.ts
 Accessed: 2025-11-18
 */

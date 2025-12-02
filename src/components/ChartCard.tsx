@@ -16,11 +16,9 @@ const ChartCard: React.FC<ChartCardProps> = observer(({
   
 
   useEffect(() => {
-    try { 
-    dashboardElement.loadData();
-    } catch (error) {
-      console.error("Error loading data for dashboard element with id", dashboardElement.id, error);
-    }
+    dashboardElement.loadData().catch((error) => {
+      console.error("Error loading dashboard element data:", error);
+    });
   }, [dashboardElement]);
 
 
@@ -56,40 +54,42 @@ function resolveChartByType(dashboardElement: DashboardElement): React.ReactNode
   switch (dashboardElement.type) {
     case ChartType.TEXT:
       return <TextDisplay data={dashboardElement.data} error={dashboardElement.error} />;
-    case ChartType.STACKED_AREA_CHART: 
-     let stackedDataset;
-      if (Array.isArray(dashboardElement.data)) {
-            const normalized = dashboardElement.data.map((row) => {
+    case ChartType.STACKED_AREA_CHART: {
+      const stackedDataset = Array.isArray(dashboardElement.data)
+        ? convertToStackedAreaDataset(
+            dashboardElement.data.map((row) => {
               const record = row as QueryRow;
               const additions = Number(record.additions ?? 0);
               const deletions = Number(record.deletions ?? 0);
               const date = Number(record.authored_at);
 
               return { additions, deletions, date };
-            });
-            //const groupedResult = _.groupBy(normalized, (dataPoint) => '' + new Date(dataPoint.date).getFullYear());
-            stackedDataset = convertToStackedAreaDataset(normalized);
-          }
+            })
+          )
+        : convertToStackedAreaDataset([]);
 
-      return <StackedAreaChart
-                        content={stackedDataset!.content}
-                        palette={stackedChartDefaults.palette}
-                        paddings={stackedChartDefaults.paddings}
-                        xAxisCenter={stackedChartDefaults.xAxisCenter}
-                        yDims={stackedDataset!.yDims}
-                        d3offset={stackedChartDefaults.d3offset}
-                        keys={stackedChartDefaults.keys}
-                        resolution={stackedChartDefaults.resolution}
-                        displayNegative={stackedChartDefaults.displayNegative}
-                        order={stackedChartDefaults.order}
-                      />;
       // TODO: currently only working with additions/deletions schema: SELECT additions, -CAST(deletions AS INTEGER) AS deletions, authored_at, author_signature FROM commits ORDER BY authored_at ASC
+      return (
+        <StackedAreaChart
+          content={stackedDataset.content}
+          palette={stackedChartDefaults.palette}
+          paddings={stackedChartDefaults.paddings}
+          xAxisCenter={stackedChartDefaults.xAxisCenter}
+          yDims={stackedDataset.yDims}
+          d3offset={stackedChartDefaults.d3offset}
+          keys={stackedChartDefaults.keys}
+          resolution={stackedChartDefaults.resolution}
+          displayNegative={stackedChartDefaults.displayNegative}
+          order={stackedChartDefaults.order}
+        />
+      );
+    }
     default:
       return "Unknown Chart Type";
   }
 }
 
-type LineSeriesPoint = { additions: number; deletions: number; date: number };
+interface LineSeriesPoint { additions: number; deletions: number; date: number };
 type QueryRow = Record<string, unknown>;
 
 const STACKED_SERIES = {

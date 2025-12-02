@@ -20,9 +20,9 @@ interface StoredDashboardElement {
 class DashboardData {
     dashboardId: string;
     dashboardName: string;
-    widgets: Array<DashboardElement>;
+    widgets: DashboardElement[];
 
-    constructor(dashboardId: string, dashboardName: string, widgets: Array<DashboardElement>) {
+    constructor(dashboardId: string, dashboardName: string, widgets: DashboardElement[]) {
         this.dashboardId = dashboardId;
         this.dashboardName = dashboardName;
         this.widgets = widgets;
@@ -140,9 +140,9 @@ export class DashboardStore {
         // TODO: implement export logic
     }
 
-    setActiveDashboard(dashboardId: string) {
+    async setActiveDashboard(dashboardId: string) {
         this.activeDashboardId = dashboardId;
-        this.loadFromStorage(dashboardId);
+        await this.loadFromStorage(dashboardId);
     }
     
 }

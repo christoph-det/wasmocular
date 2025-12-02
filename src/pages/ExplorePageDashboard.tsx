@@ -19,6 +19,7 @@ const ExplorePageDashboard = () => {
 
               {dashboardStore.activeDashboard?.widgets.map((widget) => (
                 <ChartCard
+                  key={widget.id}
                   dashboardElement={widget}
                 />
               ))}

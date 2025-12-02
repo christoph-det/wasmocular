@@ -13,9 +13,9 @@ export class DashboardElement {
     title: string;
     description: string;
     chartWidth: "half" | "full";
-    dataLoading: boolean = false;
+    dataLoading = false;
     sqlQuery: string;
-    data: Object[] = [];
+    data: object[] = [];
     error: string | null = null;
     type: ChartType;
     dbStore: DatabaseStore;
@@ -51,7 +51,7 @@ export class DashboardElement {
             this.dataLoading = false;
             return reject;
         });
-        this.data = result as Object[];
+        this.data = result as object[];
         this.dataLoading = false;
     }
 

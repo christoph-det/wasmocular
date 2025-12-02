@@ -1,6 +1,6 @@
 import ExploreNavigationBar from "@/components/ExploreNavigationBar";
 import DatabaseSchemaSidebar from "@/components/DatabaseSchemaSidebar";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useStores } from "@/store/StoreContext";
 import { Spinner } from "@/components/ui/spinner";
@@ -8,7 +8,6 @@ import { EditorView, basicSetup } from "codemirror";
 import { sql } from "@codemirror/lang-sql";
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { tags } from "@lezer/highlight";
-import { useToast } from "@/hooks/useToast";
 import CreateDashboardWidgetDialog from "@/components/CreateDashboardWidgetDialog";
 
 const customSQLTheme = EditorView.theme(
@@ -49,6 +48,9 @@ const customSQLHighlighting = HighlightStyle.define([
   { tag: [tags.punctuation, tags.separator], color: "#ffffff" }
 ]);
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
 const ExplorePageCustomQuery = () => {
   const [queryState, setQueryState] = useState({
     select: [] as string[],
@@ -58,7 +60,7 @@ const ExplorePageCustomQuery = () => {
   const [tablesAndColumns, setTablesAndColumns] = useState<
     Record<string, { column_name: string; data_type: string }[]>
   >({});
-  const [queryResult, setQueryResult] = useState<any[]>([]);
+  const [queryResult, setQueryResult] = useState<unknown[]>([]);
   const [queryTime, setQueryTime] = useState<number | null>(null);
   const [queryError, setQueryError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -83,7 +85,7 @@ const ExplorePageCustomQuery = () => {
     databaseStore
       .runQuery(sqlToRun)
       .then((result) => {
-        setQueryResult(result as any[]);
+        setQueryResult(result as unknown[]);
         setQueryTime(performance.now() - startTime);
         setLoading(false);
       })
@@ -96,15 +98,14 @@ const ExplorePageCustomQuery = () => {
 
 
 
-  const buildSqlQueryString = () => {
+  const buildSqlQueryString = useCallback(() => {
     return `SELECT ${queryState.select.length > 0 ? queryState.select.join(", ") : "*"} FROM ${queryState.from} ${
       queryState.limit > 0 ? `LIMIT ${queryState.limit};` : ";"
     }`;
-  };
+  }, [queryState]);
 
   const currentSqlQuery = manualQueryMode ? manualSQLQuery : buildSqlQueryString();
   
-  const { showError } = useToast();
   useEffect(() => {
     databaseStore
       .getTableAndColumnNames()
@@ -112,9 +113,9 @@ const ExplorePageCustomQuery = () => {
         setTablesAndColumns(result);
       })
       .catch((error: Error) => {
-        showError("Failed to load database schema: " + error.message);
+        console.error("Error fetching tables and columns:", error);
       });
-  }, [databaseStore.tablesAndColumns]);
+  }, [databaseStore.tablesAndColumns, databaseStore]);
 
   useEffect(() => {
     if (editorRef.current) {
@@ -164,7 +165,7 @@ const ExplorePageCustomQuery = () => {
         view.destroy();
       };
     }
-  }, [manualQueryMode, buildSqlQueryString(), queryState]);
+  }, [manualQueryMode, buildSqlQueryString]);
 
   return (
     <div className="mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen">
@@ -321,6 +322,7 @@ const ExplorePageCustomQuery = () => {
                       <thead>
                         <tr>
                           {queryResult.length > 0 &&
+                            isRecord(queryResult[0]) &&
                             Object.keys(queryResult[0]).map((col) => (
                               <th
                                 key={col}
@@ -339,7 +341,7 @@ const ExplorePageCustomQuery = () => {
                               rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
                             }
                           >
-                            {Object.values(row).map((value, colIndex) => (
+                            {(isRecord(row) ? Object.values(row) : [row]).map((value, colIndex) => (
                               <td
                                 key={colIndex}
                                 className="border border-gray-300 px-4 py-2"
