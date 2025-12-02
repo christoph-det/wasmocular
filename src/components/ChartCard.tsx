@@ -4,26 +4,23 @@ import { observer } from "mobx-react-lite";
 import { Spinner } from "./ui/spinner";
 import TextDisplay from "./vizualisation/TextDisplay";
 import * as d3 from "d3";
-import StackedAreaChart from "./vizualisation/StackedAreaChartBinocular";
+import StackedAreaChart from "./vizualisation/binocular/StackedAreaChartBinocular";
 
 interface ChartCardProps {
   dashboardElement: DashboardElement;
-  children?: React.ReactNode;
 }
 
 const ChartCard: React.FC<ChartCardProps> = observer(({
   dashboardElement,
-  children
 }) => {
-  const keyedChildren = React.Children.map(children, (child) => {
-    if (React.isValidElement(child)) {
-      return React.cloneElement(child, { key: `${dashboardElement.id}-${dashboardElement.chartWidth}` });
-    }
-    return child;
-  });
+  
 
   useEffect(() => {
+    try { 
     dashboardElement.loadData();
+    } catch (error) {
+      console.error("Error loading data for dashboard element with id", dashboardElement.id, error);
+    }
   }, [dashboardElement]);
 
 
@@ -48,7 +45,7 @@ const ChartCard: React.FC<ChartCardProps> = observer(({
         {dashboardElement.dataLoading ? (
           <div className="w-full h-full flex items-center justify-center"><Spinner className="mr-2"/>Loading</div>
         ) : (
-          <div className="w-full h-full">{resolveChartByType(dashboardElement)}</div>
+          <div className="w-full h-full overflow-auto">{resolveChartByType(dashboardElement)}</div>
         )}
       </div>
     </div>
@@ -62,19 +59,18 @@ function resolveChartByType(dashboardElement: DashboardElement): React.ReactNode
     case ChartType.STACKED_AREA_CHART: 
      let stackedDataset;
       if (Array.isArray(dashboardElement.data)) {
-            const normalized = dashboardElement.data.map((row, index) => {
+            const normalized = dashboardElement.data.map((row) => {
               const record = row as QueryRow;
               const additions = Number(record.additions ?? 0);
               const deletions = Number(record.deletions ?? 0);
-              const rawDate =
-                record.author_date ?? record.committer_date ?? record.date ?? null;
-              const date = parseRowTimestamp(rawDate, index);
+              const date = Number(record.authored_at);
 
               return { additions, deletions, date };
             });
-
+            //const groupedResult = _.groupBy(normalized, (dataPoint) => '' + new Date(dataPoint.date).getFullYear());
             stackedDataset = convertToStackedAreaDataset(normalized);
           }
+
       return <StackedAreaChart
                         content={stackedDataset!.content}
                         palette={stackedChartDefaults.palette}
@@ -87,6 +83,7 @@ function resolveChartByType(dashboardElement: DashboardElement): React.ReactNode
                         displayNegative={stackedChartDefaults.displayNegative}
                         order={stackedChartDefaults.order}
                       />;
+      // TODO: currently only working with additions/deletions schema: SELECT additions, -CAST(deletions AS INTEGER) AS deletions, authored_at, author_signature FROM commits ORDER BY authored_at ASC
     default:
       return "Unknown Chart Type";
   }
@@ -100,21 +97,7 @@ const STACKED_SERIES = {
   deletions: "(Deletions) Total"
 } as const;
 
-const FALLBACK_DATE_START = new Date("2024-01-01").getTime();
-const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
-const parseRowTimestamp = (value: unknown, index: number) => {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-  if (typeof value === "string") {
-    const parsed = Date.parse(value);
-    if (!Number.isNaN(parsed)) {
-      return parsed;
-    }
-  }
-  return FALLBACK_DATE_START + index * DAY_IN_MS;
-};
 
 
 
@@ -126,28 +109,17 @@ const stackedChartDefaults = {
   },
   paddings: { top: 20, right: 30, bottom: 30, left: 60 },
   xAxisCenter: true,
-  yDims: [-200, 200],
+  yDims: [-300000, 300000],
   d3offset: d3.stackOffsetDiverging,
   keys: [STACKED_SERIES.additions, STACKED_SERIES.deletions],
-  resolution: "days",
+  resolution: "months",
   displayNegative: true,
-  order: ["Total"]
+  order: [ STACKED_SERIES.deletions, STACKED_SERIES.additions]
 };
 
-const convertToStackedAreaDataset = (rows: LineSeriesPoint[]) => {
-  if (!rows.length) {
-    return {
-      content: [
-        {
-          date: FALLBACK_DATE_START,
-          [STACKED_SERIES.additions]: 0,
-          [STACKED_SERIES.deletions]: 0
-        }
-      ],
-      yDims: [-1, 1]
-    };
-  }
 
+
+const convertToStackedAreaDataset = (rows: LineSeriesPoint[]) => {
   const content = rows.map((row) => ({
     date: row.date,
     [STACKED_SERIES.additions]: row.additions,
