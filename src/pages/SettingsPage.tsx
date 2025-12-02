@@ -2,7 +2,7 @@ import { useStores } from "@/store/StoreContext";
 import { observer } from "mobx-react-lite";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import Button from "@/components/button/Button";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 const SettingsPage = observer(() => {
@@ -94,23 +94,17 @@ const SettingsPage = observer(() => {
               value={projectName}
               placeholder={indexingStore.project?.name ?? ""}
             />
-            <Button
-              className="mt-2"
-              onClick={handleProjectNameSaveClick}
-              text={"Save"}
-            />
+            <Button className="mt-2" onClick={handleProjectNameSaveClick}>
+              Save
+            </Button>
             <br />
-            <Button
-              className="mt-8"
-              onClick={handleExportDuckDBClick}
-              text={"Export Database"}
-            />
+            <Button className="mt-8" onClick={handleExportDuckDBClick}>
+              Export Database
+            </Button>
             <br />
-            <Button
-              className="mt-8"
-              onClick={handleDeleteProjectClick}
-              text={"Delete Project and Database"}
-            />
+            <Button className="mt-8" onClick={handleDeleteProjectClick}>
+              Delete Project and Database
+            </Button>
           </div>
         </div>
       </div>

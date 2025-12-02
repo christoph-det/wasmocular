@@ -1,8 +1,9 @@
 import { useState } from "react";
-import Button from "../components/button/Button";
+import { Button } from "@/components/ui/button";
 import { useStores } from "../store/StoreContext";
 import { Progress } from "@/components/ui/progress";
 import { observer } from "mobx-react-lite";
+import { Spinner } from "@/components/ui/spinner";
 
 const IndexPage = observer(() => {
   const indexingStore = useStores().indexingStore;
@@ -32,13 +33,19 @@ const IndexPage = observer(() => {
               You can now proceed to analyze the data.
             </p>
             <div className="mt-4"></div>
-            <Button
-              text={"Start Indexing"}
-              center
-              onClick={() => {
-                handleStartIndexingClick().catch(console.error);
-              }}
-            />
+            <div className="mt-8 flex justify-center">
+              <Button
+                onClick={() => {
+                  handleStartIndexingClick().catch(console.error);
+                }}
+                disabled={indexingStore.indexingProgress > 0}
+              >
+                Start Indexing
+                {indexingStore.indexingProgress > 0 &&
+                  indexingStore.indexingProgress < 100 && <Spinner />}
+                {indexingStore.indexingProgress >= 100 && " ✅"}
+              </Button>
+            </div>
             <div className="mt-4"></div>
             {indexingStore.indexingProgress > 0 ? (
               <>
@@ -46,16 +53,17 @@ const IndexPage = observer(() => {
                 <p className="text-center mb-4"> {indexingProgressMessage}</p>
               </>
             ) : null}
-            <div className="mt-6"></div>
-            {indexingStore.indexingProgress > 0 ? (
-              <Button
-                text={"Continue to Data Exploration"}
-                onClick={() => {
-                  globalThis.location.hash = "#explore-customquery";
-                }}
-                center
-              />
-            ) : null}
+            <div className="mt-6 flex justify-center">
+              {indexingStore.indexingProgress > 0 ? (
+                <Button
+                  onClick={() => {
+                    globalThis.location.hash = "#explore-customquery";
+                  }}
+                >
+                  Continue to Data Exploration
+                </Button>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>

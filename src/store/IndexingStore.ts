@@ -15,12 +15,14 @@ interface StoredIndexingData {
   project?: {
     name: string;
     repositoryIdentifier: string;
+    defaultDashboardId: string | null;
   };
 }
 
 export class RepminerProject {
   name = "";
   repositoryIdentifier = "";
+  defaultDashboardId: string | null = null;
 
   constructor() {
     makeAutoObservable(this);
@@ -40,7 +42,7 @@ export class IndexingStore {
     this.rootStore = rootStore;
     makeAutoObservable(this);
 
-    this.ready = this.loadFromStorage();
+    this.ready = Promise.resolve(this.loadFromStorage());
 
     // trigger auto-save on changes
     reaction(
@@ -66,7 +68,7 @@ export class IndexingStore {
     }
   }
 
-  private async loadFromStorage() {
+  private loadFromStorage() {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
@@ -78,7 +80,7 @@ export class IndexingStore {
           data.dataLoadingState ?? DataLoadingState.NOT_STARTED;
         if (data.project) {
           this.project = Object.assign(new RepminerProject(), data.project);
-          await this.updateDatabaseAccessMode();
+          this.updateDatabaseAccessMode();
         }
       }
     } catch (error) {
@@ -92,12 +94,17 @@ export class IndexingStore {
     this.indexingProgress = 0;
   }
 
-  async createNewProject(name: string, repositoryIdentifier: string) {
+  async createNewProject(
+    name: string,
+    repositoryIdentifier: string,
+    dashboardId: string
+  ) {
     await this.ready;
     this.project = new RepminerProject();
     this.project.name = name;
     this.project.repositoryIdentifier = repositoryIdentifier;
-    await this.updateDatabaseAccessMode();
+    this.project.defaultDashboardId = dashboardId;
+    this.updateDatabaseAccessMode();
   }
 
   changeProjectName(name: string) {
@@ -125,10 +132,10 @@ export class IndexingStore {
   async setDataLoadingState(state: DataLoadingState) {
     await this.ready;
     this.dataLoadingState = state;
-    await this.updateDatabaseAccessMode();
+    this.updateDatabaseAccessMode();
   }
 
-  private async updateDatabaseAccessMode() {
+  private updateDatabaseAccessMode() {
     if (!this.project) {
       return;
     }
@@ -138,7 +145,7 @@ export class IndexingStore {
         ? DuckDBAccessMode.READ_ONLY
         : DuckDBAccessMode.READ_WRITE;
 
-    await this.rootStore.dbStore.ensureInitialization(
+    this.rootStore.dbStore.ensureInitialization(
       this.project.repositoryIdentifier,
       mode
     );

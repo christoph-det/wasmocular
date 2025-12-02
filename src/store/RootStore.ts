@@ -1,21 +1,21 @@
-import { DatabaseStore } from "./database/DatabaseStore";
+import { DashboardStore } from "./DashboardStore";
+import { DatabaseStore } from "./DatabaseStore";
 import { IndexingStore } from "./IndexingStore";
-import { TestStore } from "./TestStore";
-import { WasmGitStore } from "./wasmgit/WasmGitStore";
-import { WasmGixStore } from "./wasmgit/WasmGixStore";
+import { WasmGitStore } from "./WasmGitStore";
+import { WasmGixStore } from "./WasmGixStore";
 
 export class RootStore {
-  testStore: TestStore;
   dbStore: DatabaseStore;
   indexingStore: IndexingStore;
   wasmGitStore: WasmGitStore;
   wasmGixStore: WasmGixStore;
+  dashboardStore: DashboardStore;
 
   constructor() {
-    this.testStore = new TestStore(this);
     this.dbStore = new DatabaseStore();
     this.indexingStore = new IndexingStore(this);
     this.wasmGitStore = new WasmGitStore();
     this.wasmGixStore = new WasmGixStore(this);
+    this.dashboardStore = new DashboardStore(this);
   }
 }

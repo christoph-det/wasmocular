@@ -1,0 +1,1 @@
+This folder contains components from the ShadCN library. Source: https://ui.shadcn.com/

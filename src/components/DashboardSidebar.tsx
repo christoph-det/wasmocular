@@ -41,7 +41,12 @@ const DashboardSidebar = () => {
 
       {!sidebarCollapsed && (
         <div className="mt-4">
-          {<div>{/* TODO: Dashboard overview */}</div>}
+          <p className="text-gray-600">
+            Use the options below to customize your dashboard view and data
+            representation.
+          </p>
+          <p>TODO</p>
+          {/* TODO: Implement actual settings controls here */}
         </div>
       )}
     </div>
