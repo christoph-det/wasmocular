@@ -454,7 +454,6 @@ export class WasmGixWorker {
     }
   }
 
-
   async setupPersistentFs() {
     try {
       this.gitoxide.FS.mkdir(PERSIST_ROOT);

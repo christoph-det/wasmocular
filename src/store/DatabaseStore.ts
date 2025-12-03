@@ -30,15 +30,19 @@ export class DatabaseStore {
   }
 
   async deleteDatabase(repositoryIdentifier: string) {
-    const deleteWorker = new DatabaseWorkerFactory();
-    const rpcDeleteWorker = wrap<DatabaseWorker>(deleteWorker);
-    try {
-      await rpcDeleteWorker.initialize(
-        repositoryIdentifier,
-        DuckDBAccessMode.READ_WRITE
-      );
+    if (
+      this.currentRepositoryIdentifier === repositoryIdentifier &&
+      this.rpcWorker
+    ) {
+      await this.rpcWorker.deleteDatabase(repositoryIdentifier);
+      this.currentRepositoryIdentifier = null;
+      this.currentAccessMode = null;
+      await this.rpcWorker.terminate();
+      this.worker?.terminate();
+    } else {
+      const deleteWorker = new DatabaseWorkerFactory();
+      const rpcDeleteWorker = wrap<DatabaseWorker>(deleteWorker);
       await rpcDeleteWorker.deleteDatabase(repositoryIdentifier);
-    } finally {
       await rpcDeleteWorker.terminate();
       deleteWorker.terminate();
     }
