@@ -5,6 +5,8 @@ import { Spinner } from "./ui/spinner";
 import TextDisplay from "./vizualisation/TextDisplay";
 import * as d3 from "d3";
 import StackedAreaChart from "./vizualisation/binocular/StackedAreaChartBinocular";
+import CreateDashboardWidgetDialog from "./CreateDashboardWidgetDialog";
+import { Button } from "./ui/button";
 
 interface ChartCardProps {
   dashboardElement: DashboardElement;
@@ -30,12 +32,20 @@ const ChartCard: React.FC<ChartCardProps> = observer(({ dashboardElement }) => {
             {dashboardElement.description}
           </p>
         </div>
-        <button
-          onClick={() => dashboardElement.toggleWidth()}
-          className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-sm"
-        >
-          Width: {dashboardElement.chartWidth}
-        </button>
+        <CreateDashboardWidgetDialog
+          editMode={true}
+          dashboardElement={dashboardElement}
+          sqlQuery={""}
+          trigger={
+            <Button
+              size="sm"
+              type="button"
+              className=" bg-gray-100 hover:bg-gray-200 rounded-sm text-black"
+            >
+              Edit
+            </Button>
+          }
+        />
       </div>
 
       <div className="flex justify-center items-stretch m-0 p-0 flex-1 w-full">

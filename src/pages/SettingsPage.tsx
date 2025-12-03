@@ -30,10 +30,6 @@ const SettingsPage = observer(() => {
     });
   }
 
-  function handleDeleteProjectClick() {
-    throw new Error("Not implemented.");
-  }
-
   async function exportDuckDB() {
     const opfsRoot = await navigator.storage.getDirectory();
     const databaseFileName = `repminer_database_${indexingStore.project?.repositoryIdentifier}.db`;
@@ -102,9 +98,7 @@ const SettingsPage = observer(() => {
               Export Database
             </Button>
             <br />
-            <Button className="mt-8" onClick={handleDeleteProjectClick}>
-              Delete Project and Database
-            </Button>
+            <p className="mt-3">Close project to be able to delete it.</p>
           </div>
         </div>
       </div>

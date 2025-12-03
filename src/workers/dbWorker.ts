@@ -74,6 +74,22 @@ export class DatabaseWorker {
     }
   }
 
+  async deleteDatabase(repositoryIdentifier: string) {
+    this.repositoryIdentifier = repositoryIdentifier;
+    const dbPath = `repminer_database_${repositoryIdentifier}.db`;
+    await this.shutdown(false);
+    try {
+      const root = await navigator.storage.getDirectory();
+      await root.removeEntry(dbPath);
+      await root.removeEntry(dbPath + ".wal");
+    } catch (error) {
+      console.error(
+        `DB Worker: Failed to delete database for identifier "${repositoryIdentifier}":`,
+        error
+      );
+    }
+  }
+
   async initialize(
     repositoryIdentifier: string,
     accessMode: duckdb.DuckDBAccessMode

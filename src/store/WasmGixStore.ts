@@ -44,6 +44,14 @@ export class WasmGixStore {
     );
   }
 
+  async deleteRepositroyData(identifier: string) {
+    if (!this.rpcWorker) {
+      console.error("WasmGix worker not initialized");
+      return;
+    }
+    await this.rpcWorker.deleteRepositoryData(identifier);
+  }
+
   async startIndexing(
     identifier: string,
     progressCallback: (progress: number, message: string) => void

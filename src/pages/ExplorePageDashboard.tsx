@@ -3,8 +3,9 @@ import DashboardSidebar from "@/components/DashboardSidebar";
 import ChartCard from "@/components/ChartCard";
 
 import { useStores } from "@/store/StoreContext";
+import { observer } from "mobx-react-lite";
 
-const ExplorePageDashboard = () => {
+const ExplorePageDashboard = observer(() => {
   const dashboardStore = useStores().dashboardStore;
 
   return (
@@ -25,6 +26,6 @@ const ExplorePageDashboard = () => {
       </div>
     </div>
   );
-};
+});
 
 export default ExplorePageDashboard;

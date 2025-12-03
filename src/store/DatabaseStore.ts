@@ -29,6 +29,25 @@ export class DatabaseStore {
     this.rpcWorker = wrap(this.worker);
   }
 
+  async deleteDatabase(repositoryIdentifier: string) {
+    if (
+      this.currentRepositoryIdentifier === repositoryIdentifier &&
+      this.rpcWorker
+    ) {
+      await this.rpcWorker.deleteDatabase(repositoryIdentifier);
+      this.currentRepositoryIdentifier = null;
+      this.currentAccessMode = null;
+      await this.rpcWorker.terminate();
+      this.worker?.terminate();
+    } else {
+      const deleteWorker = new DatabaseWorkerFactory();
+      const rpcDeleteWorker = wrap<DatabaseWorker>(deleteWorker);
+      await rpcDeleteWorker.deleteDatabase(repositoryIdentifier);
+      await rpcDeleteWorker.terminate();
+      deleteWorker.terminate();
+    }
+  }
+
   async receiveIndexerResults(identifier: string, resultBuffer: Uint8Array) {
     await this.awaitDatabaseInitialization;
     if (!this.rpcWorker) {

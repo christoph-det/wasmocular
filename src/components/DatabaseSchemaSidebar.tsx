@@ -2,8 +2,9 @@ import { useStores } from "@/store/StoreContext";
 import { useEffect, useState } from "react";
 import { Spinner } from "./ui/spinner";
 import { useToast } from "@/hooks/useToast";
+import { observer } from "mobx-react-lite";
 
-const DatabaseSchemaSidebar = () => {
+const DatabaseSchemaSidebar = observer(() => {
   const { showError } = useToast();
   const [expandedTables, setExpandedTables] = useState<Set<string>>(new Set());
   const [tablesAndColumns, setTablesAndColumns] = useState<
@@ -73,6 +74,6 @@ const DatabaseSchemaSidebar = () => {
       </div>
     </div>
   );
-};
+});
 
 export default DatabaseSchemaSidebar;
