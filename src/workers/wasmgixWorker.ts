@@ -11,7 +11,6 @@ const PERSIST_ROOT = "/repos";
 // TODO: handle incomplete mounts - ie delete data when page reloads during mount/index fex
 // TODO: handle indexer
 // TODO: handle data deletion
-// TODO: progress callbacks
 
 export class WasmGixWorker {
   gitoxide!: GitoxideModule;
@@ -39,6 +38,19 @@ export class WasmGixWorker {
       return;
     }
     (isError ? console.error : console.log)(message);
+  }
+
+  async deleteRepositoryData(identifier: string) {
+    const repoPath = `${PERSIST_ROOT}/${identifier}`;
+    try {
+      this.removePathRecursive(repoPath);
+      await this.syncFs(false);
+    } catch (error) {
+      console.error(
+        `${GITOXIDE_LOG_PREFIX} Failed to delete repository data at ${repoPath}:`,
+        error
+      );
+    }
   }
 
   async startIndexing(
@@ -417,6 +429,31 @@ export class WasmGixWorker {
       }
     }
   }
+
+  private removePathRecursive(path: string) {
+    let stat;
+    try {
+      stat = this.gitoxide.FS.stat(path);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+        return;
+      }
+      throw error;
+    }
+
+    if (this.gitoxide.FS.isDir(stat.mode)) {
+      const entries = this.gitoxide.FS.readdir(path).filter(
+        (name: string) => name !== "." && name !== ".."
+      );
+      for (const entry of entries) {
+        this.removePathRecursive(`${path}/${entry}`);
+      }
+      this.gitoxide.FS.rmdir(path);
+    } else {
+      this.gitoxide.FS.unlink(path);
+    }
+  }
+
 
   async setupPersistentFs() {
     try {

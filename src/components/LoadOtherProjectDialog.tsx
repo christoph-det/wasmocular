@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle
 } from "./ui/dialog";
+import { useToast } from "@/hooks/useToast";
 
 interface LoadOtherProjectDialogProps {
   open: boolean;
@@ -21,6 +22,53 @@ const LoadOtherProjectDialog = ({
   onOpenChange
 }: LoadOtherProjectDialogProps) => {
   const indexingStore = useStores().indexingStore;
+  const dashboardStore = useStores().dashboardStore;
+  const databaseStore = useStores().dbStore;
+  const wasmGixStore = useStores().wasmGixStore;
+  const { showSuccess } = useToast();
+
+  const handleLoadClick = async (
+    repositoryIdentifier: string | undefined,
+    defaultDashboardId?: string | null
+  ) => {
+    indexingStore.loadFromStorage(repositoryIdentifier);
+    if (defaultDashboardId) {
+      await dashboardStore.setActiveDashboard(defaultDashboardId);
+    }
+    onOpenChange(false);
+  };
+
+  const handleDeleteClick = async (
+    repositoryIdentifier: string | undefined,
+    dashboardId?: string | null
+  ) => {
+    if (
+      !confirm(
+        "Are you sure you want to delete the current project from local storage? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+    if (!repositoryIdentifier) {
+      alert("Cannot delete project: No project loaded/inconsistent state.");
+      return;
+    }
+
+    try {
+      await databaseStore.deleteDatabase(repositoryIdentifier);
+      await wasmGixStore.deleteRepositroyData(repositoryIdentifier);
+      if (dashboardId) {
+        dashboardStore.deleteDashboard(dashboardId);
+      }
+      indexingStore.deleteProjectFromStorage(repositoryIdentifier);
+
+      onOpenChange(false);
+      showSuccess("Project deleted successfully.");
+    } catch (error) {
+      console.error("Failed to delete project:", error);
+      alert("Failed to delete project from local storage.");
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -29,36 +77,60 @@ const LoadOtherProjectDialog = ({
           <DialogTitle>Load Other Project</DialogTitle>
         </DialogHeader>
         <div className="py-4">
-          {indexingStore.listAllStoredProjects().length === 1 ? (
+          {indexingStore.listAllStoredProjects().length === 0 ||
+          (indexingStore.project &&
+            indexingStore.listAllStoredProjects().length === 1) ? (
             <p>No other projects found in local storage.</p>
           ) : (
             <div className="space-y-2">
-              {indexingStore.listAllStoredProjects().map((project) => {
+              {indexingStore.listAllStoredProjects().map((item) => {
                 // Skip current project and projects without identifier
                 if (
-                  project.project?.repositoryIdentifier ===
+                  item.project?.repositoryIdentifier ===
                     indexingStore.project?.repositoryIdentifier ||
-                  !project.project?.repositoryIdentifier
+                  !item.project?.repositoryIdentifier
                 ) {
                   return null;
                 }
                 return (
                   <div
-                    key={project.project?.repositoryIdentifier}
+                    key={item.project?.repositoryIdentifier}
                     className="flex justify-between items-center border border-gray-200 rounded-md p-3"
                   >
-                    <span className="font-medium">{project.project?.name}</span>
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        indexingStore.loadFromStorage(
-                          project.project?.repositoryIdentifier
-                        );
-                        onOpenChange(false);
-                      }}
-                    >
-                      Load
-                    </Button>
+                    <span className="font-medium">
+                      {item.project?.name} ({item.project?.repositoryIdentifier}
+                      )
+                    </span>
+                    <div className="space-x-2 flex">
+                      <Button
+                        size="sm"
+                        variant={"outline"}
+                        onClick={() =>
+                          void handleDeleteClick(
+                            item.project?.repositoryIdentifier,
+                            item.project?.defaultDashboardId
+                          )
+                        }
+                      >
+                        <img
+                          src="/icons/trash-solid-full.svg"
+                          alt="Delete"
+                          width={16}
+                          height={16}
+                        />
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() =>
+                          void handleLoadClick(
+                            item.project?.repositoryIdentifier,
+                            item.project?.defaultDashboardId
+                          )
+                        }
+                      >
+                        Load
+                      </Button>
+                    </div>
                   </div>
                 );
               })}

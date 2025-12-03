@@ -65,15 +65,20 @@ export class DashboardStore {
     this.activeDashboard = new DashboardData(newDashboardId, dashboardName, []);
     this.activeDashboardId = newDashboardId;
     this.saveToStorage();
-    reaction(
-      () =>
-        this.activeDashboard
-          ? JSON.stringify(this.activeDashboard.toJSON())
-          : null,
-      () => this.saveToStorage(),
-      { delay: 100 }
-    );
+    this.setupAutoSave();
     return newDashboardId;
+  }
+
+  deleteDashboard(dashboardId: string) {
+    const storageKey = `${this.STORAGE_KEY}${dashboardId}`;
+    try {
+      localStorage.removeItem(storageKey);
+    } catch (error) {
+      console.warn(
+        `Failed to delete dashboard with ID ${dashboardId} from localStorage:`,
+        error
+      );
+    }
   }
 
   private saveToStorage() {
@@ -136,14 +141,7 @@ export class DashboardStore {
           );
         });
       }
-      reaction(
-        () =>
-          this.activeDashboard
-            ? JSON.stringify(this.activeDashboard.toJSON())
-            : null,
-        () => this.saveToStorage(),
-        { delay: 100 }
-      );
+      this.setupAutoSave();
       console.log("Loaded dashboard from storage:", this.activeDashboard);
     } catch (error) {
       console.warn("Failed to load DashboardStore from localStorage:", error);
@@ -152,6 +150,17 @@ export class DashboardStore {
 
   exportActiveDashboard() {
     // TODO: implement export logic
+  }
+
+  private setupAutoSave() {
+    reaction(
+      () =>
+        this.activeDashboard
+          ? JSON.stringify(this.activeDashboard.toJSON())
+          : null,
+      () => this.saveToStorage(),
+      { delay: 100 }
+    );
   }
 
   async setActiveDashboard(dashboardId: string) {

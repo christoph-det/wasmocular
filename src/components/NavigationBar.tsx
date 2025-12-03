@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import LoadOtherProjectDialog from "./LoadOtherProjectDialog";
+import { Button } from "./ui/button";
 
 const NavigationBar = observer(() => {
   const indexingStore = useStores().indexingStore;
@@ -41,7 +42,7 @@ const NavigationBar = observer(() => {
 
   const handleCreateNewProjectClick = () => {
     window.location.hash = "#";
-    indexingStore.removeProject();
+    indexingStore.resetIndexingStore();
   };
 
   const handleSettingsClick = () => {
@@ -141,7 +142,7 @@ const NavigationBar = observer(() => {
           </div>
         </div>
         <div className="flex justify-end w-1/4 pr-4">
-          {indexingStore.project && (
+          {(indexingStore.project && (
             <DropdownMenu
               open={isProjectMenuOpen}
               onOpenChange={(open) => {
@@ -160,13 +161,17 @@ const NavigationBar = observer(() => {
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={handleLoadOtherProjectSelect}>
-                  Load other project
+                  Load existing project
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleCreateNewProjectClick}>
-                  Create new Project
+                  Close / Create New Project
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          )) ?? (
+            <Button onClick={handleLoadOtherProjectSelect}>
+              Load Existing Project
+            </Button>
           )}
         </div>
       </nav>

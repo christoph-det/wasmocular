@@ -108,10 +108,21 @@ export class IndexingStore {
     }
   }
 
-  removeProject() {
+  resetIndexingStore() {
     this.project = null;
     this.dataLoadingState = DataLoadingState.NOT_STARTED;
     this.indexingProgress = 0;
+  }
+
+  deleteProjectFromStorage(projectIdentifier: string) {
+    try {
+      localStorage.removeItem(this.STORAGE_KEY(projectIdentifier));
+    } catch (error) {
+      console.warn(
+        `Failed to delete project ${projectIdentifier} from localStorage:`,
+        error
+      );
+    }
   }
 
   async createNewProject(
@@ -160,7 +171,7 @@ export class IndexingStore {
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && key.startsWith("indexingStore_")) {
+        if (key?.startsWith("indexingStore_")) {
           const stored = localStorage.getItem(key);
           if (stored) {
             const data: StoredIndexingData = JSON.parse(
