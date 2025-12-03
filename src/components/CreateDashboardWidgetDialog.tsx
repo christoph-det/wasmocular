@@ -27,6 +27,7 @@ const CHART_TYPE_OPTIONS = Object.values(ChartType) as ChartType[];
 interface FormState {
   title: string;
   description: string;
+  width: "half" | "full";
   sql: string;
   chartType: ChartType;
 }
@@ -49,6 +50,7 @@ const CreateDashboardWidgetDialog = ({
   const [formState, setFormState] = useState<FormState>({
     title: dashboardElement?.title ?? "",
     description: dashboardElement?.description ?? "",
+    width: dashboardElement?.chartWidth ?? "half",
     sql: dashboardElement?.sqlQuery ?? sqlQuery,
     chartType: dashboardElement?.type ?? ChartType.TEXT
   });
@@ -76,6 +78,7 @@ const CreateDashboardWidgetDialog = ({
     if (editMode && dashboardElement) {
       dashboardElement.title = formState.title;
       dashboardElement.description = formState.description;
+      dashboardElement.chartWidth = formState.width;
       dashboardElement.sqlQuery = formState.sql;
       dashboardElement.type = formState.chartType;
 
@@ -85,7 +88,7 @@ const CreateDashboardWidgetDialog = ({
         crypto.randomUUID(),
         formState.title.trim(),
         formState.description.trim(),
-        "half",
+        formState.width,
         formState.chartType,
         formState.sql
       );
@@ -156,9 +159,22 @@ const CreateDashboardWidgetDialog = ({
             </option>
           ))}
         </select>
-        <Label htmlFor="widget-sql">SQL Query</Label>
+        <Label>Width</Label>
+        <select
+          className="border-input w-full rounded-md border px-3 py-2 text-sm"
+          value={formState.width}
+          onChange={(event) =>
+            setFormState((state) => ({
+              ...state,
+              width: event.target.value as "half" | "full"
+            }))
+          }
+        >
+          <option value="half">Half</option>
+          <option value="full">Full</option>
+        </select>
+        <Label>SQL Query</Label>
         <textarea
-          id="widget-sql"
           className="border-input min-h-[8rem] w-full rounded-md border px-3 py-2 text-sm font-mono"
           value={formState.sql}
           onChange={(event) =>
