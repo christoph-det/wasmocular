@@ -36,7 +36,12 @@ export class IndexingStore {
 
   project: RepminerProject | null = null;
 
-  private readonly STORAGE_KEY = "indexingStore";
+  STORAGE_KEY = (projectIdentifier?: string) => {
+    return (
+      "indexingStore_" +
+      (projectIdentifier ?? this.project?.repositoryIdentifier ?? "no_project")
+    );
+  };
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
@@ -62,15 +67,30 @@ export class IndexingStore {
 
   private saveToStorage() {
     try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.toJSON()));
+      localStorage.setItem(this.STORAGE_KEY(), JSON.stringify(this.toJSON()));
+      localStorage.setItem(
+        "current_project_identifier",
+        this.project?.repositoryIdentifier ?? ""
+      );
     } catch (error) {
       console.warn("Failed to save IndexingStore to localStorage:", error);
     }
   }
 
-  private loadFromStorage() {
+  loadFromStorage(projectIdentifier?: string) {
+    let stored;
+
     try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
+      if (projectIdentifier) {
+        stored = localStorage.getItem(this.STORAGE_KEY(projectIdentifier));
+      } else if (!this.project) {
+        const currentProject = localStorage
+          .getItem("current_project_identifier")
+          ?.toString();
+        stored = localStorage.getItem(this.STORAGE_KEY(currentProject));
+      } else {
+        stored = localStorage.getItem(this.STORAGE_KEY());
+      }
       if (stored) {
         const data: StoredIndexingData = JSON.parse(
           stored
@@ -133,6 +153,29 @@ export class IndexingStore {
     await this.ready;
     this.dataLoadingState = state;
     this.updateDatabaseAccessMode();
+  }
+
+  listAllStoredProjects(): StoredIndexingData[] {
+    const projects: StoredIndexingData[] = [];
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("indexingStore_")) {
+          const stored = localStorage.getItem(key);
+          if (stored) {
+            const data: StoredIndexingData = JSON.parse(
+              stored
+            ) as StoredIndexingData;
+            if (data.project) {
+              projects.push(data);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.warn("Failed to list stored projects from localStorage:", error);
+    }
+    return projects;
   }
 
   private updateDatabaseAccessMode() {
