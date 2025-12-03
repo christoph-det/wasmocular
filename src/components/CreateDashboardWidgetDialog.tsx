@@ -17,7 +17,9 @@ import { useToast } from "@/hooks/useToast";
 
 interface CreateDashboardWidgetDialogProps {
   sqlQuery: string;
-  trigger?: ReactElement;
+  trigger: ReactElement;
+  editMode?: boolean;
+  dashboardElement?: DashboardElement;
 }
 
 const CHART_TYPE_OPTIONS = Object.values(ChartType) as ChartType[];
@@ -37,27 +39,28 @@ const formatChartTypeLabel = (type: ChartType) =>
 
 const CreateDashboardWidgetDialog = ({
   sqlQuery,
-  trigger
+  trigger,
+  editMode = false,
+  dashboardElement
 }: CreateDashboardWidgetDialogProps) => {
   const { dashboardStore } = useStores();
   const { showError, showSuccess } = useToast();
   const [open, setOpen] = useState(false);
   const [formState, setFormState] = useState<FormState>({
-    title: "",
-    description: "",
-    sql: sqlQuery,
-    chartType: ChartType.TEXT
+    title: dashboardElement?.title ?? "",
+    description: dashboardElement?.description ?? "",
+    sql: dashboardElement?.sqlQuery ?? sqlQuery,
+    chartType: dashboardElement?.type ?? ChartType.TEXT
   });
 
   useEffect(() => {
     if (open) {
       setFormState((state) => ({
         ...state,
-        sql: sqlQuery,
-        chartType: state.chartType
+        sql: dashboardElement?.sqlQuery ?? sqlQuery
       }));
     }
-  }, [sqlQuery, open]);
+  }, [sqlQuery, open, dashboardElement?.sqlQuery]);
 
   const handleSubmit = () => {
     if (!dashboardStore.activeDashboard) {
@@ -70,18 +73,44 @@ const CreateDashboardWidgetDialog = ({
       return;
     }
 
-    const widget = new DashboardElement(
-      crypto.randomUUID(),
-      formState.title.trim(),
-      formState.description.trim(),
-      "half",
-      formState.chartType,
-      formState.sql
-    );
+    if (editMode && dashboardElement) {
+      dashboardElement.title = formState.title;
+      dashboardElement.description = formState.description;
+      dashboardElement.sqlQuery = formState.sql;
+      dashboardElement.type = formState.chartType;
 
-    dashboardStore.activeDashboard.widgets.push(widget);
-    showSuccess("Widget added to dashboard.");
+      showSuccess("Widget updated successfully.");
+    } else {
+      const widget = new DashboardElement(
+        crypto.randomUUID(),
+        formState.title.trim(),
+        formState.description.trim(),
+        "half",
+        formState.chartType,
+        formState.sql
+      );
+
+      dashboardStore.activeDashboard.widgets.push(widget);
+      showSuccess("Widget added to dashboard.");
+    }
     setOpen(false);
+  };
+
+  const handleDelete = () => {
+    if (!confirm("Are you sure you want to delete this widget?")) {
+      return;
+    }
+    console.log("Deleting widget:", dashboardElement);
+    if (dashboardElement && dashboardStore.activeDashboard) {
+      dashboardStore.activeDashboard.widgets =
+        dashboardStore.activeDashboard.widgets.filter(
+          (w) => w.id !== dashboardElement.id
+        );
+      showSuccess("Widget deleted from dashboard.");
+      setOpen(false);
+    } else {
+      showError("Failed to delete widget due to inconsistent state.");
+    }
   };
 
   return (
@@ -137,13 +166,23 @@ const CreateDashboardWidgetDialog = ({
           }
         />
         <DialogFooter>
+          {editMode && (
+            <Button
+              type="button"
+              variant="destructive"
+              className="mr-auto"
+              onClick={handleDelete}
+            >
+              Delete Widget
+            </Button>
+          )}
           <DialogClose asChild>
             <Button type="button" variant="outline">
               Cancel
             </Button>
           </DialogClose>
           <Button type="button" onClick={handleSubmit}>
-            Add Widget
+            {editMode ? "Update Widget" : "Add Widget"}
           </Button>
         </DialogFooter>
       </DialogContent>
