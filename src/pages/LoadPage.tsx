@@ -52,7 +52,7 @@ const LoadPage = observer(() => {
       <div className="max-w-3xl mx-auto">
         <div className="mb-8 text-center">
           <h1 className="text-5xl font-extrabold mb-2 text-blue-900 drop-shadow">
-            Welcome to <span className="text-blue-700">RepMiner</span>!
+            Welcome to <span className="text-blue-700">WasmOcular</span>!
           </h1>
           <h2 className="text-xl mb-6 text-gray-700 font-medium">
             Start by selecting a repository to begin your analysis.

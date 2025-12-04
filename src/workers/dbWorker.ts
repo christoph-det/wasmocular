@@ -34,7 +34,7 @@ export class DatabaseWorker {
     this.db = new duckdb.AsyncDuckDB(logger, this.worker);
     await this.db.instantiate(bundle.mainModule, bundle.pthreadWorker);
     await this.db.open({
-      path: `opfs://repminer_database_${repositoryIdentifier}.db`,
+      path: `opfs://wasmocular_database_${repositoryIdentifier}.db`,
       accessMode
     });
   }
@@ -76,7 +76,7 @@ export class DatabaseWorker {
 
   async deleteDatabase(repositoryIdentifier: string) {
     this.repositoryIdentifier = repositoryIdentifier;
-    const dbPath = `repminer_database_${repositoryIdentifier}.db`;
+    const dbPath = `wasmocular_database_${repositoryIdentifier}.db`;
     await this.shutdown(false);
     try {
       const root = await navigator.storage.getDirectory();

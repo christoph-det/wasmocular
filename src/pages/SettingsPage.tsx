@@ -32,7 +32,7 @@ const SettingsPage = observer(() => {
 
   async function exportDuckDB() {
     const opfsRoot = await navigator.storage.getDirectory();
-    const databaseFileName = `repminer_database_${indexingStore.project?.repositoryIdentifier}.db`;
+    const databaseFileName = `wasmocular_database_${indexingStore.project?.repositoryIdentifier}.db`;
     const fileHandle = await opfsRoot.getFileHandle(databaseFileName);
     fileHandle
       .getFile()

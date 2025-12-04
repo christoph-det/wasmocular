@@ -19,7 +19,7 @@ interface StoredIndexingData {
   };
 }
 
-export class RepminerProject {
+export class RepositoryProject {
   name = "";
   repositoryIdentifier = "";
   defaultDashboardId: string | null = null;
@@ -34,7 +34,7 @@ export class IndexingStore {
   dataLoadingState = DataLoadingState.NOT_STARTED;
   readonly ready: Promise<void>;
 
-  project: RepminerProject | null = null;
+  project: RepositoryProject | null = null;
 
   STORAGE_KEY = (projectIdentifier?: string) => {
     return (
@@ -99,7 +99,7 @@ export class IndexingStore {
         this.dataLoadingState =
           data.dataLoadingState ?? DataLoadingState.NOT_STARTED;
         if (data.project) {
-          this.project = Object.assign(new RepminerProject(), data.project);
+          this.project = Object.assign(new RepositoryProject(), data.project);
           this.updateDatabaseAccessMode();
         }
       }
@@ -131,7 +131,7 @@ export class IndexingStore {
     dashboardId: string
   ) {
     await this.ready;
-    this.project = new RepminerProject();
+    this.project = new RepositoryProject();
     this.project.name = name;
     this.project.repositoryIdentifier = repositoryIdentifier;
     this.project.defaultDashboardId = dashboardId;

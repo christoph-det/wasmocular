@@ -26,3 +26,7 @@ DuckDB is a fast SQL database, that can be used in the browser with WASM as well
 
 Note: Multithreading with certain headers possible but stable?
 https://duckdb.org/2021/10/29/duckdb-wasm.html
+
+
+### Logo
+The Wasmocular logo depicts a stylized digital eye, symbolizing the core mission of providing observability and deep insight into repositories. The central hexagonal lens, with the 'WA' monogram, represents the Wasm modules that are the core of the analysis. The surrounding circuitry patterns ignify the bridge between them, emphasizing the focus on transparency. The logo was created using Google Gemini / Nano Banana Pro.
