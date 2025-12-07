@@ -48,7 +48,7 @@ const LoadPage = observer(() => {
   }, [indexingStore.dataLoadingState, navigate]);
 
   return (
-    <div className="p-10 pb-14 mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen">
+    <div className="pt-10 mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-[90vh]">
       <div className="max-w-3xl mx-auto">
         <div className="mb-8 text-center">
           <h1 className="text-5xl font-extrabold mb-2 text-blue-900 drop-shadow">
@@ -181,9 +181,7 @@ const LoadPage = observer(() => {
         .then(async () => {
           showInfo("Repository successfully cloned.");
           await wasmGixStore.reloadRepository(repoIdentifier);
-          const dashboardId = dashboardStore.createNewDashboard(
-            projectName + " - Dashboard"
-          );
+          const dashboardId = dashboardStore.createNewDashboard();
           await indexingStore.createNewProject(
             projectName,
             repoIdentifier,
@@ -214,9 +212,7 @@ const LoadPage = observer(() => {
         localRepoDirHandle!,
         progressCallback
       );
-      const dashboardId = dashboardStore.createNewDashboard(
-        projectName + " - Dashboard"
-      );
+      const dashboardId = dashboardStore.createNewDashboard();
       await indexingStore.createNewProject(
         projectName,
         repoIdentifier,

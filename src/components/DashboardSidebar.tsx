@@ -1,10 +1,50 @@
 import { useState } from "react";
+import { Button } from "./ui/button";
+import { useStores } from "@/store/StoreContext";
+import { useToast } from "@/hooks/useToast";
 
 const DashboardSidebar = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const dashboardStore = useStores().dashboardStore;
+  const { showSuccess } = useToast();
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
+  };
+
+  // handle export dashboard action to json and download it
+  const handleExportDashboard = () => {
+    dashboardStore.exportActiveDashboard();
+    showSuccess("Dashboard exported successfully!");
+  };
+
+  const handleImportDashboard = () => {
+    if (
+      confirm(
+        "Importing a dashboard will overwrite your current dashboard. Do you want to continue?"
+      )
+    ) {
+      // open file picker to select json file
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".json,application/json";
+      input.onchange = (e: Event) => {
+        const target = e.target as HTMLInputElement;
+        if (target.files && target.files.length > 0) {
+          const file = target.files[0];
+          const reader = new FileReader();
+          reader.onload = (event: ProgressEvent<FileReader>) => {
+            const jsonData = event.target?.result;
+            if (typeof jsonData === "string") {
+              dashboardStore.importDashboardFromJSON(jsonData);
+              showSuccess("Dashboard imported successfully!");
+            }
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    }
   };
 
   return (
@@ -47,6 +87,15 @@ const DashboardSidebar = () => {
           </p>
           <p>TODO</p>
           {/* TODO: Implement actual settings controls here */}
+          <p className="mt-4">Dashboard Actions:</p>
+          <div className="flex">
+            <Button onClick={handleExportDashboard} className="" variant="link">
+              Export
+            </Button>
+            <Button onClick={handleImportDashboard} className="" variant="link">
+              Import
+            </Button>
+          </div>
         </div>
       )}
     </div>

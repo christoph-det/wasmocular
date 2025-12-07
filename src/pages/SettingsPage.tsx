@@ -4,10 +4,16 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useToast } from "@/hooks/useToast";
+import { index } from "d3";
 
 const SettingsPage = observer(() => {
   const indexingStore = useStores().indexingStore;
+  const databaseStore = useStores().dbStore;
+  const wasmGixStore = useStores().wasmGixStore;
+  const dashboardStore = useStores().dashboardStore;
   const [projectName, setProjectName] = useState<string>("");
+  const { showSuccess } = useToast();
 
   const handleprojectNameInputChange = (event: {
     target: { value: string };
@@ -29,6 +35,34 @@ const SettingsPage = observer(() => {
       console.error("Error exporting DuckDB:", error);
     });
   }
+
+  const handleClickDeleteProject = async () => {
+    if (
+      confirm(
+        "Are you sure you want to delete this project? This action cannot be undone."
+      )
+    ) {
+      const repositoryIdentifier = indexingStore.project?.repositoryIdentifier;
+      if (!repositoryIdentifier) {
+        alert("Cannot delete project: No project loaded/inconsistent state.");
+        return;
+      }
+      try {
+        await databaseStore.deleteDatabase(repositoryIdentifier);
+        await wasmGixStore.deleteRepositroyData(repositoryIdentifier);
+        dashboardStore.deleteDashboard(
+          indexingStore.project!.defaultDashboardId ?? ""
+        );
+        indexingStore.deleteProjectFromStorage(repositoryIdentifier);
+        indexingStore.resetIndexingStore();
+        showSuccess("Project deleted successfully.");
+        globalThis.location.hash = "#/";
+      } catch (error) {
+        console.error("Failed to delete project:", error);
+        alert("Failed to delete project from local storage.");
+      }
+    }
+  };
 
   async function exportDuckDB() {
     const opfsRoot = await navigator.storage.getDirectory();
@@ -98,7 +132,9 @@ const SettingsPage = observer(() => {
               Export Database
             </Button>
             <br />
-            <p className="mt-3">Close project to be able to delete it.</p>
+            <Button onClick={handleClickDeleteProject} className="mt-4">
+              Delete Project
+            </Button>
           </div>
         </div>
       </div>
