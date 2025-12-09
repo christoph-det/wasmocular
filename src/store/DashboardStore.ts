@@ -35,8 +35,6 @@ class DashboardData {
     };
   }
 }
-// TODO: allows exporting the current dashboard configuration
-// TODO: allows deleting dashboards
 
 export class DashboardStore {
   private readonly STORAGE_KEY = "dashboardStore_";
@@ -45,6 +43,8 @@ export class DashboardStore {
   activeDashboardId: string | null = null;
   rootStore: RootStore;
   ready: Promise<void>;
+  activeDateFilterFrom: Date | undefined = undefined;
+  activeDateFilterTo: Date | undefined = undefined;
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;

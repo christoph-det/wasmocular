@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useToast } from "@/hooks/useToast";
-import { index } from "d3";
 
 const SettingsPage = observer(() => {
   const indexingStore = useStores().indexingStore;
@@ -132,7 +131,12 @@ const SettingsPage = observer(() => {
               Export Database
             </Button>
             <br />
-            <Button onClick={handleClickDeleteProject} className="mt-4">
+            <Button
+              onClick={() => {
+                void handleClickDeleteProject();
+              }}
+              className="mt-4"
+            >
               Delete Project
             </Button>
           </div>

@@ -2,11 +2,20 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 import { useStores } from "@/store/StoreContext";
 import { useToast } from "@/hooks/useToast";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from "@radix-ui/react-popover";
+import { ChevronDownIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
 
 const DashboardSidebar = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const dashboardStore = useStores().dashboardStore;
   const { showSuccess } = useToast();
+  const [openDateTo, setOpenDateTo] = useState(false);
+  const [openDateFrom, setOpenDateFrom] = useState(false);
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
@@ -82,11 +91,74 @@ const DashboardSidebar = () => {
       {!sidebarCollapsed && (
         <div className="mt-4">
           <p className="text-gray-600">
-            Use the options below to customize your dashboard view and data
-            representation.
+            Apply global filters to apply to all dashboard widgets.
           </p>
-          <p>TODO</p>
-          {/* TODO: Implement actual settings controls here */}
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Date FROM - TO:
+            </label>
+            <Popover open={openDateFrom} onOpenChange={setOpenDateFrom}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  id="date"
+                  className="w-48 justify-between font-normal"
+                >
+                  {dashboardStore.activeDateFilterFrom
+                    ? dashboardStore.activeDateFilterFrom.toLocaleDateString()
+                    : "Select FROM"}
+                  <ChevronDownIcon />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                className="w-auto overflow-hidden p-0"
+                align="start"
+              >
+                <Calendar
+                  mode="single"
+                  selected={dashboardStore.activeDateFilterFrom}
+                  captionLayout="dropdown"
+                  onSelect={(date) => {
+                    dashboardStore.activeDateFilterFrom = date ?? undefined;
+                    setOpenDateFrom(false);
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
+            <div className="m-2"> </div>
+            <Popover open={openDateTo} onOpenChange={setOpenDateTo}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  id="date"
+                  className="w-48 justify-between font-normal"
+                >
+                  {dashboardStore.activeDateFilterTo
+                    ? dashboardStore.activeDateFilterTo.toLocaleDateString()
+                    : "Select TO"}
+                  <ChevronDownIcon />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                className="w-auto overflow-hidden p-0"
+                align="start"
+              >
+                <Calendar
+                  mode="single"
+                  selected={dashboardStore.activeDateFilterTo}
+                  captionLayout="dropdown"
+                  onSelect={(date) => {
+                    dashboardStore.activeDateFilterTo = date ?? undefined;
+                    setOpenDateTo(false);
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
+            <br />
+            <label className="block text-sm font-medium text-gray-700 mb-1 mt-3">
+              Authors:
+            </label>
+          </div>
           <p className="mt-4">Dashboard Actions:</p>
           <div className="flex">
             <Button onClick={handleExportDashboard} className="" variant="link">

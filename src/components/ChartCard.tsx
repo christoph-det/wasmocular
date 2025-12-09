@@ -13,11 +13,17 @@ interface ChartCardProps {
 }
 
 const ChartCard: React.FC<ChartCardProps> = observer(({ dashboardElement }) => {
+  const query = dashboardElement.sqlQuery;
+  const fromTimestamp =
+    dashboardElement.dashboardStore.activeDateFilterFrom?.getTime();
+  const toTimestamp =
+    dashboardElement.dashboardStore.activeDateFilterTo?.getTime();
+
   useEffect(() => {
     dashboardElement.loadData().catch((error) => {
       console.error("Error loading dashboard element data:", error);
     });
-  }, [dashboardElement]);
+  }, [dashboardElement, query, fromTimestamp, toTimestamp]);
 
   return (
     <div
