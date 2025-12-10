@@ -50,12 +50,7 @@ export class DashboardElement {
     this.dataLoading = true;
     this.error = null;
     let queryToRun = this.sqlQuery;
-    if (
-      this.dashboardStore.activeDateFilterFrom ||
-      this.dashboardStore.activeDateFilterTo
-    ) {
-      queryToRun = this.makeCTEQuery(this.sqlQuery);
-    }
+    queryToRun = this.makeCTEQuery(this.sqlQuery);
     const result = await this.dbStore.runQuery(queryToRun).catch((error) => {
       console.error("Failed to load data for DashboardElement:", error);
       this.error = String(error);
@@ -72,26 +67,32 @@ export class DashboardElement {
 
   // CTE approach to apply date filters, TODO: maybe take care of joins later
   private makeCTEQuery(userQuery: string): string {
-    let dateFilter = "";
-
     const conditions: string[] = [];
-    if (this.dashboardStore.activeDateFilterFrom) {
-      const fromTimestamp = this.dashboardStore.activeDateFilterFrom.getTime();
+    const { activeDateFilterFrom, activeDateFilterTo, unselectedAuthors } =
+      this.dashboardStore;
+    if (activeDateFilterFrom) {
+      const fromTimestamp = activeDateFilterFrom.getTime();
       conditions.push(`authored_at >= make_timestamp_ms(${fromTimestamp})`);
     }
-    if (this.dashboardStore.activeDateFilterTo) {
-      const toTimestamp = this.dashboardStore.activeDateFilterTo.getTime();
+    if (activeDateFilterTo) {
+      const toTimestamp = activeDateFilterTo.getTime();
       conditions.push(`authored_at <= make_timestamp_ms(${toTimestamp})`);
+    }
+   
+    if (unselectedAuthors.length > 0) {
+      const authorsList = unselectedAuthors.map(author => `'${author.replace(/'/g, "''")}'`).join(", ");
+      conditions.push(`author_signature NOT IN (${authorsList})`);
     }
 
     if (conditions.length > 0) {
       const whereClause = conditions.join(" AND ");
-      dateFilter += ` WHERE ${whereClause}`;
+      const cte_query = `WITH commits_filtered AS ( SELECT * FROM commits WHERE ${whereClause} )`;
+      return `${cte_query} ${this.replaceTableNamesInQuery(userQuery)}`;
+    } else {
+      return userQuery;
     }
 
-    const cte_query = `WITH commits_filtered AS ( SELECT * FROM commits ${dateFilter} )`;
 
-    return `${cte_query} ${this.replaceTableNamesInQuery(userQuery)}`;
   }
 
   private replaceTableNamesInQuery(sql: string): string {

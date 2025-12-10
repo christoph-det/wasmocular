@@ -45,11 +45,18 @@ export class DashboardStore {
   ready: Promise<void>;
   activeDateFilterFrom: Date | undefined = undefined;
   activeDateFilterTo: Date | undefined = undefined;
+  availableAuthors: Map<string, boolean> = new Map();
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
     makeAutoObservable(this);
     this.ready = Promise.resolve(this.loadFromStorage());
+  }
+
+  get unselectedAuthors(): string[] {
+    return Array.from(this.availableAuthors.entries())
+      .filter(([, selected]) => !selected)
+      .map(([author]) => author);
   }
 
   createNewDashboard(): string {

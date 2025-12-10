@@ -18,12 +18,19 @@ const ChartCard: React.FC<ChartCardProps> = observer(({ dashboardElement }) => {
     dashboardElement.dashboardStore.activeDateFilterFrom?.getTime();
   const toTimestamp =
     dashboardElement.dashboardStore.activeDateFilterTo?.getTime();
+  const unselectedAuthors = dashboardElement.dashboardStore.unselectedAuthors;
 
   useEffect(() => {
     dashboardElement.loadData().catch((error) => {
       console.error("Error loading dashboard element data:", error);
     });
-  }, [dashboardElement, query, fromTimestamp, toTimestamp]);
+  }, [
+    dashboardElement,
+    query,
+    fromTimestamp,
+    toTimestamp,
+    unselectedAuthors
+  ]);
 
   return (
     <div

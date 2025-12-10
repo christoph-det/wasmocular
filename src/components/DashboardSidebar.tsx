@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { useStores } from "@/store/StoreContext";
 import { useToast } from "@/hooks/useToast";
+import { observer } from "mobx-react-lite";
 import {
   Popover,
   PopoverContent,
@@ -10,9 +11,10 @@ import {
 import { ChevronDownIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 
-const DashboardSidebar = () => {
+const DashboardSidebar = observer(() => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const dashboardStore = useStores().dashboardStore;
+  const dbStore = useStores().dbStore;
   const { showSuccess } = useToast();
   const [openDateTo, setOpenDateTo] = useState(false);
   const [openDateFrom, setOpenDateFrom] = useState(false);
@@ -20,6 +22,18 @@ const DashboardSidebar = () => {
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
+
+  useEffect(() =>   { 
+    dbStore.runQuery("SELECT DISTINCT author_signature FROM commits;").then((result) => {
+      const authors = new Map<string, boolean>();
+      (result as { author_signature: string }[]).forEach((row) => {
+        authors.set(row.author_signature, true);
+      });
+      dashboardStore.availableAuthors = authors;
+    }).catch((error) => {
+      console.error("Database connection error:", error);
+    });
+  }, [dbStore]);
 
   // handle export dashboard action to json and download it
   const handleExportDashboard = () => {
@@ -95,7 +109,7 @@ const DashboardSidebar = () => {
           </p>
           <div className="mt-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Date FROM - TO:
+              Date Range:
             </label>
             <Popover open={openDateFrom} onOpenChange={setOpenDateFrom}>
               <PopoverTrigger asChild>
@@ -158,8 +172,27 @@ const DashboardSidebar = () => {
             <label className="block text-sm font-medium text-gray-700 mb-1 mt-3">
               Authors:
             </label>
+            <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-md p-2">
+              {Array.from(dashboardStore.availableAuthors.keys()).map((author) => (
+                <div key={author} className="flex items-center mb-1">
+                  <input
+                    type="checkbox"
+                    checked={dashboardStore.availableAuthors.get(author)}
+                    onChange={(e) => {
+                      dashboardStore.availableAuthors.set(
+                        author,
+                        e.target.checked
+                      );
+
+                    }}
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-gray-700">{author}</span>
+                </div>
+              ))}
+            </div>
           </div>
-          <p className="mt-4">Dashboard Actions:</p>
+          <p className="mt-20">Dashboard Actions:</p>
           <div className="flex">
             <Button onClick={handleExportDashboard} className="" variant="link">
               Export
@@ -172,6 +205,6 @@ const DashboardSidebar = () => {
       )}
     </div>
   );
-};
+});
 
 export default DashboardSidebar;
