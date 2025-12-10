@@ -14,7 +14,7 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      // Frontend calls /git/...
+      // only for development: proxy git requests to avoid CORS issues
       "/git-proxy": {
         target: "https://github.com",
         changeOrigin: true,

@@ -32,6 +32,7 @@ export class IndexingStore {
   rootStore: RootStore;
   indexingProgress = 0; // Percentage of indexing progress
   dataLoadingState = DataLoadingState.NOT_STARTED;
+  proxyURL = "https://dawn-salad-f180.c-dethloff.workers.dev";
   readonly ready: Promise<void>;
 
   project: RepositoryProject | null = null;

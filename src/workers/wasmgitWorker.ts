@@ -52,6 +52,7 @@ export class WasmGitWorker {
    */
   async cloneRepository(
     gitRepoURL: string,
+    proxyURL: string,
     repoIdentifier: string,
     progressCallback: (progress: number, message: string) => void
   ) {
@@ -66,7 +67,7 @@ export class WasmGitWorker {
         `${phase} - ${Number.isNaN(percent) ? 100 : percent} %`
       );
     };
-    this.setCurrentRepository(gitRepoURL);
+    this.setCurrentRepository(gitRepoURL, proxyURL);
     await this.ensureRepositoryIsPublic();
     this.mountIDBFS();
     this.lg.callMain(["clone", this.repoURL, `/repos/${repoIdentifier}`]);
@@ -95,7 +96,7 @@ export class WasmGitWorker {
    * Sets the current repository URL.
    * @param url
    */
-  private setCurrentRepository(url: string) {
+  private setCurrentRepository(url: string, proxyURL: string) {
     // if the url contains github remove everything before and including github.com/
     if (url.includes("https://github.com/")) {
       this.repoURL = url.substring(url.indexOf("https://github.com/") + 19);
@@ -103,7 +104,10 @@ export class WasmGitWorker {
       this.repoURL = url;
     }
     // use git-proxy to avoid CORS issues
-    this.repoURL = this.baseOrigin + `/git-proxy/` + this.repoURL;
+    const actualProxyURL = import.meta.env.DEV
+      ? this.baseOrigin
+      : proxyURL;
+    this.repoURL = actualProxyURL + `/git-proxy/` + this.repoURL;
   }
 
   private mountIDBFS() {

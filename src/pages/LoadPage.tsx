@@ -10,6 +10,15 @@ import { useNavigate } from "react-router-dom";
 import { generateRepoIdentifier } from "@/utils/utils";
 import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { set } from "lodash";
 
 declare global {
   function showDirectoryPicker({
@@ -34,11 +43,19 @@ const LoadPage = observer(() => {
   const [loadingProgress, setLoadingProgress] = useState<number>(-1);
   const [loadingProgressMessage, setLoadingProgressMessage] =
     useState<string>("");
+  const [openProxyUrlDialog, setOpenProxyUrlDialog] = useState<boolean>(false);
+  const [proxyUrl, setProxyUrl] = useState<string>(indexingStore.proxyURL);
 
   const handleprojectNameInputChange = (event: {
     target: { value: SetStateAction<string> };
   }) => {
     setProjectName(event.target.value);
+  };
+
+  const handleSaveProxyUrl = () => {
+    indexingStore.proxyURL = proxyUrl;
+    setOpenProxyUrlDialog(false);
+    showSuccess("Proxy URL updated.");
   };
 
   useEffect(() => {
@@ -108,10 +125,56 @@ const LoadPage = observer(() => {
                 onChange={(e) => setGitRepoUrl(e.target.value)}
               />
             </div>
-            <p className="text-sm text-gray-500 mt-2 mb-8">
-              URL Format: https://github.com/user/repo.git, only public repos
-              and proxy server is used for cloning.
-            </p>
+            <div className="text-sm text-gray-500 mt-2 mb-8">
+              URL Format: https://github.com/user/repo.git | Only public repos.{" "}
+              <br />
+              Proxy server is used for cloning. You can also deploy your own.{" "}
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-sm px-2 py-0"
+                onClick={() => setOpenProxyUrlDialog(true)}
+              >
+                Change Proxy URL
+              </Button>
+            </div>
+            <Dialog
+              open={openProxyUrlDialog}
+              onOpenChange={setOpenProxyUrlDialog}
+            >
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Change Proxy URL</DialogTitle>
+                </DialogHeader>
+                <div className="py-4">
+                  You can also deploy your own git proxy server to avoid CORS
+                  issues when cloning repositories, e.g., using Cloudflare
+                  Workers with the provided{" "}
+                    <a
+                      href="/public/gitProxy.ts"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >gitProxy.ts
+                    </a>{" "}file.
+                  <Input
+                    type="text"
+                    value={proxyUrl}
+                    onChange={(e) => setProxyUrl(e.target.value)}
+                  />
+                </div>
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button type="button" variant="outline">
+                      Cancel
+                    </Button>
+                  </DialogClose>
+                  <Button type="button" onClick={handleSaveProxyUrl}>
+                    Save
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
             {loadingProgress >= 0 ? (
               <>
                 <Progress className="" value={loadingProgress} />
@@ -177,7 +240,7 @@ const LoadPage = observer(() => {
     if (trimmedUrl) {
       showInfo("Cloning repository in the background...");
       wasmGitStore
-        .cloneRepository(trimmedUrl, repoIdentifier, progressCallback)
+        .cloneRepository(trimmedUrl, repoIdentifier, proxyUrl, progressCallback)
         .then(async () => {
           showInfo("Repository successfully cloned.");
           await wasmGixStore.reloadRepository(repoIdentifier);
