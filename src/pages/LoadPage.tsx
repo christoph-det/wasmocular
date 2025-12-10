@@ -18,7 +18,6 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog";
-import { set } from "lodash";
 
 declare global {
   function showDirectoryPicker({
@@ -130,9 +129,9 @@ const LoadPage = observer(() => {
               <br />
               Proxy server is used for cloning. You can also deploy your own.{" "}
               <Button
-                variant="outline"
+                variant="link"
                 size="sm"
-                className="text-sm px-2 py-0"
+                className="text-sm p-0"
                 onClick={() => setOpenProxyUrlDialog(true)}
               >
                 Change Proxy URL
