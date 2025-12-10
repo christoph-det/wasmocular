@@ -45,7 +45,7 @@ export class DashboardStore {
   ready: Promise<void>;
   activeDateFilterFrom: Date | undefined = undefined;
   activeDateFilterTo: Date | undefined = undefined;
-  availableAuthors: Map<string, boolean> = new Map();
+  availableAuthors: Map<string, boolean> = new Map<string, boolean>();
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;

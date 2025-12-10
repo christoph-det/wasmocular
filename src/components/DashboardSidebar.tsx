@@ -23,17 +23,20 @@ const DashboardSidebar = observer(() => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
-  useEffect(() =>   { 
-    dbStore.runQuery("SELECT DISTINCT author_signature FROM commits;").then((result) => {
-      const authors = new Map<string, boolean>();
-      (result as { author_signature: string }[]).forEach((row) => {
-        authors.set(row.author_signature, true);
+  useEffect(() => {
+    dbStore
+      .runQuery("SELECT DISTINCT author_signature FROM commits;")
+      .then((result) => {
+        const authors = new Map<string, boolean>();
+        (result as { author_signature: string }[]).forEach((row) => {
+          authors.set(row.author_signature, true);
+        });
+        dashboardStore.availableAuthors = authors;
+      })
+      .catch((error) => {
+        console.error("Database connection error:", error);
       });
-      dashboardStore.availableAuthors = authors;
-    }).catch((error) => {
-      console.error("Database connection error:", error);
-    });
-  }, [dbStore]);
+  }, [dbStore, dashboardStore]);
 
   // handle export dashboard action to json and download it
   const handleExportDashboard = () => {
@@ -173,23 +176,24 @@ const DashboardSidebar = observer(() => {
               Authors:
             </label>
             <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-md p-2">
-              {Array.from(dashboardStore.availableAuthors.keys()).map((author) => (
-                <div key={author} className="flex items-center mb-1">
-                  <input
-                    type="checkbox"
-                    checked={dashboardStore.availableAuthors.get(author)}
-                    onChange={(e) => {
-                      dashboardStore.availableAuthors.set(
-                        author,
-                        e.target.checked
-                      );
-
-                    }}
-                    className="mr-2"
-                  />
-                  <span className="text-sm text-gray-700">{author}</span>
-                </div>
-              ))}
+              {Array.from(dashboardStore.availableAuthors.keys()).map(
+                (author) => (
+                  <div key={author} className="flex items-center mb-1">
+                    <input
+                      type="checkbox"
+                      checked={dashboardStore.availableAuthors.get(author)}
+                      onChange={(e) => {
+                        dashboardStore.availableAuthors.set(
+                          author,
+                          e.target.checked
+                        );
+                      }}
+                      className="mr-2"
+                    />
+                    <span className="text-sm text-gray-700">{author}</span>
+                  </div>
+                )
+              )}
             </div>
           </div>
           <p className="mt-20">Dashboard Actions:</p>

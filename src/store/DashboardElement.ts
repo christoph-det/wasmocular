@@ -78,9 +78,11 @@ export class DashboardElement {
       const toTimestamp = activeDateFilterTo.getTime();
       conditions.push(`authored_at <= make_timestamp_ms(${toTimestamp})`);
     }
-   
+
     if (unselectedAuthors.length > 0) {
-      const authorsList = unselectedAuthors.map(author => `'${author.replace(/'/g, "''")}'`).join(", ");
+      const authorsList = unselectedAuthors
+        .map((author) => `'${author.replace(/'/g, "''")}'`)
+        .join(", ");
       conditions.push(`author_signature NOT IN (${authorsList})`);
     }
 
@@ -91,8 +93,6 @@ export class DashboardElement {
     } else {
       return userQuery;
     }
-
-
   }
 
   private replaceTableNamesInQuery(sql: string): string {
