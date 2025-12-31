@@ -148,6 +148,15 @@ export class IndexingStore {
     }
   }
 
+  setDefaultDashboardId(dashboardId: string) {
+    if (!this.project) {
+      console.warn("No project loaded to set default dashboard ID");
+      return;
+    }
+    this.project.defaultDashboardId = dashboardId;
+    this.saveToStorage();
+  }
+
   async setIndexingProgress(progress: number) {
     await this.ready;
     this.indexingProgress = progress;

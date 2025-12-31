@@ -37,13 +37,13 @@ export interface Palette {
 interface Props {
   content: any[];
   d3offset: any;
-  displayNegative: boolean;
-  keys: string[];
-  order: string[];
-  paddings: { top: number; left: number; bottom: number; right: number };
-  palette: Palette | undefined;
-  resolution: string;
-  xAxisCenter: boolean;
+  displayNegative?: boolean;
+  keys?: string[];
+  order?: string[];
+  paddings?: { top: number; left: number; bottom: number; right: number };
+  palette?: Palette | undefined;
+  resolution?: string;
+  xAxisCenter?: boolean;
   yDims: number[];
   yScale?: number[];
   disableVerticalZoom?: boolean;

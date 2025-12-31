@@ -180,6 +180,7 @@ export class DashboardStore {
         this.activeDashboard = new DashboardData(data.dashboardId, widgets);
         this.activeDashboardId = data.dashboardId;
       });
+      this.rootStore.indexingStore.setDefaultDashboardId(data.dashboardId);
       this.saveToStorage();
       this.setupAutoSave();
       console.log("Imported dashboard from JSON:", this.activeDashboard);
@@ -201,6 +202,7 @@ export class DashboardStore {
 
   async setActiveDashboard(dashboardId: string) {
     this.activeDashboardId = dashboardId;
+    this.rootStore.indexingStore.setDefaultDashboardId(dashboardId);
     await this.loadFromStorage(dashboardId);
   }
 }
