@@ -191,14 +191,27 @@ const ExplorePageCustomQuery = () => {
                 </h2>
               </div>
               <div className="bg-white rounded-lg shadow-sm p-5 space-y-5">
-                {manualQueryMode && (<>
-                  <p className="text-gray-600">
-                    Notice: You have full access to the database, use with caution. Refer to the <a href="https://duckdb.org/docs/stable/sql/introduction" className="text-blue-600" target="_blank">DuckDB documentation</a> for more details about queries.</p>
-                  <div
-                    ref={editorRef}
-                    className="border border-gray-300 rounded-md"
-                  ></div>
-                </>)}
+                {manualQueryMode && (
+                  <>
+                    <p className="text-gray-600">
+                      Notice: You have full access to the database, use with
+                      caution. Refer to the{" "}
+                      <a
+                        href="https://duckdb.org/docs/stable/sql/introduction"
+                        className="text-blue-600"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        DuckDB documentation
+                      </a>{" "}
+                      for more details about queries.
+                    </p>
+                    <div
+                      ref={editorRef}
+                      className="border border-gray-300 rounded-md"
+                    ></div>
+                  </>
+                )}
                 {!manualQueryMode && (
                   <div id="query-builder">
                     {/* SELECT */}

@@ -104,9 +104,7 @@ export class WasmGitWorker {
       this.repoURL = url;
     }
     // use git-proxy to avoid CORS issues
-    const actualProxyURL = import.meta.env.DEV
-      ? this.baseOrigin
-      : proxyURL;
+    const actualProxyURL = import.meta.env.DEV ? this.baseOrigin : proxyURL;
     this.repoURL = actualProxyURL + `/git-proxy/` + this.repoURL;
   }
 

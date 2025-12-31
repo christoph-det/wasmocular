@@ -149,12 +149,14 @@ const LoadPage = observer(() => {
                   You can also deploy your own git proxy server to avoid CORS
                   issues when cloning repositories, e.g., using Cloudflare
                   Workers with the provided{" "}
-                    <a
-                      href="/public/gitProxy.ts"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >gitProxy.ts
-                    </a>{" "}file.
+                  <a
+                    href="/public/gitProxy.ts"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    gitProxy.ts
+                  </a>{" "}
+                  file.
                   <Input
                     type="text"
                     value={proxyUrl}
