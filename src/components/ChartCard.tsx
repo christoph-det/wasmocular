@@ -7,6 +7,9 @@ import * as d3 from "d3";
 import StackedAreaChart from "./vizualisation/binocular/StackedAreaChartBinocular";
 import CreateDashboardWidgetDialog from "./CreateDashboardWidgetDialog";
 import { Button } from "./ui/button";
+import { StackedAreaChartConverter } from "@/lib/chartConverters/converters/StackedAreaChartConverter";
+import { GenericDataRow } from "@/lib/chartConverters/BaseChartConverter";
+import generateColorPalette from "@/lib/colorPaletteGenerator";
 
 interface ChartCardProps {
   dashboardElement: DashboardElement;
@@ -83,89 +86,40 @@ function resolveChartByType(
         />
       );
     case ChartType.STACKED_AREA_CHART: {
-      const stackedDataset = Array.isArray(dashboardElement.data)
-        ? convertToStackedAreaDataset(
-            dashboardElement.data.map((row) => {
-              const record = row as QueryRow;
-              const additions = Number(record.additions ?? 0);
-              const deletions = Number(record.deletions ?? 0);
-              const date = Number(record.authored_at);
+      // TODO: make resolution configurable
+      const resolution = "months";
+      const stackedDatasetConverter = new StackedAreaChartConverter(resolution);
+      const stackedDataset = stackedDatasetConverter.convert(
+            dashboardElement.data as GenericDataRow[]
+      );
 
-              return { additions, deletions, date };
-            })
-          )
-        : convertToStackedAreaDataset([]);
-
-      // TODO: currently only working with additions/deletions schema: SELECT additions, -CAST(deletions AS INTEGER) AS deletions, authored_at, author_signature FROM commits ORDER BY authored_at ASC
-      return (
+      if (stackedDataset.error) {
+        return (
+          <div className="text-gray-700 p-4">
+            <p className="font-semibold text-red-600">Error</p>
+            <p className="text-sm">{dashboardElement.error}</p>
+            <p className="text-sm">{stackedDataset.error} - Expected columns: date (timestamp), series (string), value
+              (number)</p>
+          </div>
+        );
+      } else {
+        return (
         <StackedAreaChart
           content={stackedDataset.content}
-          palette={stackedChartDefaults.palette}
-          paddings={stackedChartDefaults.paddings}
-          xAxisCenter={stackedChartDefaults.xAxisCenter}
+          palette={generateColorPalette(stackedDataset.keys)}
+          paddings={{ top: 10, right: 0, bottom: 10, left: 50 }}
+          xAxisCenter={true}
           yDims={stackedDataset.yDims}
-          d3offset={stackedChartDefaults.d3offset}
-          keys={stackedChartDefaults.keys}
-          resolution={stackedChartDefaults.resolution}
-          displayNegative={stackedChartDefaults.displayNegative}
-          order={stackedChartDefaults.order}
+          d3offset={d3.stackOffsetDiverging}
+          resolution={resolution}
+          displayNegative={true}
         />
       );
+      }
     }
     default:
       return "Unknown Chart Type";
   }
 }
-
-interface LineSeriesPoint {
-  additions: number;
-  deletions: number;
-  date: number;
-}
-type QueryRow = Record<string, unknown>;
-
-const STACKED_SERIES = {
-  additions: "(Additions) Total",
-  deletions: "(Deletions) Total"
-} as const;
-
-const stackedChartDefaults = {
-  content: [{}],
-  palette: {
-    [STACKED_SERIES.additions]: "#3B82F6",
-    [STACKED_SERIES.deletions]: "#EF4444"
-  },
-  paddings: { top: 20, right: 30, bottom: 30, left: 60 },
-  xAxisCenter: true,
-  yDims: [-300000, 300000],
-  d3offset: d3.stackOffsetDiverging,
-  keys: [STACKED_SERIES.additions, STACKED_SERIES.deletions],
-  resolution: "months",
-  displayNegative: true,
-  order: [STACKED_SERIES.deletions, STACKED_SERIES.additions]
-};
-
-const convertToStackedAreaDataset = (rows: LineSeriesPoint[]) => {
-  const content = rows.map((row) => ({
-    date: row.date,
-    [STACKED_SERIES.additions]: row.additions,
-    [STACKED_SERIES.deletions]: row.deletions
-  }));
-
-  const maxAbs = content.reduce((max, entry) => {
-    const entryMax = Math.max(
-      Math.abs(entry[STACKED_SERIES.additions]),
-      Math.abs(entry[STACKED_SERIES.deletions])
-    );
-    return Math.max(max, entryMax);
-  }, 0);
-
-  const safeExtent = maxAbs || 1;
-
-  return {
-    content,
-    yDims: [-safeExtent, safeExtent]
-  };
-};
 
 export default ChartCard;
