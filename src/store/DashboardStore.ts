@@ -167,10 +167,12 @@ export class DashboardStore {
       const data: StoredDashboardData = JSON.parse(
         jsonData
       ) as StoredDashboardData;
+      // Generate new IDs for dashboard and widgets to ensure they are unique per project
+      const newDashboardId = crypto.randomUUID();
       const widgets = data.widgets.map(
         (widgetData) =>
           new DashboardElement(
-            widgetData.id,
+            crypto.randomUUID(), // Generate new widget ID
             widgetData.title,
             widgetData.description,
             widgetData.chartWidth,
@@ -181,10 +183,10 @@ export class DashboardStore {
           )
       );
       runInAction(() => {
-        this.activeDashboard = new DashboardData(data.dashboardId, widgets);
-        this.activeDashboardId = data.dashboardId;
+        this.activeDashboard = new DashboardData(newDashboardId, widgets);
+        this.activeDashboardId = newDashboardId;
       });
-      this.rootStore.indexingStore.setDefaultDashboardId(data.dashboardId);
+      this.rootStore.indexingStore.setDefaultDashboardId(newDashboardId);
       this.saveToStorage();
       this.setupAutoSave();
       console.log("Imported dashboard from JSON:", this.activeDashboard);
