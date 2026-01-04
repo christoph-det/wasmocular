@@ -1,6 +1,7 @@
 import { makeAutoObservable, reaction, runInAction } from "mobx";
 import { DashboardElement, type ChartType } from "./DashboardElement";
 import { RootStore } from "./RootStore";
+import { TimeResolution } from "@/lib/chartConverters/BaseChartConverter";
 
 interface StoredDashboardData {
   dashboardId: string;
@@ -14,6 +15,7 @@ interface StoredDashboardElement {
   chartWidth: "half" | "full";
   sqlQuery: string;
   type: ChartType;
+  timeResolution: TimeResolution;
 }
 
 class DashboardData {
@@ -129,6 +131,7 @@ export class DashboardStore {
               widgetData.chartWidth,
               widgetData.type,
               widgetData.sqlQuery,
+              widgetData.timeResolution,
               this.rootStore.dbStore
             )
         );
@@ -173,6 +176,7 @@ export class DashboardStore {
             widgetData.chartWidth,
             widgetData.type,
             widgetData.sqlQuery,
+            widgetData.timeResolution,
             this.rootStore.dbStore
           )
       );

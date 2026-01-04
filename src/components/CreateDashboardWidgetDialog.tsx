@@ -12,6 +12,10 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ChartType, DashboardElement } from "@/store/DashboardElement";
+import {
+  TimeResolution,
+  TIME_RESOLUTIONS
+} from "@/lib/chartConverters/BaseChartConverter";
 import { useStores } from "@/store/StoreContext";
 import { useToast } from "@/hooks/useToast";
 
@@ -30,6 +34,7 @@ interface FormState {
   width: "half" | "full";
   sql: string;
   chartType: ChartType;
+  timeResolution: TimeResolution;
 }
 
 const formatChartTypeLabel = (type: ChartType) =>
@@ -52,7 +57,8 @@ const CreateDashboardWidgetDialog = ({
     description: dashboardElement?.description ?? "",
     width: dashboardElement?.chartWidth ?? "half",
     sql: dashboardElement?.sqlQuery ?? sqlQuery,
-    chartType: dashboardElement?.type ?? ChartType.TEXT
+    chartType: dashboardElement?.type ?? ChartType.TEXT,
+    timeResolution: dashboardElement?.timeResolution ?? "months"
   });
 
   useEffect(() => {
@@ -81,6 +87,7 @@ const CreateDashboardWidgetDialog = ({
       dashboardElement.chartWidth = formState.width;
       dashboardElement.sqlQuery = formState.sql;
       dashboardElement.type = formState.chartType;
+      dashboardElement.timeResolution = formState.timeResolution;
 
       showSuccess("Widget updated successfully.");
     } else {
@@ -90,7 +97,8 @@ const CreateDashboardWidgetDialog = ({
         formState.description.trim(),
         formState.width,
         formState.chartType,
-        formState.sql
+        formState.sql,
+        formState.timeResolution
       );
 
       dashboardStore.activeDashboard.widgets.push(widget);
@@ -159,6 +167,27 @@ const CreateDashboardWidgetDialog = ({
             </option>
           ))}
         </select>
+        {formState.chartType === ChartType.STACKED_AREA_CHART && (
+          <>
+            <Label>Time Resolution</Label>
+            <select
+              className="border-input w-full rounded-md border px-3 py-2 text-sm"
+              value={formState.timeResolution}
+              onChange={(event) =>
+                setFormState((state) => ({
+                  ...state,
+                  timeResolution: event.target.value as TimeResolution
+                }))
+              }
+            >
+              {TIME_RESOLUTIONS.map((resolution) => (
+                <option key={resolution} value={resolution}>
+                  {resolution}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
         <Label>Width</Label>
         <select
           className="border-input w-full rounded-md border px-3 py-2 text-sm"

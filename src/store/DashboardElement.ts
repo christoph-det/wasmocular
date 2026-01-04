@@ -2,6 +2,7 @@ import { makeAutoObservable } from "mobx";
 import { rootStore } from "./StoreContext";
 import type { DatabaseStore } from "./DatabaseStore";
 import { DashboardStore } from "./DashboardStore";
+import { TimeResolution } from "@/lib/chartConverters/BaseChartConverter";
 
 export enum ChartType {
   TEXT = "text",
@@ -18,6 +19,7 @@ export class DashboardElement {
   data: object[] = [];
   error: string | null = null;
   type: ChartType;
+  timeResolution: TimeResolution;
   dbStore: DatabaseStore;
   dashboardStore: DashboardStore;
 
@@ -28,6 +30,7 @@ export class DashboardElement {
     chartWidth: "half" | "full",
     type: ChartType,
     sqlQuery: string,
+    timeResolution: TimeResolution = "months",
     dbStore: DatabaseStore = rootStore.dbStore,
     dashboardStore: DashboardStore = rootStore.dashboardStore
   ) {
@@ -37,6 +40,7 @@ export class DashboardElement {
     this.chartWidth = chartWidth;
     this.type = type;
     this.sqlQuery = sqlQuery;
+    this.timeResolution = timeResolution;
     this.dbStore = dbStore;
     this.dashboardStore = dashboardStore;
 
@@ -112,7 +116,8 @@ export class DashboardElement {
       description: this.description,
       chartWidth: this.chartWidth,
       sqlQuery: this.sqlQuery,
-      type: this.type
+      type: this.type,
+      timeResolution: this.timeResolution
     };
   }
 }

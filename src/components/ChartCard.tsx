@@ -86,11 +86,10 @@ function resolveChartByType(
         />
       );
     case ChartType.STACKED_AREA_CHART: {
-      // TODO: make resolution configurable
-      const resolution = "months";
+      const resolution = dashboardElement.timeResolution;
       const stackedDatasetConverter = new StackedAreaChartConverter(resolution);
       const stackedDataset = stackedDatasetConverter.convert(
-            dashboardElement.data as GenericDataRow[]
+        dashboardElement.data as GenericDataRow[]
       );
 
       if (stackedDataset.error) {
@@ -98,23 +97,22 @@ function resolveChartByType(
           <div className="text-gray-700 p-4">
             <p className="font-semibold text-red-600">Error</p>
             <p className="text-sm">{dashboardElement.error}</p>
-            <p className="text-sm">{stackedDataset.error} - Expected columns: date (timestamp), series (string), value
-              (number)</p>
+            <p className="text-sm">{stackedDataset.error}</p>
           </div>
         );
       } else {
         return (
-        <StackedAreaChart
-          content={stackedDataset.content}
-          palette={generateColorPalette(stackedDataset.keys)}
-          paddings={{ top: 10, right: 0, bottom: 10, left: 50 }}
-          xAxisCenter={true}
-          yDims={stackedDataset.yDims}
-          d3offset={d3.stackOffsetDiverging}
-          resolution={resolution}
-          displayNegative={true}
-        />
-      );
+          <StackedAreaChart
+            content={stackedDataset.content}
+            palette={generateColorPalette(stackedDataset.keys)}
+            paddings={{ top: 10, right: 0, bottom: 10, left: 50 }}
+            xAxisCenter={true}
+            yDims={stackedDataset.yDims}
+            d3offset={d3.stackOffsetDiverging}
+            resolution={resolution}
+            displayNegative={true}
+          />
+        );
       }
     }
     default:
