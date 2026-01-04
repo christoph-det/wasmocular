@@ -1,4 +1,4 @@
-import { makeAutoObservable } from "mobx";
+import { makeAutoObservable, runInAction } from "mobx";
 import { rootStore } from "./StoreContext";
 import type { DatabaseStore } from "./DatabaseStore";
 import { DashboardStore } from "./DashboardStore";
@@ -51,18 +51,24 @@ export class DashboardElement {
   }
 
   async loadData(): Promise<void> {
-    this.dataLoading = true;
-    this.error = null;
+    runInAction(() => {
+      this.dataLoading = true;
+      this.error = null;
+    });
     let queryToRun = this.sqlQuery;
     queryToRun = this.makeCTEQuery(this.sqlQuery);
     const result = await this.dbStore.runQuery(queryToRun).catch((error) => {
       console.error("Failed to load data for DashboardElement:", error);
-      this.error = String(error);
-      this.dataLoading = false;
+      runInAction(() => {
+        this.error = String(error);
+        this.dataLoading = false;
+      });
       return [];
     });
-    this.data = result as object[];
-    this.dataLoading = false;
+    runInAction(() => {
+      this.data = result as object[];
+      this.dataLoading = false;
+    });
   }
 
   toggleWidth() {
