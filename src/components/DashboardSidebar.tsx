@@ -31,7 +31,7 @@ const DashboardSidebar = observer(() => {
         (result as { author_signature: string }[]).forEach((row) => {
           authors.set(row.author_signature, true);
         });
-        dashboardStore.availableAuthors = authors;
+        dashboardStore.setAvailableAuthors(authors);
       })
       .catch((error) => {
         console.error("Database connection error:", error);
@@ -183,7 +183,7 @@ const DashboardSidebar = observer(() => {
                       type="checkbox"
                       checked={dashboardStore.availableAuthors.get(author)}
                       onChange={(e) => {
-                        dashboardStore.availableAuthors.set(
+                        dashboardStore.setAuthorSelected(
                           author,
                           e.target.checked
                         );

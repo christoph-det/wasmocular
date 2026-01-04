@@ -30,7 +30,8 @@ export class DatabaseWorker {
   ) {
     const bundle = await duckdb.selectBundle(MANUAL_BUNDLES);
     this.worker = new Worker(bundle.mainWorker!);
-    const logger = new duckdb.ConsoleLogger();
+    const logger = new duckdb.VoidLogger();
+    //const logger = new duckdb.ConsoleLogger();
     this.db = new duckdb.AsyncDuckDB(logger, this.worker);
     await this.db.instantiate(bundle.mainModule, bundle.pthreadWorker);
     await this.db.open({

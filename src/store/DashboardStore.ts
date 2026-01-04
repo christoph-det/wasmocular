@@ -61,6 +61,14 @@ export class DashboardStore {
       .map(([author]) => author);
   }
 
+  setAvailableAuthors(authors: Map<string, boolean>) {
+    this.availableAuthors = authors;
+  }
+
+  setAuthorSelected(author: string, selected: boolean) {
+    this.availableAuthors.set(author, selected);
+  }
+
   createNewDashboard(): string {
     const newDashboardId = crypto.randomUUID();
     this.activeDashboard = new DashboardData(newDashboardId, []);
