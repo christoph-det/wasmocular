@@ -91,15 +91,16 @@ const DashboardSidebar = observer(() => {
         >
           {sidebarCollapsed ? (
             <img
-              src="./icons/expand.svg"
+              src="./icons/collapse.svg"
               alt="Expand Sidebar"
               className="h-5 w-5"
             />
           ) : (
             <img
+
               src="./icons/collapse.svg"
               alt="Collapse Sidebar"
-              className="h-5 w-5"
+              className="h-5 w-5 rotate-180"
             />
           )}
         </button>
