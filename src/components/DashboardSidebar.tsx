@@ -97,7 +97,6 @@ const DashboardSidebar = observer(() => {
             />
           ) : (
             <img
-
               src="./icons/collapse.svg"
               alt="Collapse Sidebar"
               className="h-5 w-5 rotate-180"
