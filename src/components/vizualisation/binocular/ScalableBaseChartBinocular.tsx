@@ -463,12 +463,15 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
     );
 
     // set vertical zoom option if available
-    svg.on(
-      "wheel",
-      !this.props.disableVerticalZoom
-        ? this.createScrollEvent(svg, scales, axes, brushArea, area)
-        : null
-    );
+    if (!this.props.disableVerticalZoom) {
+      svg.on(
+        "wheel",
+        this.createScrollEvent(svg, scales, axes, brushArea, area),
+        { passive: true }
+      );
+    } else {
+      svg.on("wheel", null);
+    }
 
     // required to support event handling
     svg
@@ -695,9 +698,6 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
     area: any
   ) {
     return (event: any) => {
-      // prevent page scrolling
-      event.preventDefault();
-
       const direction = event.deltaY > 0 ? "down" : "up";
       let zoomedDims = [...this.getYDims()];
       let top = zoomedDims[1],
