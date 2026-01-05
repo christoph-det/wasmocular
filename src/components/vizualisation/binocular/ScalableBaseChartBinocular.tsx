@@ -66,10 +66,14 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
   protected styles: any;
   private svgRef: SVGSVGElement | null | undefined;
   private tooltipRef: HTMLDivElement | null | undefined;
+  private handleResize: () => void;
+  private isMountedFlag: boolean;
   constructor(props: Props | Readonly<Props>, styles: any) {
     super(props);
 
     this.styles = Object.freeze(Object.assign({}, baseStyles, styles));
+    this.handleResize = () => this.updateElement();
+    this.isMountedFlag = false;
 
     this.state = {
       content: props.content, //[{name: "dev1", color: "#ffffff", checked: bool}, ...]
@@ -82,7 +86,6 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
       d3offset: props.d3offset,
       data: { data: [], stackedData: [] }
     };
-    window.addEventListener("resize", () => this.updateElement());
   }
 
   /**
@@ -208,12 +211,15 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    */
 
   componentDidMount() {
+    this.isMountedFlag = true;
     //Needed to restrict d3 to only access DOM when the component is already mounted
     this.setState({ componentMounted: true });
+    window.addEventListener("resize", this.handleResize);
   }
 
   componentWillUnmount() {
-    this.setState({ componentMounted: false });
+    this.isMountedFlag = false;
+    window.removeEventListener("resize", this.handleResize);
   }
 
   //Draw chart after it updated
@@ -254,12 +260,21 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * Update the chart element. May only be called if this.props.content is not empty and the component is mounted.
    */
   async updateElement() {
+    if (!this.isMountedFlag) {
+      return;
+    }
     //Initialization
     // stringify important, otherwise `[object Object],[object Object]` etc. will be hashed,
     // leading to skipped updates despite content changes
     const contentHash = await hash(JSON.stringify(this.props.content) || []);
+    if (!this.isMountedFlag) {
+      return;
+    }
     const orderHash = await hash(this.props.order || []);
     const { hashes, hasChanges } = await this.hasUpdate();
+    if (!this.isMountedFlag) {
+      return;
+    }
 
     //Get d3-friendly data
     if (
