@@ -37,8 +37,10 @@ export class DatabaseStore {
       await this.rpcWorker.deleteDatabase(repositoryIdentifier);
       this.currentRepositoryIdentifier = null;
       this.currentAccessMode = null;
+      this.tablesAndColumns = {};
       await this.rpcWorker.terminate();
       this.worker?.terminate();
+      this.init();
     } else {
       const deleteWorker = new DatabaseWorkerFactory();
       const rpcDeleteWorker = wrap<DatabaseWorker>(deleteWorker);
