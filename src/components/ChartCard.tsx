@@ -29,7 +29,7 @@ const ChartCard: React.FC<ChartCardProps> = observer(({ dashboardElement }) => {
     dashboardElement.loadData().catch((error) => {
       console.error("Error loading dashboard element data:", error);
     });
-  }, [dashboardElement, query, fromTimestamp, toTimestamp, unselectedAuthors]);
+  }, [dashboardElement, query, fromTimestamp, toTimestamp, unselectedAuthors, dashboardElement.chartWidth]);
 
   return (
     <div
