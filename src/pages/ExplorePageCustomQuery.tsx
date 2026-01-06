@@ -1,6 +1,7 @@
 import ExploreNavigationBar from "@/components/ExploreNavigationBar";
 import DatabaseSchemaSidebar from "@/components/DatabaseSchemaSidebar";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useStores } from "@/store/StoreContext";
 import { Spinner } from "@/components/ui/spinner";
@@ -52,6 +53,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
 const ExplorePageCustomQuery = () => {
+  const [searchParams] = useSearchParams();
   const [queryState, setQueryState] = useState({
     select: [] as string[],
     from: "" as string,
@@ -64,7 +66,9 @@ const ExplorePageCustomQuery = () => {
   const [queryTime, setQueryTime] = useState<number | null>(null);
   const [queryError, setQueryError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [manualQueryMode, setManualQueryMode] = useState(false);
+  const [manualQueryMode, setManualQueryMode] = useState(
+    searchParams.get("mode") === "manual"
+  );
   const [manualSQLQuery, setManualSQLQuery] = useState("");
 
   const databaseStore = useStores().dbStore;
@@ -194,8 +198,7 @@ const ExplorePageCustomQuery = () => {
                 {manualQueryMode && (
                   <>
                     <p className="text-gray-600">
-                      Notice: You have full access to the database, use with
-                      caution. Refer to the{" "}
+                      You have read access to the database. Refer to the{" "}
                       <a
                         href="https://duckdb.org/docs/stable/sql/introduction"
                         className="text-blue-600"
@@ -204,7 +207,14 @@ const ExplorePageCustomQuery = () => {
                       >
                         DuckDB documentation
                       </a>{" "}
-                      for more details about queries.
+                      for more details about queries, or check out the{" "}
+                      <Link
+                        to="/sql-examples"
+                        className="text-blue-600 hover:underline"
+                      >
+                        SQL Examples
+                      </Link>{" "}
+                      page to get started.
                     </p>
                     <div
                       ref={editorRef}
