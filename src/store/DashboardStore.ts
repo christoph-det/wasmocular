@@ -1,10 +1,10 @@
 import { makeAutoObservable, reaction, runInAction } from "mobx";
 import { DashboardElement, type ChartType } from "./DashboardElement";
 import { RootStore } from "./RootStore";
+import { TimeResolution } from "@/lib/chartConverters/BaseChartConverter";
 
 interface StoredDashboardData {
   dashboardId: string;
-  dashboardName: string;
   widgets: StoredDashboardElement[];
 }
 
@@ -15,20 +15,15 @@ interface StoredDashboardElement {
   chartWidth: "half" | "full";
   sqlQuery: string;
   type: ChartType;
+  timeResolution: TimeResolution;
 }
 
 class DashboardData {
   dashboardId: string;
-  dashboardName: string;
   widgets: DashboardElement[];
 
-  constructor(
-    dashboardId: string,
-    dashboardName: string,
-    widgets: DashboardElement[]
-  ) {
+  constructor(dashboardId: string, widgets: DashboardElement[]) {
     this.dashboardId = dashboardId;
-    this.dashboardName = dashboardName;
     this.widgets = widgets;
     makeAutoObservable(this, {
       toJSON: false
@@ -38,13 +33,10 @@ class DashboardData {
   toJSON(): StoredDashboardData {
     return {
       dashboardId: this.dashboardId,
-      dashboardName: this.dashboardName,
       widgets: this.widgets.map((widget) => widget.toJSON())
     };
   }
 }
-// TODO: allows exporting the current dashboard configuration
-// TODO: allows deleting dashboards
 
 export class DashboardStore {
   private readonly STORAGE_KEY = "dashboardStore_";
@@ -53,6 +45,9 @@ export class DashboardStore {
   activeDashboardId: string | null = null;
   rootStore: RootStore;
   ready: Promise<void>;
+  activeDateFilterFrom: Date | undefined = undefined;
+  activeDateFilterTo: Date | undefined = undefined;
+  availableAuthors: Map<string, boolean> = new Map<string, boolean>();
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
@@ -60,9 +55,23 @@ export class DashboardStore {
     this.ready = Promise.resolve(this.loadFromStorage());
   }
 
-  createNewDashboard(dashboardName: string): string {
+  get unselectedAuthors(): string[] {
+    return Array.from(this.availableAuthors.entries())
+      .filter(([, selected]) => !selected)
+      .map(([author]) => author);
+  }
+
+  setAvailableAuthors(authors: Map<string, boolean>) {
+    this.availableAuthors = authors;
+  }
+
+  setAuthorSelected(author: string, selected: boolean) {
+    this.availableAuthors.set(author, selected);
+  }
+
+  createNewDashboard(): string {
     const newDashboardId = crypto.randomUUID();
-    this.activeDashboard = new DashboardData(newDashboardId, dashboardName, []);
+    this.activeDashboard = new DashboardData(newDashboardId, []);
     this.activeDashboardId = newDashboardId;
     this.saveToStorage();
     this.setupAutoSave();
@@ -130,15 +139,12 @@ export class DashboardStore {
               widgetData.chartWidth,
               widgetData.type,
               widgetData.sqlQuery,
+              widgetData.timeResolution,
               this.rootStore.dbStore
             )
         );
         runInAction(() => {
-          this.activeDashboard = new DashboardData(
-            data.dashboardId,
-            data.dashboardName,
-            widgets
-          );
+          this.activeDashboard = new DashboardData(data.dashboardId, widgets);
         });
       }
       this.setupAutoSave();
@@ -149,7 +155,52 @@ export class DashboardStore {
   }
 
   exportActiveDashboard() {
-    // TODO: implement export logic
+    if (this.activeDashboard === null) {
+      console.warn("No active dashboard to export.");
+      return;
+    }
+    const dataString = JSON.stringify(this.activeDashboard.toJSON(), null, 2);
+    const blobElement = new Blob([dataString], { type: "application/json" });
+    const url = URL.createObjectURL(blobElement);
+    const helperLinkElement = document.createElement("a");
+    helperLinkElement.href = url;
+    helperLinkElement.download = `dashboard_${this.activeDashboard.dashboardId}.json`;
+    document.body.appendChild(helperLinkElement);
+    helperLinkElement.click();
+    URL.revokeObjectURL(url);
+  }
+
+  importDashboardFromJSON(jsonData: string) {
+    try {
+      const data: StoredDashboardData = JSON.parse(
+        jsonData
+      ) as StoredDashboardData;
+      // Generate new IDs for dashboard and widgets to ensure they are unique per project
+      const newDashboardId = crypto.randomUUID();
+      const widgets = data.widgets.map(
+        (widgetData) =>
+          new DashboardElement(
+            crypto.randomUUID(), // Generate new widget ID
+            widgetData.title,
+            widgetData.description,
+            widgetData.chartWidth,
+            widgetData.type,
+            widgetData.sqlQuery,
+            widgetData.timeResolution,
+            this.rootStore.dbStore
+          )
+      );
+      runInAction(() => {
+        this.activeDashboard = new DashboardData(newDashboardId, widgets);
+        this.activeDashboardId = newDashboardId;
+      });
+      this.rootStore.indexingStore.setDefaultDashboardId(newDashboardId);
+      this.saveToStorage();
+      this.setupAutoSave();
+      console.log("Imported dashboard from JSON:", this.activeDashboard);
+    } catch (error) {
+      console.warn("Failed to import dashboard from JSON:", error);
+    }
   }
 
   private setupAutoSave() {
@@ -165,6 +216,7 @@ export class DashboardStore {
 
   async setActiveDashboard(dashboardId: string) {
     this.activeDashboardId = dashboardId;
+    this.rootStore.indexingStore.setDefaultDashboardId(dashboardId);
     await this.loadFromStorage(dashboardId);
   }
 }

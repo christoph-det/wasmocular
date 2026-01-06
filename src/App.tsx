@@ -8,6 +8,7 @@ import { StoreContext, rootStore } from "./store/StoreContext";
 import ExplorePageDashboard from "./pages/ExplorePageDashboard";
 import ExplorePageCustomQuery from "./pages/ExplorePageCustomQuery";
 import SettingsPage from "./pages/SettingsPage";
+import SQLExamplesPage from "./pages/SQLExamplesPage";
 
 const App: React.FC = () => {
   return (
@@ -23,6 +24,7 @@ const App: React.FC = () => {
             path="/explore-customquery"
             element={<ExplorePageCustomQuery />}
           />
+          <Route path="/sql-examples" element={<SQLExamplesPage />} />
         </Routes>
         <Footer />
       </Router>

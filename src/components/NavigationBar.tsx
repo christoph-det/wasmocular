@@ -60,12 +60,12 @@ const NavigationBar = observer(() => {
       <nav className="flex items-center justify-between p-4 bg-white/80 backdrop-blur border-b shadow-sm">
         <div className="flex items-center w-1/4">
           <img
-            src="./plattform-logo.webp"
-            alt="RepMiner Logo"
+            src="./wasmocular-logo.png"
+            alt="WasmOcular Logo"
             className="w-8 h-8 drop-shadow"
           />
           <span className="ml-3 text-xl font-extrabold text-blue-700 tracking-wide select-none">
-            RepMiner
+            WasmOcular
           </span>
         </div>
         <div className="flex justify-center w-2/4">

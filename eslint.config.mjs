@@ -17,7 +17,7 @@ const compat = new FlatCompat({
 });
 
 export default defineConfig([
-  globalIgnores(["**/dist", "**/.eslintrc.cjs"]),
+  globalIgnores(["**/dist", "**/dev-dist", "**/.eslintrc.cjs", "**/public"]),
   {
     extends: fixupConfigRules(
       compat.extends(

@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# PWA generated files
+dev-dist
+
+# Vite cache/temp files
+*.timestamp-*
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

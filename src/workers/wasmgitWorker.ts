@@ -1,36 +1,27 @@
 import * as Comlink from "comlink";
-import { parseCloneProgress } from "../utils/utils.ts";
-
-type WasmGitInstance = WebAssembly.Module & {
-  callMain: (args: string[]) => void;
-  FS: typeof FS;
-  IDBFS: Emscripten.FileSystemType;
-};
-
-type WasmGitFactory = (overrides: {
-  print: (text: string) => void;
-  printErr: (text: string) => void;
-}) => Promise<WasmGitInstance>;
+import { parseCloneProgress } from "../lib/utils.ts";
+import createWasmGitModule from "./wasm-git-library/lg2.js";
+import lg2WasmUrl from "./wasm-git-library/lg2.wasm?url";
+import type { WasmGitModule } from "./wasm-git-library/lg2.ts";
 
 export class WasmGitWorker {
-  private lg!: WasmGitInstance;
+  private lg!: WasmGitModule;
   private repoURL = "";
   private FS!: typeof FS;
   private IDBFS!: Emscripten.FileSystemType;
-  private baseOrigin = "";
   private readonly wasmGitLogPrefix = "[wasm-git] ";
   private isMounted = false;
   private logCallback: ((logMessage: string) => void) | null = null;
 
-  async init(baseOrigin: string) {
-    this.baseOrigin = baseOrigin;
-    const moduleUrl = new URL("wasm-git-library/lg2.js", import.meta.url).href;
-    const { default: createWasmGitModule } = (await import(
-      /* @vite-ignore */
-      moduleUrl
-    )) as { default: WasmGitFactory };
+  async init() {
     // Prevent lg2 from printing to the console by overriding Emscripten print handlers
     this.lg = await createWasmGitModule({
+      locateFile: (path: string) => {
+        if (path.endsWith(".wasm")) {
+          return lg2WasmUrl;
+        }
+        return path;
+      },
       print: (text: string) => {
         if (this.logCallback) {
           this.logCallback(text);
@@ -53,6 +44,7 @@ export class WasmGitWorker {
   async cloneRepository(
     gitRepoURL: string,
     repoIdentifier: string,
+    proxyURL: string,
     progressCallback: (progress: number, message: string) => void
   ) {
     this.logCallback = (logMessage: string) => {
@@ -66,7 +58,7 @@ export class WasmGitWorker {
         `${phase} - ${Number.isNaN(percent) ? 100 : percent} %`
       );
     };
-    this.setCurrentRepository(gitRepoURL);
+    this.setCurrentRepository(gitRepoURL, proxyURL);
     await this.ensureRepositoryIsPublic();
     this.mountIDBFS();
     this.lg.callMain(["clone", this.repoURL, `/repos/${repoIdentifier}`]);
@@ -95,7 +87,7 @@ export class WasmGitWorker {
    * Sets the current repository URL.
    * @param url
    */
-  private setCurrentRepository(url: string) {
+  private setCurrentRepository(url: string, proxyURL: string) {
     // if the url contains github remove everything before and including github.com/
     if (url.includes("https://github.com/")) {
       this.repoURL = url.substring(url.indexOf("https://github.com/") + 19);
@@ -103,7 +95,7 @@ export class WasmGitWorker {
       this.repoURL = url;
     }
     // use git-proxy to avoid CORS issues
-    this.repoURL = this.baseOrigin + `/git-proxy/` + this.repoURL;
+    this.repoURL = proxyURL + `/git-proxy/` + this.repoURL;
   }
 
   private mountIDBFS() {
@@ -157,6 +149,6 @@ export class WasmGitWorker {
 const wasmGitWorker = new WasmGitWorker();
 
 (async function () {
-  await wasmGitWorker.init(self.location.origin);
+  await wasmGitWorker.init();
   Comlink.expose(wasmGitWorker);
 })().catch(console.error);

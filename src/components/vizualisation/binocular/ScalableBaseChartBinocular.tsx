@@ -37,13 +37,13 @@ export interface Palette {
 interface Props {
   content: any[];
   d3offset: any;
-  displayNegative: boolean;
-  keys: string[];
-  order: string[];
-  paddings: { top: number; left: number; bottom: number; right: number };
-  palette: Palette | undefined;
-  resolution: string;
-  xAxisCenter: boolean;
+  displayNegative?: boolean;
+  keys?: string[];
+  order?: string[];
+  paddings?: { top: number; left: number; bottom: number; right: number };
+  palette?: Palette | undefined;
+  resolution?: string;
+  xAxisCenter?: boolean;
   yDims: number[];
   yScale?: number[];
   disableVerticalZoom?: boolean;
@@ -60,16 +60,21 @@ interface State {
   verticalZoomDims: number[];
   d3offset: any;
   data: any;
+  isFocused: boolean;
 }
 
 export default class ScalableBaseChart extends React.Component<Props, State> {
   protected styles: any;
   private svgRef: SVGSVGElement | null | undefined;
   private tooltipRef: HTMLDivElement | null | undefined;
+  private handleResize: () => void;
+  private isMountedFlag: boolean;
   constructor(props: Props | Readonly<Props>, styles: any) {
     super(props);
 
     this.styles = Object.freeze(Object.assign({}, baseStyles, styles));
+    this.handleResize = () => this.updateElement();
+    this.isMountedFlag = false;
 
     this.state = {
       content: props.content, //[{name: "dev1", color: "#ffffff", checked: bool}, ...]
@@ -80,9 +85,9 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
       zoomedVertical: false,
       verticalZoomDims: [0, 0],
       d3offset: props.d3offset,
-      data: { data: [], stackedData: [] }
+      data: { data: [], stackedData: [] },
+      isFocused: false
     };
-    window.addEventListener("resize", () => this.updateElement());
   }
 
   /**
@@ -208,12 +213,15 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    */
 
   componentDidMount() {
+    this.isMountedFlag = true;
     //Needed to restrict d3 to only access DOM when the component is already mounted
     this.setState({ componentMounted: true });
+    window.addEventListener("resize", this.handleResize);
   }
 
   componentWillUnmount() {
-    this.setState({ componentMounted: false });
+    this.isMountedFlag = false;
+    window.removeEventListener("resize", this.handleResize);
   }
 
   //Draw chart after it updated
@@ -225,9 +233,22 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
     }
   }
 
+  handleFocus = () => {
+    this.setState({ isFocused: true });
+  };
+
+  handleBlur = () => {
+    this.setState({ isFocused: false });
+  };
+
   render() {
     return (
-      <div className={this.styles.chartDiv}>
+      <div
+        className={`${this.styles.chartDiv}`}
+        onClick={this.handleFocus}
+        onBlur={this.handleBlur}
+        tabIndex={0}
+      >
         <svg
           className={this.styles.chartSvg}
           ref={(svg) => (this.svgRef = svg)}
@@ -254,12 +275,21 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
    * Update the chart element. May only be called if this.props.content is not empty and the component is mounted.
    */
   async updateElement() {
+    if (!this.isMountedFlag) {
+      return;
+    }
     //Initialization
     // stringify important, otherwise `[object Object],[object Object]` etc. will be hashed,
     // leading to skipped updates despite content changes
     const contentHash = await hash(JSON.stringify(this.props.content) || []);
+    if (!this.isMountedFlag) {
+      return;
+    }
     const orderHash = await hash(this.props.order || []);
     const { hashes, hasChanges } = await this.hasUpdate();
+    if (!this.isMountedFlag) {
+      return;
+    }
 
     //Get d3-friendly data
     if (
@@ -447,13 +477,22 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
       this.additionalAxes(brushArea, scales, width, height, paddings)
     );
 
-    // set vertical zoom option if available
-    svg.on(
-      "wheel",
-      !this.props.disableVerticalZoom
-        ? this.createScrollEvent(svg, scales, axes, brushArea, area)
-        : null
-    );
+    // set vertical zoom option if available (only when chart is focused)
+    if (!this.props.disableVerticalZoom) {
+      svg.on(
+        "wheel",
+        (event: any) => {
+          if (!this.state.isFocused) {
+            return;
+          }
+          event.preventDefault();
+          this.createScrollEvent(svg, scales, axes, brushArea, area)(event);
+        },
+        { passive: false }
+      );
+    } else {
+      svg.on("wheel", null);
+    }
 
     // required to support event handling
     svg
@@ -680,9 +719,6 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
     area: any
   ) {
     return (event: any) => {
-      // prevent page scrolling
-      event.preventDefault();
-
       const direction = event.deltaY > 0 ? "down" : "up";
       let zoomedDims = [...this.getYDims()];
       let top = zoomedDims[1],

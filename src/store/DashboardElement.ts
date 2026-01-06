@@ -1,10 +1,13 @@
-import { makeAutoObservable } from "mobx";
+import { makeAutoObservable, runInAction } from "mobx";
 import { rootStore } from "./StoreContext";
 import type { DatabaseStore } from "./DatabaseStore";
+import { DashboardStore } from "./DashboardStore";
+import { TimeResolution } from "@/lib/chartConverters/BaseChartConverter";
 
 export enum ChartType {
   TEXT = "text",
-  STACKED_AREA_CHART = "stacked_area_chart"
+  STACKED_AREA_CHART = "stacked_area_chart",
+  HEATMAP = "heatmap"
 }
 
 export class DashboardElement {
@@ -14,10 +17,12 @@ export class DashboardElement {
   chartWidth: "half" | "full";
   dataLoading = false;
   sqlQuery: string;
-  data: object[] = [];
+  data: object[] | undefined = undefined;
   error: string | null = null;
   type: ChartType;
+  timeResolution: TimeResolution;
   dbStore: DatabaseStore;
+  dashboardStore: DashboardStore;
 
   constructor(
     id: string,
@@ -26,7 +31,9 @@ export class DashboardElement {
     chartWidth: "half" | "full",
     type: ChartType,
     sqlQuery: string,
-    dbStore: DatabaseStore = rootStore.dbStore
+    timeResolution: TimeResolution = "months",
+    dbStore: DatabaseStore = rootStore.dbStore,
+    dashboardStore: DashboardStore = rootStore.dashboardStore
   ) {
     this.id = id;
     this.title = title;
@@ -34,7 +41,9 @@ export class DashboardElement {
     this.chartWidth = chartWidth;
     this.type = type;
     this.sqlQuery = sqlQuery;
+    this.timeResolution = timeResolution;
     this.dbStore = dbStore;
+    this.dashboardStore = dashboardStore;
 
     makeAutoObservable(this, {
       // Keep serialization observable so reactions can track field changes
@@ -43,19 +52,68 @@ export class DashboardElement {
   }
 
   async loadData(): Promise<void> {
-    this.dataLoading = true;
-    const result = await this.dbStore.runQuery(this.sqlQuery).catch((error) => {
+    runInAction(() => {
+      this.dataLoading = true;
+      this.error = null;
+    });
+    let queryToRun = this.sqlQuery;
+    queryToRun = this.makeCTEQuery(this.sqlQuery);
+    const result = await this.dbStore.runQuery(queryToRun).catch((error) => {
       console.error("Failed to load data for DashboardElement:", error);
-      this.error = String(error);
-      this.dataLoading = false;
+      runInAction(() => {
+        this.error = String(error);
+        this.dataLoading = false;
+      });
       return [];
     });
-    this.data = result as object[];
-    this.dataLoading = false;
+    runInAction(() => {
+      this.data = result as object[];
+      this.dataLoading = false;
+    });
   }
 
   toggleWidth() {
     this.chartWidth = this.chartWidth === "half" ? "full" : "half";
+  }
+
+  // CTE approach to apply date filters, TODO: maybe take care of joins later
+  private makeCTEQuery(userQuery: string): string {
+    const conditions: string[] = [];
+    const { activeDateFilterFrom, activeDateFilterTo, unselectedAuthors } =
+      this.dashboardStore;
+    if (activeDateFilterFrom) {
+      const fromTimestamp = activeDateFilterFrom.getTime();
+      conditions.push(`authored_at >= make_timestamp_ms(${fromTimestamp})`);
+    }
+    if (activeDateFilterTo) {
+      const toTimestamp = activeDateFilterTo.getTime();
+      conditions.push(`authored_at <= make_timestamp_ms(${toTimestamp})`);
+    }
+
+    if (unselectedAuthors.length > 0) {
+      const authorsList = unselectedAuthors
+        .map((author) => `'${author.replace(/'/g, "''")}'`)
+        .join(", ");
+      conditions.push(`author_signature NOT IN (${authorsList})`);
+    }
+
+    if (conditions.length > 0) {
+      const whereClause = conditions.join(" AND ");
+      const cte_query = `WITH commits_filtered AS ( SELECT * FROM commits WHERE ${whereClause} )`;
+      return `${cte_query} ${this.replaceTableNamesInQuery(userQuery)}`;
+    } else {
+      return userQuery;
+    }
+  }
+
+  private replaceTableNamesInQuery(sql: string): string {
+    // replace CTE in user query with comma because CTE is already defined at the beginning
+    if (!sql.toLowerCase().startsWith("with ")) {
+      sql = sql.replace("WITH ", ", ");
+    }
+    // i = case insensitive, g = global
+    const regex = new RegExp("\\bfrom commits\\b", "gi");
+    return sql.replaceAll(regex, "from commits_filtered");
   }
 
   toJSON() {
@@ -65,7 +123,8 @@ export class DashboardElement {
       description: this.description,
       chartWidth: this.chartWidth,
       sqlQuery: this.sqlQuery,
-      type: this.type
+      type: this.type,
+      timeResolution: this.timeResolution
     };
   }
 }

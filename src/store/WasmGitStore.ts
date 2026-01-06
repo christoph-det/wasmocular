@@ -19,6 +19,7 @@ export class WasmGitStore {
   cloneRepository(
     gitRepoURL: string,
     repoIdentifier: string,
+    proxyUrl: string,
     progressCallback: (progress: number, message: string) => void
   ): Promise<void> {
     if (!this.rpcWorker) {
@@ -28,6 +29,7 @@ export class WasmGitStore {
     return this.rpcWorker.cloneRepository(
       gitRepoURL,
       repoIdentifier,
+      proxyUrl,
       progressProxy
     );
   }
