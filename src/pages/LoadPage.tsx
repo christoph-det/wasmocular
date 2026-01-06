@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/useToast";
 import { useNavigate } from "react-router-dom";
-import { generateRepoIdentifier } from "@/utils/utils";
+import { generateRepoIdentifier } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
 import {
