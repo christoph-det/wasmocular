@@ -1,5 +1,5 @@
 import * as Comlink from "comlink";
-import { parseCloneProgress } from "../utils/utils.ts";
+import { parseCloneProgress } from "../lib/utils.ts";
 import createWasmGitModule from "./wasm-git-library/lg2.js";
 import lg2WasmUrl from "./wasm-git-library/lg2.wasm?url";
 import type { WasmGitModule } from "./wasm-git-library/lg2.ts";
