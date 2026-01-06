@@ -203,6 +203,20 @@ const CreateDashboardWidgetDialog = ({
           <option value="full">Full</option>
         </select>
         <Label>SQL Query</Label>
+        {formState.chartType === ChartType.STACKED_AREA_CHART && (
+          <p className="mb-0 text-sm text-gray-500">
+            The StackedAreaChart requires a time-based resolution to aggregate
+            the data appropriately. It expects the SQL query to return columns
+            named date (timestamp, x-axis), series (category to stack), and
+            value (numeric).
+          </p>
+        )}
+        {formState.chartType === ChartType.HEATMAP && (
+          <p className="mb-0 text-sm text-gray-500">
+            The Heatmap requires the SQL query to return three columns: x
+            (categorical), y (categorical), and value (numeric).
+          </p>
+        )}
         <textarea
           className="border-input min-h-[8rem] w-full rounded-md border px-3 py-2 text-sm font-mono"
           value={formState.sql}
