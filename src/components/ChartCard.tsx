@@ -1,5 +1,5 @@
 import { ChartType, DashboardElement } from "@/store/DashboardElement";
-import React, { useEffect } from "react";
+import React, { Component, useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import { Spinner } from "./ui/spinner";
 import TextDisplay from "./vizualisation/TextDisplay";
@@ -11,7 +11,8 @@ import { StackedAreaChartConverter } from "@/lib/chartConverters/converters/Stac
 import { GenericDataRow } from "@/lib/chartConverters/BaseChartConverter";
 import generateColorPalette from "@/lib/colorPaletteGenerator";
 import ReactECharts from "echarts-for-react";
-
+import { HeatmapConverter } from "@/lib/chartConverters/converters/HeatmapConverter";
+import { ChartErrorBoundary } from "./ChartCardErrorBoundry";
 interface ChartCardProps {
   dashboardElement: DashboardElement;
 }
@@ -60,14 +61,16 @@ const ChartCard: React.FC<ChartCardProps> = observer(({ dashboardElement }) => {
       </div>
 
       <div className="flex justify-center items-stretch m-0 p-0 flex-1 w-full">
-        {dashboardElement.dataLoading ? (
+        {dashboardElement.dataLoading || !dashboardElement.data ? (
           <div className="w-full h-full flex items-center justify-center">
             <Spinner className="mr-2" />
             Loading
           </div>
         ) : (
           <div className="w-full h-full overflow-auto">
-            {resolveChartByType(dashboardElement)}
+            <ChartErrorBoundary>
+              <ChartRenderer dashboardElement={dashboardElement} />
+            </ChartErrorBoundary>
           </div>
         )}
       </div>
@@ -75,15 +78,21 @@ const ChartCard: React.FC<ChartCardProps> = observer(({ dashboardElement }) => {
   );
 });
 
-function resolveChartByType(
-  dashboardElement: DashboardElement
-): React.ReactNode {
+
+interface ChartRendererProps {
+  dashboardElement: DashboardElement;
+}
+
+const ChartRenderer: React.FC<ChartRendererProps> = ({ dashboardElement }) => {
+
   switch (dashboardElement.type) {
     case ChartType.TEXT:
+      if (!dashboardElement.data || dashboardElement.data.length === 0) {
+        throw new Error(dashboardElement.error ?? "No data available for the selected chart.");
+      }
       return (
         <TextDisplay
-          data={dashboardElement.data}
-          error={dashboardElement.error}
+          data={dashboardElement.data ?? []}
         />
       );
     case ChartType.STACKED_AREA_CHART: {
@@ -94,47 +103,27 @@ function resolveChartByType(
       );
 
       if (stackedDataset.error) {
-        return (
-          <div className="text-gray-700 p-4">
-            <p className="font-semibold text-red-600">Error</p>
-            <p className="text-sm">{dashboardElement.error}</p>
-            <p className="text-sm">{stackedDataset.error}</p>
-          </div>
-        );
-      } else {
-        return (
-          <StackedAreaChart
-            content={stackedDataset.content}
-            palette={generateColorPalette(stackedDataset.keys)}
-            paddings={{ top: 10, right: 0, bottom: 10, left: 50 }}
-            xAxisCenter={true}
-            yDims={stackedDataset.yDims}
-            d3offset={d3.stackOffsetDiverging}
-            resolution={resolution}
-            displayNegative={true}
-          />
-        );
+        throw new Error(stackedDataset.error);
       }
+      
+      return (
+        <StackedAreaChart
+          content={stackedDataset.content}
+          palette={generateColorPalette(stackedDataset.keys)}
+          paddings={{ top: 10, right: 0, bottom: 10, left: 50 }}
+          xAxisCenter={true}
+          yDims={stackedDataset.yDims}
+          d3offset={d3.stackOffsetDiverging}
+          resolution={resolution}
+          displayNegative={true}
+        />
+      );
     }
     case ChartType.HEATMAP: {
-      const sqlData = dashboardElement.data as {
-        x: string;
-        y: string;
-        v: number;
-      }[];
-
-      // Extract unique categories for axes
-      const xCategories = [...new Set(sqlData.map((row) => row.x))];
-      const yCategories = [...new Set(sqlData.map((row) => row.y))];
-
-      // Map data to category indices for proper positioning
-      const formattedData = sqlData.map((row) => [
-        xCategories.indexOf(row.x),
-        yCategories.indexOf(row.y),
-        row.v
-      ]);
-
-      const maxValue = Math.max(...sqlData.map((d) => d.v));
+      const heatmapDataConverter = new HeatmapConverter();
+      const heatmapData = heatmapDataConverter.convert(
+        dashboardElement.data as GenericDataRow[]
+      );
 
       const option = {
         tooltip: {
@@ -142,7 +131,7 @@ function resolveChartByType(
           appendToBody: true,
           formatter: (params: { data: [number, number, number] }) => {
             const [xIdx, yIdx, value] = params.data;
-            return `${xCategories[xIdx]}, ${yCategories[yIdx]}: <strong>${value}</strong>`;
+            return `${heatmapData.xCategories[xIdx]}, ${heatmapData.yCategories[yIdx]}: <strong>${value}</strong>`;
           }
         },
         grid: {
@@ -154,18 +143,19 @@ function resolveChartByType(
         },
         xAxis: {
           type: "category",
-          data: xCategories,
+          data: heatmapData.xCategories,
           splitArea: { show: true },
           axisLabel: { interval: 0 }
         },
         yAxis: {
           type: "category",
-          data: yCategories,
+          data: heatmapData.yCategories,
           splitArea: { show: true }
         },
         visualMap: {
           min: 0,
-          max: maxValue,
+          max: Math.max(
+          ...heatmapData.formattedData.map((d) => d[2])),
           calculable: true,
           orient: "horizontal",
           left: "center",
@@ -175,7 +165,7 @@ function resolveChartByType(
         series: [
           {
             type: "heatmap",
-            data: formattedData,
+            data: heatmapData.formattedData,
             label: { show: false },
             emphasis: {
               itemStyle: { shadowBlur: 10, shadowColor: "rgba(0, 0, 0, 0.5)" }
@@ -192,8 +182,8 @@ function resolveChartByType(
       );
     }
     default:
-      return "Unknown Chart Type";
+      return <span>Unknown Chart Type</span>;
   }
-}
+};
 
 export default ChartCard;

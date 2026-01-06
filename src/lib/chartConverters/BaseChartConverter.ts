@@ -20,11 +20,6 @@ export abstract class BaseChartConverter<T> {
   abstract convert(rows: GenericDataRow[]): T;
 
   /**
-   * Returns an error result with the given message.
-   */
-  protected abstract emptyErrorResult(error?: string): T;
-
-  /**
    * Validates that input rows contain the required columns.
    */
   protected validateColumns(rows: GenericDataRow[]): string | undefined {

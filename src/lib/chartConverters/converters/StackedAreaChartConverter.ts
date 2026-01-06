@@ -5,6 +5,7 @@ import {
   GenericDataRow,
   TimeResolution
 } from "../BaseChartConverter";
+import ChartError from "@/lib/errors/ChartError";
 
 export interface StackedAreaChartData extends ChartData {
   content: Record<string, number>[];
@@ -38,10 +39,6 @@ export class StackedAreaChartConverter extends BaseChartConverter<StackedAreaCha
     this.resolution = resolution;
   }
 
-  protected emptyErrorResult(error?: string): StackedAreaChartData {
-    return { content: [], yDims: [-1, 1], keys: [], error };
-  }
-
   /**
    * Convert generic data rows to stacked area chart data.
    * @param rows input data rows from SQL query
@@ -50,7 +47,7 @@ export class StackedAreaChartConverter extends BaseChartConverter<StackedAreaCha
   convert(rows: GenericDataRow[]): StackedAreaChartData {
     const validationError = this.validateColumns(rows);
     if (validationError) {
-      return this.emptyErrorResult(validationError);
+      throw new ChartError(validationError);
     }
 
     const interval = this.getInterval();
@@ -61,7 +58,7 @@ export class StackedAreaChartConverter extends BaseChartConverter<StackedAreaCha
     const content = this.buildBucketedSeriesContent(bucketed, keys);
 
     if (content.length === 0) {
-      return this.emptyErrorResult();
+      throw new Error("No data available for the selected chart.");
     }
 
     const yDims = this.computeYDims(content, keys);

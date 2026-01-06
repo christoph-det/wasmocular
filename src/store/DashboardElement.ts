@@ -17,7 +17,7 @@ export class DashboardElement {
   chartWidth: "half" | "full";
   dataLoading = false;
   sqlQuery: string;
-  data: object[] = [];
+  data: object[] | undefined = undefined;
   error: string | null = null;
   type: ChartType;
   timeResolution: TimeResolution;
