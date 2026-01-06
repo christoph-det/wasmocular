@@ -1,5 +1,5 @@
 import { ChartType, DashboardElement } from "@/store/DashboardElement";
-import React, { Component, useEffect } from "react";
+import React, { useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import { Spinner } from "./ui/spinner";
 import TextDisplay from "./vizualisation/TextDisplay";
@@ -29,7 +29,14 @@ const ChartCard: React.FC<ChartCardProps> = observer(({ dashboardElement }) => {
     dashboardElement.loadData().catch((error) => {
       console.error("Error loading dashboard element data:", error);
     });
-  }, [dashboardElement, query, fromTimestamp, toTimestamp, unselectedAuthors, dashboardElement.chartWidth]);
+  }, [
+    dashboardElement,
+    query,
+    fromTimestamp,
+    toTimestamp,
+    unselectedAuthors,
+    dashboardElement.chartWidth
+  ]);
 
   return (
     <div
@@ -78,23 +85,19 @@ const ChartCard: React.FC<ChartCardProps> = observer(({ dashboardElement }) => {
   );
 });
 
-
 interface ChartRendererProps {
   dashboardElement: DashboardElement;
 }
 
 const ChartRenderer: React.FC<ChartRendererProps> = ({ dashboardElement }) => {
-
   switch (dashboardElement.type) {
     case ChartType.TEXT:
       if (!dashboardElement.data || dashboardElement.data.length === 0) {
-        throw new Error(dashboardElement.error ?? "No data available for the selected chart.");
+        throw new Error(
+          dashboardElement.error ?? "No data available for the selected chart."
+        );
       }
-      return (
-        <TextDisplay
-          data={dashboardElement.data ?? []}
-        />
-      );
+      return <TextDisplay data={dashboardElement.data ?? []} />;
     case ChartType.STACKED_AREA_CHART: {
       const resolution = dashboardElement.timeResolution;
       const stackedDatasetConverter = new StackedAreaChartConverter(resolution);
@@ -105,7 +108,7 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({ dashboardElement }) => {
       if (stackedDataset.error) {
         throw new Error(stackedDataset.error);
       }
-      
+
       return (
         <StackedAreaChart
           content={stackedDataset.content}
@@ -154,8 +157,7 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({ dashboardElement }) => {
         },
         visualMap: {
           min: 0,
-          max: Math.max(
-          ...heatmapData.formattedData.map((d) => d[2])),
+          max: Math.max(...heatmapData.formattedData.map((d) => d[2])),
           calculable: true,
           orient: "horizontal",
           left: "center",

@@ -1,8 +1,4 @@
-const TextDisplay = ({
-  data
-}: {
-  data: object[];
-}) => {
+const TextDisplay = ({ data }: { data: object[] }) => {
   return (
     <table className="w-full table-auto border-collapse border border-gray-300">
       <thead>

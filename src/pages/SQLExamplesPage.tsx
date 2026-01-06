@@ -1,40 +1,43 @@
 import ExploreNavigationBar from "@/components/ExploreNavigationBar";
-import { title } from "process";
 import { Link } from "react-router-dom";
 
 const sqlExamples = [
-    {
-        title: "Additions by author (Stacked Area Chart)",
-        description: "Shows the number of additions made by each author over time.",
-        query: `SELECT authored_at AS date, author_signature AS series, additions AS value FROM commits`
-    },
-    {
-        title: "Additions and deletions by author (Stacked Area Chart)",
-        description: "Shows the number of additions and deletions made by each author over time in a diverging stacked area chart.",
-        query: `SELECT authored_at AS date, author_signature || ' (additions)' AS series, CAST(additions AS INTEGER) AS value FROM commits
+  {
+    title: "Additions by author (Stacked Area Chart)",
+    description: "Shows the number of additions made by each author over time.",
+    query: `SELECT authored_at AS date, author_signature AS series, additions AS value FROM commits`
+  },
+  {
+    title: "Additions and deletions by author (Stacked Area Chart)",
+    description:
+      "Shows the number of additions and deletions made by each author over time in a diverging stacked area chart.",
+    query: `SELECT authored_at AS date, author_signature || ' (additions)' AS series, CAST(additions AS INTEGER) AS value FROM commits
 UNION ALL
 SELECT authored_at AS date, author_signature || ' (deletions)' AS series, -CAST(deletions AS INTEGER) AS value FROM commits`
-    },
-    {
-        title: "Commit count by author (Stacked Area Chart)",
-        description: "Displays the number of commits made by each author over time.",
-        query: `SELECT authored_at AS date, author_signature AS series, 1 AS value FROM commits`
-    },
-    {
-        title: "Commits by Day of Week and Hour of Day (Heatmap)",
-        description: "Visualizes the distribution of commits across different days of the week and hours of the day.",
-        query: `SELECT 
+  },
+  {
+    title: "Commit count by author (Stacked Area Chart)",
+    description:
+      "Displays the number of commits made by each author over time.",
+    query: `SELECT authored_at AS date, author_signature AS series, 1 AS value FROM commits`
+  },
+  {
+    title: "Commits by Day of Week and Hour of Day (Heatmap)",
+    description:
+      "Visualizes the distribution of commits across different days of the week and hours of the day.",
+    query: `SELECT 
     dayname(authored_at) as x, -- weekdays
     EXTRACT(HOUR FROM authored_at) as y, -- hour of day
     COUNT(sha) as value -- number of commits
 FROM commits
 GROUP BY 1,2, EXTRACT(DOW FROM authored_at)
 ORDER BY y, EXTRACT(DOW FROM authored_at);`
-    },
-    {
-        title: "Top 20 Words in Commit Messages (Text)",
-        description: "Analyzes commit messages to find the most frequently used words. Source: DuckDB documentation.",
-        query: `-- source: https://duckdb.org/docs/stable/guides/snippets/analyze_git_repository
+  },
+  {
+    title: "Top 20 Words in Commit Messages (Text)",
+    description:
+      "Analyzes commit messages to find the most frequently used words. Source: DuckDB documentation.",
+    query: `-- source: https://duckdb.org/docs/stable/guides/snippets/analyze_git_repository
 WITH words AS (
     SELECT unnest(
         message
@@ -52,7 +55,7 @@ WHERE word <> ''
 GROUP BY ALL
 ORDER BY count DESC
 LIMIT 10;`
-    }
+  }
 ];
 
 const SQLExamplesPage = () => {
@@ -63,7 +66,8 @@ const SQLExamplesPage = () => {
         <div className="mb-6">
           <Link
             to="/explore-customquery?mode=manual"
-            className="text-blue-600 hover:text-blue-800 flex items-center gap-2">
+            className="text-blue-600 hover:text-blue-800 flex items-center gap-2"
+          >
             Back to Custom Query
           </Link>
         </div>
@@ -75,10 +79,7 @@ const SQLExamplesPage = () => {
 
         <div className="grid gap-6">
           {sqlExamples.map((example, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-md shadow-sm p-5"
-            >
+            <div key={index} className="bg-white rounded-md shadow-sm p-5">
               <h2 className="text-xl font-semibold mb-2">{example.title}</h2>
               <p className="text-gray-600 mb-3">{example.description}</p>
               <div className="relative">

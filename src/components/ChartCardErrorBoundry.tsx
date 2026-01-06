@@ -24,7 +24,7 @@ export class ChartErrorBoundary extends Component<
         <div className="text-gray-700 p-4 flex flex-col items-center justify-center h-full">
           <p className="font-semibold text-red-600">Chart rendering error</p>
           <p className="text-sm text-gray-500 mt-1">
-            {this.state.error?.message || "An unexpected error occurred"}
+            {this.state.error?.message ?? "An unexpected error occurred"}
           </p>
         </div>
       );
