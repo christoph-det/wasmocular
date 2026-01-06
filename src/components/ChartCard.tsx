@@ -10,6 +10,7 @@ import { Button } from "./ui/button";
 import { StackedAreaChartConverter } from "@/lib/chartConverters/converters/StackedAreaChartConverter";
 import { GenericDataRow } from "@/lib/chartConverters/BaseChartConverter";
 import generateColorPalette from "@/lib/colorPaletteGenerator";
+import ReactECharts from "echarts-for-react";
 
 interface ChartCardProps {
   dashboardElement: DashboardElement;
@@ -114,6 +115,81 @@ function resolveChartByType(
           />
         );
       }
+    }
+    case ChartType.HEATMAP: {
+      const sqlData = dashboardElement.data as {
+        x: string;
+        y: string;
+        v: number;
+      }[];
+
+      // Extract unique categories for axes
+      const xCategories = [...new Set(sqlData.map((row) => row.x))];
+      const yCategories = [...new Set(sqlData.map((row) => row.y))];
+
+      // Map data to category indices for proper positioning
+      const formattedData = sqlData.map((row) => [
+        xCategories.indexOf(row.x),
+        yCategories.indexOf(row.y),
+        row.v
+      ]);
+
+      const maxValue = Math.max(...sqlData.map((d) => d.v));
+
+      const option = {
+        tooltip: {
+          confine: false,
+          appendToBody: true,
+          formatter: (params: { data: [number, number, number] }) => {
+            const [xIdx, yIdx, value] = params.data;
+            return `${xCategories[xIdx]}, ${yCategories[yIdx]}: <strong>${value}</strong>`;
+          }
+        },
+        grid: {
+          top: 0,
+          right: 0,
+          bottom: 60,
+          left: 0,
+          containLabel: true
+        },
+        xAxis: {
+          type: "category",
+          data: xCategories,
+          splitArea: { show: true },
+          axisLabel: { interval: 0 }
+        },
+        yAxis: {
+          type: "category",
+          data: yCategories,
+          splitArea: { show: true }
+        },
+        visualMap: {
+          min: 0,
+          max: maxValue,
+          calculable: true,
+          orient: "horizontal",
+          left: "center",
+          bottom: 0,
+          inRange: { color: ["#e0f7fa", "#006edd"] }
+        },
+        series: [
+          {
+            type: "heatmap",
+            data: formattedData,
+            label: { show: false },
+            emphasis: {
+              itemStyle: { shadowBlur: 10, shadowColor: "rgba(0, 0, 0, 0.5)" }
+            }
+          }
+        ]
+      };
+
+      return (
+        <ReactECharts
+          option={option}
+          style={{ height: "100%", width: "100%" }}
+        />
+      );
     }
     default:
       return "Unknown Chart Type";

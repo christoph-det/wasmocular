@@ -6,7 +6,8 @@ import { TimeResolution } from "@/lib/chartConverters/BaseChartConverter";
 
 export enum ChartType {
   TEXT = "text",
-  STACKED_AREA_CHART = "stacked_area_chart"
+  STACKED_AREA_CHART = "stacked_area_chart",
+  HEATMAP = "heatmap"
 }
 
 export class DashboardElement {
