@@ -60,6 +60,7 @@ interface State {
   verticalZoomDims: number[];
   d3offset: any;
   data: any;
+  isFocused: boolean;
 }
 
 export default class ScalableBaseChart extends React.Component<Props, State> {
@@ -84,7 +85,8 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
       zoomedVertical: false,
       verticalZoomDims: [0, 0],
       d3offset: props.d3offset,
-      data: { data: [], stackedData: [] }
+      data: { data: [], stackedData: [] },
+      isFocused: false
     };
   }
 
@@ -231,9 +233,22 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
     }
   }
 
+  handleFocus = () => {
+    this.setState({ isFocused: true });
+  };
+
+  handleBlur = () => {
+    this.setState({ isFocused: false });
+  };
+
   render() {
     return (
-      <div className={this.styles.chartDiv}>
+      <div
+        className={`${this.styles.chartDiv}`}
+        onClick={this.handleFocus}
+        onBlur={this.handleBlur}
+        tabIndex={0}
+      >
         <svg
           className={this.styles.chartSvg}
           ref={(svg) => (this.svgRef = svg)}
@@ -462,12 +477,18 @@ export default class ScalableBaseChart extends React.Component<Props, State> {
       this.additionalAxes(brushArea, scales, width, height, paddings)
     );
 
-    // set vertical zoom option if available
+    // set vertical zoom option if available (only when chart is focused)
     if (!this.props.disableVerticalZoom) {
       svg.on(
         "wheel",
-        this.createScrollEvent(svg, scales, axes, brushArea, area),
-        { passive: true }
+        (event: any) => {
+          if (!this.state.isFocused) {
+            return;
+          }
+          event.preventDefault();
+          this.createScrollEvent(svg, scales, axes, brushArea, area)(event);
+        },
+        { passive: false }
       );
     } else {
       svg.on("wheel", null);
