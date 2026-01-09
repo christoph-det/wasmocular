@@ -23,7 +23,7 @@ const ChartCard: React.FC<ChartCardProps> = observer(({ dashboardElement }) => {
     dashboardElement.dashboardStore.activeDateFilterFrom?.getTime();
   const toTimestamp =
     dashboardElement.dashboardStore.activeDateFilterTo?.getTime();
-  const unselectedAuthors = dashboardElement.dashboardStore.unselectedAuthors;
+  const unselectedAuthorsString = dashboardElement.dashboardStore.unselectedAuthors.join(",");
 
   useEffect(() => {
     dashboardElement.loadData().catch((error) => {
@@ -34,9 +34,7 @@ const ChartCard: React.FC<ChartCardProps> = observer(({ dashboardElement }) => {
     query,
     fromTimestamp,
     toTimestamp,
-    unselectedAuthors,
-    dashboardElement.chartWidth,
-    dashboardElement.timeResolution
+    unselectedAuthorsString,
   ]);
 
   return (
@@ -90,7 +88,7 @@ interface ChartRendererProps {
   dashboardElement: DashboardElement;
 }
 
-const ChartRenderer: React.FC<ChartRendererProps> = ({ dashboardElement }) => {
+const ChartRenderer: React.FC<ChartRendererProps> = observer(({ dashboardElement }) => {
   switch (dashboardElement.type) {
     case ChartType.TEXT:
       if (!dashboardElement.data || dashboardElement.data.length === 0) {
@@ -187,6 +185,6 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({ dashboardElement }) => {
     default:
       return <span>Unknown Chart Type</span>;
   }
-};
+});
 
 export default ChartCard;
