@@ -124,7 +124,7 @@ const ExplorePageCustomQuery = () => {
   }, [databaseStore.tablesAndColumns, databaseStore]);
 
   useEffect(() => {
-    if (editorRef.current) {
+    if (editorRef.current && !viewRef.current) {
       const view = new EditorView({
         doc: manualSQLQuery,
         extensions: [
@@ -145,9 +145,10 @@ const ExplorePageCustomQuery = () => {
 
       return () => {
         view.destroy();
+        viewRef.current = null;
       };
     }
-  });
+  }, [manualQueryMode, manualSQLQuery]);
 
   useEffect(() => {
     if (sqlDisplayRef.current) {
