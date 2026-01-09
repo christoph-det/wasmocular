@@ -35,7 +35,8 @@ const ChartCard: React.FC<ChartCardProps> = observer(({ dashboardElement }) => {
     fromTimestamp,
     toTimestamp,
     unselectedAuthors,
-    dashboardElement.chartWidth
+    dashboardElement.chartWidth,
+    dashboardElement.timeResolution
   ]);
 
   return (
