@@ -55,13 +55,12 @@ export class WasmGixWorker {
 
   async startIndexing(
     identifier: string,
-    progressCallback: (progress: number, message: string) => void
-  ): Promise<Uint8Array | undefined> {
+    progressCallback: (progress: number, message: string) => void,
+    lastIndexedSha?: string
+  ): Promise<{ buffer: Uint8Array; latestSha: string } | undefined> {
     const repoPath = `${PERSIST_ROOT}/${identifier}`;
 
     await this.syncFs(true);
-
-    // TODO: catch log messages from gitoxide and forward them via the progressCallback
     progressCallback(1, "Starting indexing process...");
 
     let commitCount = 0;
@@ -117,8 +116,8 @@ export class WasmGixWorker {
       const resultFilePath = this.gitoxide.ccall(
         "gitoxide_run_git_indexer",
         "string",
-        ["string"],
-        [repoPath]
+        ["string", "string"],
+        [repoPath, lastIndexedSha ?? ""]
       );
       if (!resultFilePath || resultFilePath.startsWith("error:")) {
         throw new Error(resultFilePath);
@@ -128,11 +127,15 @@ export class WasmGixWorker {
       });
       const buffer: Uint8Array =
         bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+      
+      // Get the latest commit SHA for storing
+      const latestSha = this.getLatestCommitSha(repoPath);
+      
       progressCallback(
         99,
         "Indexing process completed. Inserting data into database..."
       );
-      return buffer;
+      return { buffer, latestSha };
     } catch (error) {
       console.error(
         `${GITOXIDE_LOG_PREFIX} Indexing failed for repository at ${repoPath}:`,
@@ -524,6 +527,24 @@ export class WasmGixWorker {
     }
 
     return tracked;
+  }
+
+  private getLatestCommitSha(repositoryPath: string): string {
+    try {
+      const sha: string | undefined = this.gitoxide.ccall(
+        "gitoxide_repo_head",
+        "string",
+        ["string"],
+        [repositoryPath]
+      );
+      if (sha && !sha.startsWith("error:")) {
+        return sha;
+      }
+      console.warn("Could not get HEAD SHA:", sha);
+    } catch (error) {
+      console.warn("Could not get HEAD SHA", error);
+    }
+    return "";
   }
 }
 

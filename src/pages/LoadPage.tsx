@@ -247,7 +247,8 @@ const LoadPage = observer(() => {
           await indexingStore.createNewProject(
             projectName,
             repoIdentifier,
-            dashboardId
+            dashboardId,
+            trimmedUrl
           );
           await indexingStore.setDataLoadingState(
             DataLoadingState.REPOSITORY_LOADED

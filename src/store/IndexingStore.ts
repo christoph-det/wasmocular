@@ -16,6 +16,8 @@ interface StoredIndexingData {
     name: string;
     repositoryIdentifier: string;
     defaultDashboardId: string | null;
+    lastIndexedSha?: string;
+    sourceUrl?: string;
   };
 }
 
@@ -23,6 +25,8 @@ export class RepositoryProject {
   name = "";
   repositoryIdentifier = "";
   defaultDashboardId: string | null = null;
+  lastIndexedSha = "";
+  sourceUrl = "";
 
   constructor() {
     makeAutoObservable(this);
@@ -129,13 +133,17 @@ export class IndexingStore {
   async createNewProject(
     name: string,
     repositoryIdentifier: string,
-    dashboardId: string
+    dashboardId: string,
+    sourceUrl?: string
   ) {
     await this.ready;
     this.project = new RepositoryProject();
     this.project.name = name;
     this.project.repositoryIdentifier = repositoryIdentifier;
     this.project.defaultDashboardId = dashboardId;
+    if (sourceUrl) {
+      this.project.sourceUrl = sourceUrl;
+    }
     this.updateDatabaseAccessMode();
   }
 
@@ -154,6 +162,24 @@ export class IndexingStore {
       return;
     }
     this.project.defaultDashboardId = dashboardId;
+    this.saveToStorage();
+  }
+
+  setLastIndexedSha(sha: string) {
+    if (!this.project) {
+      console.warn("No project loaded to set last indexed SHA");
+      return;
+    }
+    this.project.lastIndexedSha = sha;
+    this.saveToStorage();
+  }
+
+  setSourceUrl(url: string) {
+    if (!this.project) {
+      console.warn("No project loaded to set source URL");
+      return;
+    }
+    this.project.sourceUrl = url;
     this.saveToStorage();
   }
 
