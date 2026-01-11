@@ -71,7 +71,10 @@ export class WasmGixStore {
       if (!result) {
         throw new Error("Indexing failed: no result returned");
       }
-      await this.rootStore.dbStore.receiveIndexerResults(identifier, result.buffer);
+      await this.rootStore.dbStore.receiveIndexerResults(
+        identifier,
+        result.buffer
+      );
       progressCallback(100, "Indexing completed successfully.");
       return result.latestSha;
     } catch (error) {

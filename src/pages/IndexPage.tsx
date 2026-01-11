@@ -78,7 +78,10 @@ const IndexPage = observer(() => {
       setIndexingProgressMessage(message);
     };
 
-    const latestSha = await wasmGixStore.startIndexing(repositoryIdentifier, progressCallback);
+    const latestSha = await wasmGixStore.startIndexing(
+      repositoryIdentifier,
+      progressCallback
+    );
     if (latestSha) {
       indexingStore.setLastIndexedSha(latestSha);
     }

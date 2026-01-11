@@ -76,7 +76,9 @@ const SettingsPage = observer(() => {
     const sourceUrl = indexingStore.project!.sourceUrl;
 
     if (!lastIndexedSha) {
-      showError("No previous indexing data found. Please do a full index first.");
+      showError(
+        "No previous indexing data found. Please do a full index first."
+      );
       return;
     }
 
@@ -89,9 +91,11 @@ const SettingsPage = observer(() => {
     };
 
     try {
-      indexingStore.setDataLoadingState(DataLoadingState.INDEXING_STARTED);
+      await indexingStore.setDataLoadingState(
+        DataLoadingState.INDEXING_STARTED
+      );
       // If we have a source URL, use wasm-git to clone the repository
-      if (sourceUrl) {        
+      if (sourceUrl) {
         await wasmGitStore.cloneRepository(
           sourceUrl,
           repositoryIdentifier,
@@ -102,7 +106,11 @@ const SettingsPage = observer(() => {
       } else {
         // For local repos without source URL, we need to select the folder again
         const dirHandle = await window.showDirectoryPicker({ mode: "read" });
-        await wasmGixStore.loadRepository(repositoryIdentifier, dirHandle, progressCallback);
+        await wasmGixStore.loadRepository(
+          repositoryIdentifier,
+          dirHandle,
+          progressCallback
+        );
       }
 
       const latestSha = await wasmGixStore.startIndexing(
@@ -121,7 +129,9 @@ const SettingsPage = observer(() => {
       console.error("Reindexing failed:", error);
       showError("Reindexing failed. See console for details.");
     } finally {
-      indexingStore.setDataLoadingState(DataLoadingState.INDEXING_FINISHED);
+      await indexingStore.setDataLoadingState(
+        DataLoadingState.INDEXING_FINISHED
+      );
       setIsReindexing(false);
       setReindexMessage("");
     }
@@ -157,7 +167,7 @@ const SettingsPage = observer(() => {
       });
   }
   if (!indexingStore.project) {
-    return ("No project loaded.");
+    return "No project loaded.";
   }
 
   return (
@@ -171,14 +181,12 @@ const SettingsPage = observer(() => {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100">
           <div className="px-6 py-4 border-b bg-blue-50 rounded-t-2xl">
             <h3 className="text-lg font-semibold text-blue-800">
-              Settings for Project{" "}
-              {indexingStore.project?.name}
+              Settings for Project {indexingStore.project?.name}
             </h3>
           </div>
           <div className="p-6">
             <p className="mb-6 text-gray-600">
-              Project ID:{" "}
-              {indexingStore.project?.repositoryIdentifier}
+              Project ID: {indexingStore.project?.repositoryIdentifier}
             </p>
             <Label className="mb-2" htmlFor="text">
               Change Project Name:
@@ -193,7 +201,9 @@ const SettingsPage = observer(() => {
               Save
             </Button>
             <div className="mt-8 pt-6">
-              <h4 className="text-md font-semibold text-gray-800 mb-2">Reindex Repository</h4>
+              <h4 className="text-md font-semibold text-gray-800 mb-2">
+                Reindex Repository
+              </h4>
               <p className="text-sm text-gray-600 mb-3">
                 Update the database with new commits since the last indexing.
                 {indexingStore.project?.lastIndexedSha && (
@@ -208,11 +218,17 @@ const SettingsPage = observer(() => {
                 )}
               </p>
               <Button
-                onClick={() => { void handleReindexClick(); }}
-                disabled={isReindexing || !indexingStore.project?.lastIndexedSha}
+                onClick={() => {
+                  void handleReindexClick();
+                }}
+                disabled={
+                  isReindexing || !indexingStore.project?.lastIndexedSha
+                }
               >
                 {isReindexing ? (
-                  <>Reindexing... <Spinner /></>
+                  <>
+                    Reindexing... <Spinner />
+                  </>
                 ) : indexingStore.project?.sourceUrl ? (
                   "Reindex from remote source"
                 ) : (
@@ -222,7 +238,9 @@ const SettingsPage = observer(() => {
               {isReindexing && (
                 <div className="mt-4">
                   <Progress value={reindexProgress} />
-                  <p className="text-center text-sm text-gray-600 mt-2">{reindexMessage}</p>
+                  <p className="text-center text-sm text-gray-600 mt-2">
+                    {reindexMessage}
+                  </p>
                 </div>
               )}
             </div>

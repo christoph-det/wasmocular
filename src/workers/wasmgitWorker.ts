@@ -149,6 +149,6 @@ export class WasmGitWorker {
 
 const wasmGitWorker = new WasmGitWorker();
 
-(async function () {
+(function () {
   Comlink.expose(wasmGitWorker);
-})().catch(console.error);
+})();

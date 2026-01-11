@@ -127,10 +127,10 @@ export class WasmGixWorker {
       });
       const buffer: Uint8Array =
         bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
-      
+
       // Get the latest commit SHA for storing
       const latestSha = this.getLatestCommitSha(repoPath);
-      
+
       progressCallback(
         99,
         "Indexing process completed. Inserting data into database..."
