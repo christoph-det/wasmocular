@@ -40,6 +40,7 @@ class DashboardData {
 
 export class DashboardStore {
   private readonly STORAGE_KEY = "dashboardStore_";
+  private autoSaveDisposer: (() => void) | null = null;
   // dashboard is defined by its own id
   activeDashboard: DashboardData | null = null;
   activeDashboardId: string | null = null;
@@ -204,7 +205,8 @@ export class DashboardStore {
   }
 
   private setupAutoSave() {
-    reaction(
+    this.autoSaveDisposer?.();
+    this.autoSaveDisposer = reaction(
       () =>
         this.activeDashboard
           ? JSON.stringify(this.activeDashboard.toJSON())

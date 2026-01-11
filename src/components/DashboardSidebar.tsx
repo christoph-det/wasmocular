@@ -15,6 +15,7 @@ const DashboardSidebar = observer(() => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const dashboardStore = useStores().dashboardStore;
   const dbStore = useStores().dbStore;
+  const indexingStore = useStores().indexingStore;
   const { showSuccess } = useToast();
   const [openDateTo, setOpenDateTo] = useState(false);
   const [openDateFrom, setOpenDateFrom] = useState(false);
@@ -22,6 +23,8 @@ const DashboardSidebar = observer(() => {
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
+
+  const currentProjectIdentifier = indexingStore.project?.repositoryIdentifier;
 
   useEffect(() => {
     dbStore
@@ -36,7 +39,7 @@ const DashboardSidebar = observer(() => {
       .catch((error) => {
         console.error("Database connection error:", error);
       });
-  }, [dbStore, dashboardStore]);
+  }, [dbStore, dashboardStore, currentProjectIdentifier]);
 
   // handle export dashboard action to json and download it
   const handleExportDashboard = () => {
@@ -93,13 +96,13 @@ const DashboardSidebar = observer(() => {
             <img
               src="./icons/collapse.svg"
               alt="Expand Sidebar"
-              className="h-5 w-5"
+              className="h-5 w-5 rotate-180"
             />
           ) : (
             <img
               src="./icons/collapse.svg"
               alt="Collapse Sidebar"
-              className="h-5 w-5 rotate-180"
+              className="h-5 w-5"
             />
           )}
         </button>

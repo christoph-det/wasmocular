@@ -71,7 +71,6 @@ const IndexPage = observer(() => {
   );
 
   async function handleStartIndexingClick() {
-    // increase indexing progress every second
     const repositoryIdentifier = indexingStore.project!.repositoryIdentifier;
 
     const progressCallback = (progress: number, message: string) => {
@@ -79,7 +78,13 @@ const IndexPage = observer(() => {
       setIndexingProgressMessage(message);
     };
 
-    await wasmGixStore.startIndexing(repositoryIdentifier, progressCallback);
+    const latestSha = await wasmGixStore.startIndexing(
+      repositoryIdentifier,
+      progressCallback
+    );
+    if (latestSha) {
+      indexingStore.setLastIndexedSha(latestSha);
+    }
   }
 });
 

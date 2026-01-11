@@ -54,20 +54,29 @@ export class WasmGixStore {
 
   async startIndexing(
     identifier: string,
-    progressCallback: (progress: number, message: string) => void
-  ) {
+    progressCallback: (progress: number, message: string) => void,
+    lastIndexedSha?: string
+  ): Promise<string | undefined> {
     if (!this.rpcWorker) {
       console.error("WasmGix worker not initialized");
       return;
     }
     try {
       const progressProxy = proxy(progressCallback);
-      const buffer = await this.rpcWorker.startIndexing(
+      const result = await this.rpcWorker.startIndexing(
         identifier,
-        progressProxy
+        progressProxy,
+        lastIndexedSha
       );
-      await this.rootStore.dbStore.receiveIndexerResults(identifier, buffer!);
+      if (!result) {
+        throw new Error("Indexing failed: no result returned");
+      }
+      await this.rootStore.dbStore.receiveIndexerResults(
+        identifier,
+        result.buffer
+      );
       progressCallback(100, "Indexing completed successfully.");
+      return result.latestSha;
     } catch (error) {
       console.error("Error starting indexing:", error);
       return;

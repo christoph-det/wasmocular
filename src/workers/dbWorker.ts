@@ -212,10 +212,20 @@ export class DatabaseWorker {
     }
 
     const tableName = `commits`;
+    const tableExistsResult = await this.connection
+      .query(`SELECT COUNT(table_name)
+      FROM information_schema.tables
+      WHERE table_schema = 'main' and table_name = '${tableName}'
+    `);
+
+    const tableExists =
+      (tableExistsResult.toArray()[0] as { "count(table_name)": number })[
+        "count(table_name)"
+      ] > 0;
 
     await this.connection.insertArrowFromIPCStream(buffer, {
       name: tableName,
-      create: true
+      create: !tableExists
     });
     await this.persistCheckpoint();
 

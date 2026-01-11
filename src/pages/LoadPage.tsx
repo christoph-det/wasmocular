@@ -6,7 +6,6 @@ import { DataLoadingState } from "@/store/IndexingStore";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/useToast";
-import { useNavigate } from "react-router-dom";
 import { generateRepoIdentifier } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
@@ -33,7 +32,6 @@ const LoadPage = observer(() => {
   const indexingStore = useStores().indexingStore;
   const dashboardStore = useStores().dashboardStore;
   const { showError, showInfo, showSuccess } = useToast();
-  const navigate = useNavigate();
   const [projectName, setProjectName] = useState<string>("");
   const [gitRepoUrl, setGitRepoUrl] = useState<string>("");
   const [localRepoDirHandle, setLocalRepoDirHandle] =
@@ -61,7 +59,7 @@ const LoadPage = observer(() => {
     if (indexingStore.dataLoadingState === DataLoadingState.INDEXING_FINISHED) {
       globalThis.location.hash = "#explore-customquery";
     }
-  }, [indexingStore.dataLoadingState, navigate]);
+  }, [indexingStore.dataLoadingState]);
 
   return (
     <div className="pt-10 mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-[90vh]">
@@ -249,7 +247,8 @@ const LoadPage = observer(() => {
           await indexingStore.createNewProject(
             projectName,
             repoIdentifier,
-            dashboardId
+            dashboardId,
+            trimmedUrl
           );
           await indexingStore.setDataLoadingState(
             DataLoadingState.REPOSITORY_LOADED

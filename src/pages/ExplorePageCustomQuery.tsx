@@ -69,7 +69,9 @@ const ExplorePageCustomQuery = () => {
   const [manualQueryMode, setManualQueryMode] = useState(
     searchParams.get("mode") === "manual"
   );
-  const [manualSQLQuery, setManualSQLQuery] = useState("");
+  const [manualSQLQuery, setManualSQLQuery] = useState(
+    "-- Write your SQL query here"
+  );
 
   const databaseStore = useStores().dbStore;
 
@@ -122,9 +124,9 @@ const ExplorePageCustomQuery = () => {
   }, [databaseStore.tablesAndColumns, databaseStore]);
 
   useEffect(() => {
-    if (editorRef.current) {
+    if (editorRef.current && !viewRef.current) {
       const view = new EditorView({
-        doc: "-- Write your SQL query here",
+        doc: manualSQLQuery,
         extensions: [
           basicSetup,
           sql(),
@@ -143,15 +145,13 @@ const ExplorePageCustomQuery = () => {
 
       return () => {
         view.destroy();
+        viewRef.current = null;
       };
     }
-  }, [manualQueryMode]);
+  }, [manualQueryMode, manualSQLQuery]);
 
   useEffect(() => {
     if (sqlDisplayRef.current) {
-      if (sqlDisplayViewRef.current) {
-        sqlDisplayViewRef.current.destroy();
-      }
       const view = new EditorView({
         doc: buildSqlQueryString(),
         extensions: [
@@ -167,6 +167,7 @@ const ExplorePageCustomQuery = () => {
 
       return () => {
         view.destroy();
+        //sqlDisplayViewRef.current = null;
       };
     }
   }, [manualQueryMode, buildSqlQueryString]);

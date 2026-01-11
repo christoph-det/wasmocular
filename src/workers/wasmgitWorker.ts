@@ -47,6 +47,7 @@ export class WasmGitWorker {
     proxyURL: string,
     progressCallback: (progress: number, message: string) => void
   ) {
+    await this.init();
     this.logCallback = (logMessage: string) => {
       const progress = parseCloneProgress(logMessage);
       if (!progress) {
@@ -148,7 +149,6 @@ export class WasmGitWorker {
 
 const wasmGitWorker = new WasmGitWorker();
 
-(async function () {
-  await wasmGitWorker.init();
+(function () {
   Comlink.expose(wasmGitWorker);
-})().catch(console.error);
+})();

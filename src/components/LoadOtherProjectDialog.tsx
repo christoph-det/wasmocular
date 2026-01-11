@@ -113,7 +113,7 @@ const LoadOtherProjectDialog = ({
                         }
                       >
                         <img
-                          src="/icons/trash-solid-full.svg"
+                          src="./icons/trash-solid-full.svg"
                           alt="Delete"
                           width={16}
                           height={16}
