@@ -49,7 +49,6 @@ const customSQLHighlighting = HighlightStyle.define([
   { tag: [tags.punctuation, tags.separator], color: "#ffffff" }
 ]);
 
-
 const ExplorePageCustomQuery = () => {
   const [searchParams] = useSearchParams();
   const [queryState, setQueryState] = useState({
@@ -408,16 +407,14 @@ const ExplorePageCustomQuery = () => {
                               rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
                             }
                           >
-                            {Object.values(row).map(
-                              (value, colIndex) => (
-                                <td
-                                  key={colIndex}
-                                  className="border border-gray-300 px-4 py-2"
-                                >
-                                  {String(value)}
-                                </td>
-                              )
-                            )}
+                            {Object.values(row).map((value, colIndex) => (
+                              <td
+                                key={colIndex}
+                                className="border border-gray-300 px-4 py-2"
+                              >
+                                {String(value)}
+                              </td>
+                            ))}
                           </tr>
                         ))}
                       </tbody>
