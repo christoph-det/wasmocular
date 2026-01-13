@@ -16,6 +16,13 @@ export class WasmGitStore {
     this.rpcWorker = wrap(this.worker);
   }
 
+  reset() {
+    if (this.worker) {
+      this.worker.terminate();
+    }
+    this.init();
+  }
+
   cloneRepository(
     gitRepoURL: string,
     repoIdentifier: string,
