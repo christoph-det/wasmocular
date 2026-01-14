@@ -280,12 +280,12 @@ export class DatabaseWorker {
           issue.number,
           issue.title,
           issue.state,
-          issue.created_at,
-          issue.updated_at,
-          issue.closed_at,
+          issue.createdAt,
+          issue.updatedAt,
+          issue.closedAt,
           issue.author,
           issue.labels,
-          issue.comments_count,
+          issue.commentsCount,
           issue.body
         );
       }
@@ -333,10 +333,10 @@ export class DatabaseWorker {
 
       for (const event of events) {
         await stmt.query(
-          event.issue_number,
-          event.event_type,
-          event.commit_sha,
-          event.created_at,
+          event.issueNumber,
+          event.eventType,
+          event.commitSha,
+          event.createdAt,
           event.actor
         );
       }

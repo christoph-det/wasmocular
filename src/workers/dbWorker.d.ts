@@ -3,19 +3,19 @@ export interface GitHubIssue {
   number: number;
   title: string;
   state: string;
-  created_at: string;
-  updated_at: string;
-  closed_at: string | null;
+  createdAt: string;
+  updatedAt: string;
+  closedAt: string | null;
   author: string;
   labels: string;
-  comments_count: number;
+  commentsCount: number;
   body: string;
 }
 
 export interface GitHubIssueEvent {
-  issue_number: number;
-  event_type: string;
-  commit_sha: string | null;
-  created_at: string;
+  issueNumber: number;
+  eventType: string;
+  commitSha: string | null;
+  createdAt: string;
   actor: string;
 }

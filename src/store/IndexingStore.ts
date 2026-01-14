@@ -37,9 +37,9 @@ export class IndexingStore {
   indexingProgress = 0; // Percentage of indexing progress
   dataLoadingState = DataLoadingState.NOT_STARTED;
 
-  githubApiUrl: string = "";
-  githubApiToken: string = "";
-  githubIssuesProgress: number = 0;
+  githubApiUrl = "";
+  githubApiToken = "";
+  githubIssuesProgress = 0;
 
   proxyURL = "https://dawn-salad-f180.c-dethloff.workers.dev";
   readonly ready: Promise<void>;
@@ -128,6 +128,7 @@ export class IndexingStore {
     this.rootStore.dbStore.closeConnection().catch(console.error);
     this.rootStore.wasmGixStore.reset();
     this.rootStore.wasmGitStore.reset();
+    this.rootStore.githubAPIStore.reset();
   }
 
   deleteProjectFromStorage(projectIdentifier: string) {
