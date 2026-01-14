@@ -199,7 +199,6 @@ const LoadPage = observer(() => {
               open={openGitHubApiDialog}
               onOpenChange={setOpenGitHubApiDialog}
             >
-                
               <DialogContent className="max-w-md">
                 <DialogHeader>
                   <DialogTitle>Connect GitHub Issues API</DialogTitle>
@@ -227,8 +226,9 @@ const LoadPage = observer(() => {
                       onChange={(e) => setGithubToken(e.target.value)}
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Without a token, GitHub strict rate limits apply and only issues are fetched. With a token, issue-commit
-                      links are also fetched. Generate one{" "}
+                      Without a token, GitHub strict rate limits apply and only
+                      issues are fetched. With a token, issue-commit links are
+                      also fetched. Generate one{" "}
                       <a
                         href="https://github.com/settings/personal-access-tokens"
                         target="_blank"
