@@ -4,6 +4,7 @@ import duckdb_wasm from "@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm?url";
 import mvp_worker from "@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?url";
 import duckdb_wasm_eh from "@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url";
 import eh_worker from "@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url";
+import type { GitHubIssue, GitHubIssueEvent } from "./dbWorker.d";
 
 const MANUAL_BUNDLES: duckdb.DuckDBBundles = {
   mvp: {
@@ -230,6 +231,123 @@ export class DatabaseWorker {
     await this.persistCheckpoint();
 
     console.log(`DB Worker: Inserted indexer data into table ${tableName}`);
+  }
+
+  async insertGitHubIssues(issues: GitHubIssue[]) {
+    if (!this.repositoryIdentifier) {
+      throw new Error("Database not initialized for any repository");
+    }
+
+    if (this.accessMode !== duckdb.DuckDBAccessMode.READ_WRITE) {
+      await this.switchAccessMode(duckdb.DuckDBAccessMode.READ_WRITE);
+    }
+
+    if (!this.connection) {
+      await this.connect();
+    }
+
+    if (!this.connection) {
+      throw new Error("No connection to database");
+    }
+
+    const tableName = "github_issues";
+
+    await this.connection.query(`
+      CREATE TABLE ${tableName} (
+        id BIGINT,
+        number INTEGER,
+        title VARCHAR,
+        state VARCHAR,
+        created_at TIMESTAMP,
+        updated_at TIMESTAMP,
+        closed_at TIMESTAMP,
+        author VARCHAR,
+        labels VARCHAR,
+        comments_count INTEGER,
+        body VARCHAR
+      )
+    `);
+
+    // Insert issues
+    if (issues.length > 0) {
+      const stmt = await this.connection.prepare(
+        `INSERT INTO ${tableName} VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      );
+
+      for (const issue of issues) {
+        await stmt.query(
+          issue.id,
+          issue.number,
+          issue.title,
+          issue.state,
+          issue.created_at,
+          issue.updated_at,
+          issue.closed_at,
+          issue.author,
+          issue.labels,
+          issue.comments_count,
+          issue.body
+        );
+      }
+      await stmt.close();
+    }
+
+    await this.persistCheckpoint();
+    console.log(
+      `DB Worker: Inserted ${issues.length} GitHub issues.`
+    );
+  }
+
+  async insertGitHubIssueEvents(events: GitHubIssueEvent[]) {
+    if (!this.repositoryIdentifier) {
+      throw new Error("Database not initialized for any repository");
+    }
+
+    if (this.accessMode !== duckdb.DuckDBAccessMode.READ_WRITE) {
+      await this.switchAccessMode(duckdb.DuckDBAccessMode.READ_WRITE);
+    }
+
+    if (!this.connection) {
+      await this.connect();
+    }
+
+    if (!this.connection) {
+      throw new Error("No connection to database");
+    }
+
+    const tableName = "github_issue_events";
+
+    await this.connection.query(`
+      CREATE TABLE ${tableName} (
+        issue_number INTEGER,
+        event_type VARCHAR,
+        commit_sha VARCHAR,
+        created_at TIMESTAMP,
+        actor VARCHAR
+      )
+    `);
+
+    // Insert events
+    if (events.length > 0) {
+      const stmt = await this.connection.prepare(
+        `INSERT INTO ${tableName} VALUES (?, ?, ?, ?, ?)`
+      );
+
+      for (const event of events) {
+        await stmt.query(
+          event.issue_number,
+          event.event_type,
+          event.commit_sha,
+          event.created_at,
+          event.actor
+        );
+      }
+
+      await stmt.close();
+    }
+
+    await this.persistCheckpoint();
+    console.log(`DB Worker: Inserted ${events.length} GitHub issue events.`);
   }
 }
 
