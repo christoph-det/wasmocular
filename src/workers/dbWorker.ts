@@ -293,9 +293,7 @@ export class DatabaseWorker {
     }
 
     await this.persistCheckpoint();
-    console.log(
-      `DB Worker: Inserted ${issues.length} GitHub issues.`
-    );
+    console.log(`DB Worker: Inserted ${issues.length} GitHub issues.`);
   }
 
   async insertGitHubIssueEvents(events: GitHubIssueEvent[]) {
