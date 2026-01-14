@@ -90,7 +90,7 @@ const ExplorePageCustomQuery = () => {
       const values = Object.values(row);
       const csvRow = values
         .map((value) => {
-          const strValue = String(value ?? "");
+          const strValue = value == null ? "" : JSON.stringify(value);
           return `"${strValue.replace(/"/g, '""')}"`;
         })
         .join(",");
