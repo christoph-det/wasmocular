@@ -1,4 +1,5 @@
 import ExploreNavigationBar from "@/components/ExploreNavigationBar";
+import { title } from "process";
 import { Link } from "react-router-dom";
 
 const sqlExamples = [
@@ -55,6 +56,14 @@ WHERE word <> ''
 GROUP BY ALL
 ORDER BY count DESC
 LIMIT 10;`
+  },
+  {
+  title: "Issues Opened / Closed Over Time (Stacked Area Chart)",
+    description:
+      "Shows the number of issues opened and closed over time.",
+    query: `SELECT created_at AS date, author || '(opened)' AS series, 1 AS value FROM github_issues
+UNION ALL
+SELECT closed_at AS date, author || '(closed)' AS series, -1 AS value FROM github_issues WHERE closed_at IS NOT NULL`
   }
 ];
 
