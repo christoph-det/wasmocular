@@ -3,6 +3,7 @@ import type { DatabaseWorker } from "@/workers/dbWorker";
 import { DuckDBAccessMode } from "@duckdb/duckdb-wasm";
 import { Remote, wrap, transfer } from "comlink";
 import { makeAutoObservable } from "mobx";
+import { GitHubIssue, GitHubIssueEvent } from "@/workers/dbWorker.d";
 
 export class DatabaseStore {
   private worker: Worker | null = null;
@@ -47,6 +48,18 @@ export class DatabaseStore {
       await rpcDeleteWorker.deleteDatabase(repositoryIdentifier);
       await rpcDeleteWorker.terminate();
       deleteWorker.terminate();
+    }
+  }
+
+  async closeConnection() {
+    if (this.rpcWorker) {
+      await this.rpcWorker.terminate();
+      this.worker?.terminate();
+      this.currentRepositoryIdentifier = null;
+      this.currentAccessMode = null;
+      this.tablesAndColumns = {};
+      this.init();
+      console.log("DatabaseStore: Connection closed and worker reinitialized");
     }
   }
 
@@ -143,5 +156,25 @@ export class DatabaseStore {
       column_name: string;
       data_type: string;
     }[];
+  }
+
+  async insertGitHubIssues(issues: GitHubIssue[]) {
+    await this.awaitDatabaseInitialization;
+    if (!this.rpcWorker) {
+      throw new Error("Database worker not initialized");
+    }
+    await this.rpcWorker.insertGitHubIssues(issues);
+    // reset cached tables and columns to force reload in UI
+    this.tablesAndColumns = {};
+  }
+
+  async insertGitHubIssueEvents(events: GitHubIssueEvent[]) {
+    await this.awaitDatabaseInitialization;
+    if (!this.rpcWorker) {
+      throw new Error("Database worker not initialized");
+    }
+    await this.rpcWorker.insertGitHubIssueEvents(events);
+    // reset cached tables and columns to force reload in UI
+    this.tablesAndColumns = {};
   }
 }
