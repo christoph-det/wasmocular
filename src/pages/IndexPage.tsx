@@ -31,7 +31,7 @@ const IndexPage = observer(() => {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100">
           <div className="px-6 py-4 border-b bg-blue-50 rounded-t-2xl">
             <h3 className="text-lg font-semibold text-blue-800">
-              {indexingStore.project?.name || ""}
+              {indexingStore.project?.name ?? ""}
             </h3>
           </div>
           <div className="p-6">
@@ -47,7 +47,9 @@ const IndexPage = observer(() => {
                 onClick={() => {
                   handleStartIndexingClick().catch((e) => {
                     console.error("Indexing error:", e);
-                    showError("Indexing failed: " + (e.message || String(e)));
+                    const errorMessage =
+                      e instanceof Error ? e.message : String(e);
+                    showError("Indexing failed: " + errorMessage);
                   });
                 }}
                 disabled={indexingStore.indexingProgress > 0}
@@ -127,7 +129,7 @@ const IndexPage = observer(() => {
     let githubPromise: Promise<{
       issues: GitHubIssue[];
       events: GitHubIssueEvent[];
-    } | void> = Promise.resolve({ issues: [], events: [] });
+    }> = Promise.resolve({ issues: [], events: [] });
     if (hasGitHubConfig) {
       githubPromise = githubAPIStore
         .fetchGitHubIssuesAndEvents(
@@ -137,9 +139,9 @@ const IndexPage = observer(() => {
         )
         .catch((e) => {
           console.error("GitHub issues fetch error:", e);
-          showError(
-            "Failed to fetch GitHub issues: " + (e.message || String(e))
-          );
+          const errorMessage = e instanceof Error ? e.message : String(e);
+          showError("Failed to fetch GitHub issues: " + errorMessage);
+          return { issues: [], events: [] };
         });
     }
 
@@ -148,10 +150,7 @@ const IndexPage = observer(() => {
       indexingStore.setLastIndexedSha(latestSha);
     }
 
-    const { issues: allIssues, events: allEvents } = (await githubPromise) || {
-      issues: [],
-      events: []
-    };
+    const { issues: allIssues, events: allEvents } = await githubPromise;
 
     if (allIssues.length > 0) {
       await dbStore.insertGitHubIssues(allIssues);
