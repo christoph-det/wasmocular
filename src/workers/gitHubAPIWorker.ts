@@ -16,14 +16,14 @@ interface GitHubIssueResponse {
   comments: number;
   body: string | null;
   pull_request?: unknown;
-};
+}
 
 interface GitHubTimelineEvent {
   event: string;
   commit_id?: string | null;
   created_at: string;
   actor?: { login: string } | null;
-};
+}
 
 export class GitHubAPIWorker {
   private createHeaders(token: string): Record<string, string> {

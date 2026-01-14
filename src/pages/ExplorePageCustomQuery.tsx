@@ -179,7 +179,8 @@ const ExplorePageCustomQuery = () => {
         viewRef.current = null;
       };
     }
-  }, [manualQueryMode, manualSQLQuery]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- manualSQLQuery intentionally excluded; editor only needs initial value
+  }, [manualQueryMode]);
 
   useEffect(() => {
     if (sqlDisplayRef.current) {
