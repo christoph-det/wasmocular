@@ -7,9 +7,6 @@ const GITOXIDE_LOG_PREFIX = "[gitoxide]";
 const PERSIST_ROOT = "/repos";
 
 // TODO: cleanup, maybe bring some methods outside of the worker
-// TODO: open repo again on page reload
-// TODO: handle incomplete mounts - ie delete data when page reloads during mount/index fex
-// TODO: handle indexer
 // TODO: handle data deletion
 
 export class WasmGixWorker {
