@@ -49,9 +49,6 @@ const customSQLHighlighting = HighlightStyle.define([
   { tag: [tags.punctuation, tags.separator], color: "#ffffff" }
 ]);
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
 const ExplorePageCustomQuery = () => {
   const [searchParams] = useSearchParams();
   const [queryState, setQueryState] = useState({
@@ -62,7 +59,7 @@ const ExplorePageCustomQuery = () => {
   const [tablesAndColumns, setTablesAndColumns] = useState<
     Record<string, { column_name: string; data_type: string }[]>
   >({});
-  const [queryResult, setQueryResult] = useState<unknown[]>([]);
+  const [queryResult, setQueryResult] = useState<Record<string, unknown>[]>([]);
   const [queryTime, setQueryTime] = useState<number | null>(null);
   const [queryError, setQueryError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -82,6 +79,40 @@ const ExplorePageCustomQuery = () => {
   const sqlDisplayViewRef: React.MutableRefObject<EditorView | null> =
     useRef(null);
 
+  const handleExportCsv = () => {
+    const headers = Object.keys(queryResult[0] ?? {});
+
+    const csvRows: string[] = [];
+
+    csvRows.push(headers.map((h) => `"${h}"`).join(","));
+
+    queryResult.forEach((row) => {
+      const values = Object.values(row);
+      const csvRow = values
+        .map((value) => {
+          const strValue = value == null ? "" : JSON.stringify(value);
+          return `"${strValue.replace(/"/g, '""')}"`;
+        })
+        .join(",");
+      csvRows.push(csvRow);
+    });
+
+    const csvContent = csvRows.join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `query_results_${new Date().toISOString().slice(0, 10)}.csv`
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handleRunQuery = () => {
     setLoading(true);
     setQueryError(null);
@@ -91,7 +122,7 @@ const ExplorePageCustomQuery = () => {
     databaseStore
       .runQuery(sqlToRun)
       .then((result) => {
-        setQueryResult(result as unknown[]);
+        setQueryResult(result as Record<string, unknown>[]);
         setQueryTime(performance.now() - startTime);
         setLoading(false);
       })
@@ -148,7 +179,8 @@ const ExplorePageCustomQuery = () => {
         viewRef.current = null;
       };
     }
-  }, [manualQueryMode, manualSQLQuery]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- manualSQLQuery intentionally excluded; editor only needs initial value
+  }, [manualQueryMode]);
 
   useEffect(() => {
     if (sqlDisplayRef.current) {
@@ -318,16 +350,24 @@ const ExplorePageCustomQuery = () => {
               </div>
             </div>
             <div className="mb-8">
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
                 <h2 className="text-2xl font-bold my-1 mx-2">Results</h2>
                 <CreateDashboardWidgetDialog
                   sqlQuery={currentSqlQuery}
                   trigger={
-                    <Button type="button">
+                    <Button type="button" disabled={queryResult.length === 0}>
                       Create Dashboard Widget from Query
                     </Button>
                   }
                 />
+                <Button
+                  type="button"
+                  onClick={handleExportCsv}
+                  disabled={queryResult.length === 0}
+                  variant="outline"
+                >
+                  Export to CSV
+                </Button>
               </div>
               <br />
               <div className="bg-white rounded-lg shadow-sm p-6">
@@ -350,7 +390,6 @@ const ExplorePageCustomQuery = () => {
                       <thead>
                         <tr>
                           {queryResult.length > 0 &&
-                            isRecord(queryResult[0]) &&
                             Object.keys(queryResult[0]).map((col) => (
                               <th
                                 key={col}
@@ -369,16 +408,14 @@ const ExplorePageCustomQuery = () => {
                               rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
                             }
                           >
-                            {(isRecord(row) ? Object.values(row) : [row]).map(
-                              (value, colIndex) => (
-                                <td
-                                  key={colIndex}
-                                  className="border border-gray-300 px-4 py-2"
-                                >
-                                  {String(value)}
-                                </td>
-                              )
-                            )}
+                            {Object.values(row).map((value, colIndex) => (
+                              <td
+                                key={colIndex}
+                                className="border border-gray-300 px-4 py-2"
+                              >
+                                {String(value)}
+                              </td>
+                            ))}
                           </tr>
                         ))}
                       </tbody>

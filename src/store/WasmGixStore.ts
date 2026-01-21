@@ -19,6 +19,13 @@ export class WasmGixStore {
     this.rpcWorker = wrap(this.worker);
   }
 
+  reset() {
+    if (this.worker) {
+      this.worker.terminate();
+    }
+    this.init();
+  }
+
   async reloadRepository(identifier: string) {
     if (!this.rpcWorker) {
       console.error("WasmGix worker not initialized");

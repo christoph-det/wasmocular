@@ -42,6 +42,11 @@ const LoadPage = observer(() => {
     useState<string>("");
   const [openProxyUrlDialog, setOpenProxyUrlDialog] = useState<boolean>(false);
   const [proxyUrl, setProxyUrl] = useState<string>(indexingStore.proxyURL);
+  const [openGitHubApiDialog, setOpenGitHubApiDialog] =
+    useState<boolean>(false);
+  const [githubRepoUrl, setGithubRepoUrl] = useState<string>("");
+  const [githubToken, setGithubToken] = useState<string>("");
+  const [githubConfigured, setGithubConfigured] = useState<boolean>(false);
 
   const handleprojectNameInputChange = (event: {
     target: { value: SetStateAction<string> };
@@ -181,7 +186,78 @@ const LoadPage = observer(() => {
               </>
             ) : null}
 
-            <Button>Connect API Data (optional)</Button>
+            <Button
+              variant={githubConfigured ? "outline" : "default"}
+              onClick={() => setOpenGitHubApiDialog(true)}
+            >
+              {githubConfigured
+                ? "✅ GitHub Issues Connected"
+                : "Connect GitHub Issue Data (optional)"}
+            </Button>
+
+            <Dialog
+              open={openGitHubApiDialog}
+              onOpenChange={setOpenGitHubApiDialog}
+            >
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Connect GitHub Issues API</DialogTitle>
+                </DialogHeader>
+                <div className="py-4 space-y-4">
+                  <div>
+                    <Label htmlFor="github-repo-url">
+                      GitHub Repository URL
+                    </Label>
+                    <Input
+                      id="github-repo-url"
+                      type="text"
+                      placeholder="https://github.com/owner/repo"
+                      value={githubRepoUrl}
+                      onChange={(e) => setGithubRepoUrl(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="github-token">GitHub Token</Label>
+                    <Input
+                      type="password"
+                      autoComplete="on"
+                      id="github-token"
+                      value={githubToken}
+                      onChange={(e) => setGithubToken(e.target.value)}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Without a token, GitHub strict rate limits apply and only
+                      issues are fetched. With a token, issue-commit links are
+                      also fetched. Generate one{" "}
+                      <a
+                        href="https://github.com/settings/personal-access-tokens"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline"
+                      >
+                        here
+                      </a>
+                      .
+                    </p>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button type="button" variant="outline">
+                      Cancel
+                    </Button>
+                  </DialogClose>
+                  <Button
+                    type="button"
+                    onClick={handleSaveGitHubConfig}
+                    disabled={!githubRepoUrl.trim()}
+                  >
+                    Save Configuration
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
             <div className="mt-8 flex justify-center">
               <Button
                 onClick={() => {
@@ -313,6 +389,21 @@ const LoadPage = observer(() => {
             error.message
         );
       });
+  }
+
+  function handleSaveGitHubConfig() {
+    const trimmedUrl = githubRepoUrl.trim();
+    if (!trimmedUrl.startsWith("https://github.com/")) {
+      showError("Please enter a GitHub repository URL.");
+      return;
+    }
+
+    indexingStore.setGitHubApiConfig(trimmedUrl, githubToken.trim());
+    setGithubConfigured(true);
+    setOpenGitHubApiDialog(false);
+    showSuccess(
+      "GitHub API configuration saved. Issues will be fetched during indexing."
+    );
   }
 });
 

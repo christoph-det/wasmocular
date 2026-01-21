@@ -21,7 +21,7 @@ const DatabaseSchemaSidebar = observer(() => {
       .catch((error: Error) => {
         showError("Failed to load database schema: " + error.message);
       });
-  }, [databaseStore, showError]);
+  }, [databaseStore, showError, databaseStore.tablesAndColumns]);
 
   const toggleTable = (tableName: string) => {
     const newExpanded = new Set(expandedTables);
