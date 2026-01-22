@@ -1,0 +1,24 @@
+[package]
+name = "wasm-gix"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "wasm_gix"
+path = "src/bin.rs"
+
+[dependencies]
+anyhow = "1"
+
+gix = { version = "^0.73.0", git = "https://github.com/GitoxideLabs/gitoxide.git", rev = "f38e1c91eacd6a95c58401240f938421a023753a", default-features = false, features = ["revision", "basic","comfort", "attributes", "dirwalk", "excludes", "mailmap", "revparse-regex"] }
+gix-hash = { version = "^0.19.0", git = "https://github.com/GitoxideLabs/gitoxide.git", rev = "f38e1c91eacd6a95c58401240f938421a023753a", default-features = false }
+gix-index = { version = "^0.41.0", git = "https://github.com/GitoxideLabs/gitoxide.git", rev = "f38e1c91eacd6a95c58401240f938421a023753a", default-features = false }
+
+arrow-array = { version = "56.2.0", default-features = false }
+arrow-schema = { version = "56.2.0", default-features = false }
+arrow-ipc = { version = "56.2.0", default-features = false }
+
+# we need build optimizations also for debug, because diff runs into memory issues otherwise
+[profile.dev]
+opt-level = 1  
+
