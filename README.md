@@ -56,6 +56,12 @@ After cloning the repository, install dependencies:
    ```
 
 Optional: If you made changes to the Rust Code, build the WASM module:
+
+If you haven't installed Emscripten follow the guide here: [Emscripten Installation](https://emscripten.org/docs/getting_started/downloadshtml#installation-instructions-using-the-emsdk-recommended)
+
+If you have it installed already, change the location of the emsdk folder in `.cargo/config.toml`
+
+Then you can build it with, the files are getting copied to the right location automatically:
    ```bash
    pnpm run build:wasmgix
    ```
@@ -102,7 +108,7 @@ src/
 ## Citation
 
 ```latex
-@mastersthesis{dethloff2025wasmocular,
+@mastersthesis{dethloff2026wasmocular,
   title     = "Creating an Ubiquitous Platform for Mining and Visualizing Software Repositories Using WebAssembly in the Browser",
   author    = "Christoph Dethloff",
   date      = "",
