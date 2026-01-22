@@ -2,17 +2,16 @@
 
 **Master Thesis: Creating an Ubiquitous Platform for Mining and Visualizing Software Repositories Using WebAssembly in the Browser**
 
-
 ## Overview
 
 WasmOcular is a browser-based platform that enables client-side mining and visualization of Git repositories. By leveraging WebAssembly (WASM), the application performs all data processing locally without requiring server-side computation, making repository analysis ubiquitous and accessible.
-
 
 <p align="center">
   <img src="public/wasmocular-screenshot.png" alt="WasmOcular Screenshot" width="500"/>
 </p>
 
 The platform allows users to:
+
 - Load and index local Git repositories or via .git URL
 - Fetch the GitHub API for issues and events (to correlate commits)
 - Execute custom SQL queries on repository data using DuckDB
@@ -28,32 +27,32 @@ You can try it out here (use Chromium browser): [https://christoph-det.github.io
 
 The WasmOcular logo was created using Google Gemini / Nano Banana Pro.
 
-
 ## Technology Stack
 
-| Category | Technologies |
-|----------|-------------|
-| **Frontend** | React, TypeScript, Vite |
-| **State Management** | MobX |
-| **Database** | DuckDB |
-| **Git Processing** | Gitoxide (local processing) and wasm-git (remote clone) |
-| **Visualization** | D3.js, ECharts |
+| Category             | Technologies                                            |
+| -------------------- | ------------------------------------------------------- |
+| **Frontend**         | React, TypeScript, Vite                                 |
+| **State Management** | MobX                                                    |
+| **Database**         | DuckDB                                                  |
+| **Git Processing**   | Gitoxide (local processing) and wasm-git (remote clone) |
+| **Visualization**    | D3.js, ECharts                                          |
 
 ---
 
 ## Installation
 
 ### Prerequisites
+
 - for building the wasm module: Rust, Cargo
 - all features are only working in Chromium browsers (e.g. the File System Access API if not availible in other browsers at the moment).
-
 
 ### Setup
 
 After cloning the repository, install dependencies:
-   ```bash
-   pnpm install
-   ```
+
+```bash
+pnpm install
+```
 
 Optional: If you made changes to the Rust Code, build the WASM module:
 
@@ -62,9 +61,10 @@ If you haven't installed Emscripten follow the guide here: [Emscripten Installat
 If you have it installed already, change the location of the emsdk folder in `.cargo/config.toml`
 
 Then you can build it with, the files are getting copied to the right location automatically:
-   ```bash
-   pnpm run build:wasmgix
-   ```
+
+```bash
+pnpm run build:wasmgix
+```
 
 ---
 
@@ -87,7 +87,6 @@ pnpm run build
 ```
 
 The static files are generated in the `dist` folder, ready for deployment to any static hosting.
-
 
 ## Project Structure
 
