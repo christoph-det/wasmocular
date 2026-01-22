@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 use std::ffi::{CStr, CString};
-use std::os::raw::{c_char, c_uint};
+use std::os::raw::{c_char};
 use std::path::Path;
 
 use crate::api;

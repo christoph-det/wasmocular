@@ -1,7 +1,6 @@
 #![deny(rust_2018_idioms)]
 
 mod api;
-mod api_testing_functions;
 mod ffi;
 
 pub use crate::ffi::{
