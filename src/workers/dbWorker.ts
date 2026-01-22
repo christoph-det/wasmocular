@@ -25,6 +25,24 @@ export class DatabaseWorker {
   repositoryIdentifier: string | null = null;
   accessMode: duckdb.DuckDBAccessMode | null = null;
 
+  private async openReadOnlySnapshot(repositoryIdentifier: string) {
+    if (!this.db) {
+      throw new Error("Database not instantiated");
+    }
+
+    const dbFileName = `wasmocular_database_${repositoryIdentifier}.db`;
+    const root = await navigator.storage.getDirectory();
+    const fileHandle = await root.getFileHandle(dbFileName);
+    const file = await fileHandle.getFile();
+    const buffer = new Uint8Array(await file.arrayBuffer());
+
+    await this.db.registerFileBuffer(dbFileName, buffer);
+    await this.db.open({
+      path: dbFileName,
+      accessMode: duckdb.DuckDBAccessMode.READ_ONLY
+    });
+  }
+
   private async instantiateDatabase(
     repositoryIdentifier: string,
     accessMode: duckdb.DuckDBAccessMode
@@ -35,10 +53,24 @@ export class DatabaseWorker {
     //const logger = new duckdb.ConsoleLogger();
     this.db = new duckdb.AsyncDuckDB(logger, this.worker);
     await this.db.instantiate(bundle.mainModule, bundle.pthreadWorker);
-    await this.db.open({
-      path: `opfs://wasmocular_database_${repositoryIdentifier}.db`,
-      accessMode
-    });
+    try {
+      await this.db.open({
+        path: `opfs://wasmocular_database_${repositoryIdentifier}.db`,
+        accessMode
+      });
+    } catch (error) {
+      if (
+        accessMode === duckdb.DuckDBAccessMode.READ_ONLY
+      ) {
+        console.log(
+          "DB Worker: OPFS access handle busy; opening read-only snapshot.",
+          error
+        );
+        await this.openReadOnlySnapshot(repositoryIdentifier);
+        return;
+      }
+      throw error;
+    }
   }
 
   private async shutdown(resetRepositoryInfo: boolean) {
