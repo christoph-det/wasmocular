@@ -16,19 +16,6 @@ export interface StackedAreaChartData extends ChartData {
 /**
  * Converter for stacked area charts SQL to stacked area chart data.
  * Expects rows with: date (timestamp), series (string), value (number)
- *
- * Example queries:
- *
- * 1. Additions by author:
- *    SELECT authored_at AS date, author_signature AS series, additions AS value FROM commits
- *
- * 2. Additions and deletions by author (diverging chart):
- *    SELECT authored_at AS date, author_signature || ' (additions)' AS series, CAST(additions AS INTEGER) AS value FROM commits
- *    UNION ALL
- *    SELECT authored_at AS date, author_signature || ' (deletions)' AS series, -CAST(deletions AS INTEGER) AS value FROM commits
- *
- * 3. Commit count by author:
- *    SELECT authored_at AS date, author_signature AS series, 1 AS value FROM commits
  */
 export class StackedAreaChartConverter extends BaseChartConverter<StackedAreaChartData> {
   protected requiredColumns = ["date", "series", "value"];

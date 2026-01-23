@@ -1,5 +1,4 @@
 import * as Comlink from "comlink";
-import { parseCloneProgress } from "../lib/utils.ts";
 import createWasmGitModule, { type WasmGitModule } from "wasm-git/lg2.js";
 import lg2WasmUrl from "wasm-git/lg2.wasm?url";
 
@@ -48,7 +47,7 @@ export class WasmGitWorker {
   ) {
     await this.init();
     this.logCallback = (logMessage: string) => {
-      const progress = parseCloneProgress(logMessage);
+      const progress = this.parseCloneProgress(logMessage);
       if (!progress) {
         return;
       }
@@ -81,6 +80,38 @@ export class WasmGitWorker {
       if (err)
         console.error(`${this.wasmGitLogPrefix} syncfs(save) error:`, err);
     });
+  }
+
+  private extractPercent(line: string): number | undefined {
+    const match = /(\d+)%/.exec(line);
+    return match ? Number(match[1]) : undefined;
+  }
+
+  COUNTING_MARKER = "counting objects";
+  COMPRESSING_MARKER = "compressing objects";
+  RESOLVING_MARKER = "resolving deltas";
+  DOWNLOAD_MARKER = "net";
+
+  /** Used for We get the git cloning separate lines for the download phase, so we can parse percent there.
+   */
+  private parseCloneProgress(
+    line: string
+  ): { phase: string; percent: number } | null {
+    const lowered = line.toLowerCase();
+    if (lowered.includes(this.DOWNLOAD_MARKER)) {
+      const percent = this.extractPercent(line);
+      return percent === undefined ? null : { phase: "Downloading", percent };
+    }
+    if (lowered.includes(this.COUNTING_MARKER)) {
+      return { phase: "Counting", percent: 0 };
+    }
+    if (lowered.includes(this.COMPRESSING_MARKER)) {
+      return { phase: "Compressing", percent: 0 };
+    }
+    if (lowered.includes(this.RESOLVING_MARKER)) {
+      return { phase: "Resolving", percent: 100 };
+    }
+    return null;
   }
 
   /**

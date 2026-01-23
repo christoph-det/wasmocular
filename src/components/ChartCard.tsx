@@ -17,7 +17,7 @@ interface ChartCardProps {
   dashboardElement: DashboardElement;
 }
 
-const ChartCard: React.FC<ChartCardProps> = observer(({ dashboardElement }) => {
+const ChartCard = observer(({ dashboardElement }: ChartCardProps) => {
   const query = dashboardElement.sqlQuery;
   const fromTimestamp =
     dashboardElement.dashboardStore.activeDateFilterFrom?.getTime();
@@ -89,8 +89,8 @@ interface ChartRendererProps {
   dashboardElement: DashboardElement;
 }
 
-const ChartRenderer: React.FC<ChartRendererProps> = observer(
-  ({ dashboardElement }) => {
+const ChartRenderer = observer(
+  ({ dashboardElement }: ChartRendererProps) => {
     switch (dashboardElement.type) {
       case ChartType.TEXT:
         if (!dashboardElement.data || dashboardElement.data.length === 0) {

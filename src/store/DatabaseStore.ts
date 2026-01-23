@@ -127,7 +127,7 @@ export class DatabaseStore {
   }
 
   /**
-   * Rturns the names and data types of all created tables.
+   * Returns the names and data types of all created tables.
    */
   async getTableAndColumnNames(): Promise<
     Record<string, { column_name: string; data_type: string }[]>
@@ -167,6 +167,9 @@ export class DatabaseStore {
     }[];
   }
 
+  /**
+   * Adds the issue array to its own database table.
+   */
   async insertGitHubIssues(issues: GitHubIssue[]) {
     await this.awaitDatabaseInitialization;
     if (!this.rpcWorker) {
@@ -177,6 +180,9 @@ export class DatabaseStore {
     this.tablesAndColumns = {};
   }
 
+  /**
+   * Adds the issue events array to its own database table.
+   */
   async insertGitHubIssueEvents(events: GitHubIssueEvent[]) {
     await this.awaitDatabaseInitialization;
     if (!this.rpcWorker) {

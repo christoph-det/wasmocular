@@ -11,6 +11,10 @@ export interface HeatmapData extends ChartData {
   formattedData: number[][];
 }
 
+/**
+ * Converter for heatmap chart SQL to heatmap data.
+ * Expects rows with: x (string), y (string), value (number)
+ */
 export class HeatmapConverter extends BaseChartConverter<HeatmapData> {
   protected requiredColumns: string[] = ["x", "y", "value"];
 

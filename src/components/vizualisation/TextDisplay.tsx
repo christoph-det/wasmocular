@@ -1,3 +1,6 @@
+/**
+ * TextDisplay component to render data in a tabular format for the dashboard.
+ */
 const TextDisplay = ({ data }: { data: object[] }) => {
   return (
     <table className="w-full table-auto border-collapse border border-gray-300">
