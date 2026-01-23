@@ -4,12 +4,18 @@ import type { DatabaseStore } from "./DatabaseStore";
 import { DashboardStore } from "./DashboardStore";
 import { TimeResolution } from "@/lib/chartConverters/BaseChartConverter";
 
+/**
+ * Represents the contents single dashboard element.
+ */
 export enum ChartType {
   TEXT = "text",
   STACKED_AREA_CHART = "stacked_area_chart",
   HEATMAP = "heatmap"
 }
 
+/**
+ * This class represents a single dashboard element (widget) that can display data
+ */
 export class DashboardElement {
   id: string;
   title: string;

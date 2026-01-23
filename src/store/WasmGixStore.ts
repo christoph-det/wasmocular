@@ -3,6 +3,10 @@ import { proxy, Remote, wrap } from "comlink";
 import WasmGixWorkerFactory from "@/workers/wasmgixWorker?worker";
 import type { WasmGixWorker } from "@/workers/wasmgixWorker";
 
+/**
+ * This store handles the lifecycle of a Git repository Worker that performs loading indexing
+ * operations.
+ */
 export class WasmGixStore {
   private worker: Worker | null = null;
   private rpcWorker: Remote<WasmGixWorker> | null = null;
@@ -14,7 +18,7 @@ export class WasmGixStore {
     console.log("WasmGixStore initialized");
   }
 
-  init() {
+  private init() {
     this.worker = new WasmGixWorkerFactory();
     this.rpcWorker = wrap(this.worker);
   }
