@@ -1,12 +1,26 @@
 export default {
-  async fetch(request: Request): Promise<Response> {
+  async fetch(request: Request, env: any): Promise<Response> {
     const url = new URL(request.url);
 
+    const allowedOrigins = [
+      "https://christoph-det.github.io",
+      "http://localhost:4173"
+    ];
+
+    const origin: string | null = request.headers.get("Origin");
+
     const corsHeaders: Record<string, string> = {
-      "Access-Control-Allow-Origin": "https://christoph-det.github.io",
+      "Access-Control-Allow-Origin":
+        origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0],
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "*"
     };
+
+    // optional Cloudflare Rate Limiter logic
+    /*const { success } = await env.MY_RATE_LIMITER.limit({ key: url })
+    if (!success) {
+      return new Response(`429 Failure – rate limit exceeded for ${url}`, { status: 429, headers: corsHeaders })
+    }*/
 
     // Handle Preflight
     if (request.method === "OPTIONS")
