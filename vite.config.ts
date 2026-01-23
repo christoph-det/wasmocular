@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import tailwindcss from "@tailwindcss/vite";
@@ -53,6 +54,13 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src")
+    }
+  },
+  test: {
+    coverage: {
+      provider: "v8",
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: ["src/workers/wasm-gix-library/**", "src/components/ui/**"]
     }
   }
 });

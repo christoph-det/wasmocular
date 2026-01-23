@@ -32,3 +32,6 @@ dev-dist
 # crates
 **/target
 Cargo.lock
+
+#tests
+coverage/
