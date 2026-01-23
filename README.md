@@ -102,6 +102,16 @@ src/
 |-- workers/         # Web Workers for async processing of Git and Database
 |-- App.tsx          # Main app with routing
 |-- main.tsx         # Entry point
+
+
+## Third-Party Libraries
+
+This project uses the following notable open-source libraries:
+
+- [wasm-git](https://github.com/nicowilliams/libgit2) - libgit2 compiled to WebAssembly (GPLv2 with linking exception)
+- [gitoxide](https://github.com/GitoxideLabs/gitoxide) - Pure Rust Git implementation (MIT/Apache-2.0)
+- [DuckDB WASM](https://github.com/duckdb/duckdb-wasm) - In-browser analytical database (MIT)
+- [Apache Arrow](https://arrow.apache.org/) - Columnar data format (Apache-2.0)
 ```
 
 ## Citation
