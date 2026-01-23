@@ -350,7 +350,7 @@ const ExplorePageCustomQuery = () => {
               </div>
             </div>
             <div className="mb-8">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <h2 className="text-2xl font-bold my-1 mx-2">Results</h2>
                 <CreateDashboardWidgetDialog
                   sqlQuery={currentSqlQuery}

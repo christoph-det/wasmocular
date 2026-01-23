@@ -82,7 +82,7 @@ const LoadOtherProjectDialog = ({
             indexingStore.listAllStoredProjects().length === 1) ? (
             <p>No other projects found in local storage.</p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-[60vh] overflow-y-auto">
               {indexingStore.listAllStoredProjects().map((item) => {
                 // Skip current project and projects without identifier
                 if (
@@ -95,13 +95,13 @@ const LoadOtherProjectDialog = ({
                 return (
                   <div
                     key={item.project?.repositoryIdentifier}
-                    className="flex justify-between items-center border border-gray-200 rounded-md p-3"
+                    className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 border border-gray-200 rounded-md p-3"
                   >
-                    <span className="font-medium">
+                    <span className="font-medium break-all">
                       {item.project?.name} ({item.project?.repositoryIdentifier}
                       )
                     </span>
-                    <div className="space-x-2 flex">
+                    <div className="space-x-2 flex shrink-0">
                       <Button
                         size="sm"
                         variant={"outline"}

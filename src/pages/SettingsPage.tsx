@@ -185,7 +185,7 @@ const SettingsPage = observer(() => {
             </h3>
           </div>
           <div className="p-6">
-            <p className="mb-6 text-gray-600">
+            <p className="mb-6 text-gray-600 break-all">
               Project ID: {indexingStore.project?.repositoryIdentifier}
             </p>
             <Label className="mb-2" htmlFor="text">
@@ -207,12 +207,12 @@ const SettingsPage = observer(() => {
               <p className="text-sm text-gray-600 mb-3">
                 Update the database with new commits since the last indexing.
                 {indexingStore.project?.lastIndexedSha && (
-                  <span className="block mt-1 text-gray-500">
+                  <span className="block mt-1 text-gray-500 break-all">
                     Last indexed commit: {indexingStore.project.lastIndexedSha}
                   </span>
                 )}
                 {indexingStore.project?.sourceUrl && (
-                  <span className="block mt-1 text-gray-500">
+                  <span className="block mt-1 text-gray-500 break-all">
                     Source: {indexingStore.project.sourceUrl}
                   </span>
                 )}
