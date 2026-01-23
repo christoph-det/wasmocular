@@ -59,7 +59,7 @@ export default defineConfig({
   test: {
     coverage: {
       provider: "v8",
-      include: ['src/**/*.{ts,tsx}'],
+      include: ["src/**/*.{ts,tsx}"],
       exclude: ["src/workers/wasm-gix-library/**", "src/components/ui/**"]
     }
   }
