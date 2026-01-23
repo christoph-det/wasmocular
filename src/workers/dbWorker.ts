@@ -59,9 +59,7 @@ export class DatabaseWorker {
         accessMode
       });
     } catch (error) {
-      if (
-        accessMode === duckdb.DuckDBAccessMode.READ_ONLY
-      ) {
+      if (accessMode === duckdb.DuckDBAccessMode.READ_ONLY) {
         console.log(
           "DB Worker: OPFS access handle busy; opening read-only snapshot.",
           error
