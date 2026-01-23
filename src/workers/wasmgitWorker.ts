@@ -1,8 +1,7 @@
 import * as Comlink from "comlink";
 import { parseCloneProgress } from "../lib/utils.ts";
-import createWasmGitModule from "./wasm-git-library/lg2.js";
-import lg2WasmUrl from "./wasm-git-library/lg2.wasm?url";
-import type { WasmGitModule } from "./wasm-git-library/lg2.ts";
+import createWasmGitModule, { type WasmGitModule } from "wasm-git/lg2.js";
+import lg2WasmUrl from "wasm-git/lg2.wasm?url";
 
 export class WasmGitWorker {
   private lg!: WasmGitModule;
