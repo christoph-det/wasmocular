@@ -94,10 +94,10 @@ export class WasmGixWorker {
         const averageRemainingMs =
           estimateHistoryMs.reduce((sum, value) => sum + value, 0) /
           estimateHistoryMs.length;
-        currentEstimatedTimeLeft = Math.max(
-          0,
-          Math.round(averageRemainingMs / 1000)
-        ).toString();
+        const estimatedSeconds = Math.round(averageRemainingMs / 1000);
+        currentEstimatedTimeLeft = Number.isFinite(estimatedSeconds)
+          ? Math.max(0, estimatedSeconds).toString()
+          : "...";
         timestampLastEstimateUpdate = Date.now();
         lastIndexedCommitCountForEstimate = currentlyIndexedCommits;
       }
