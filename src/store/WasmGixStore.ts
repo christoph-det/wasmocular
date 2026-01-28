@@ -30,6 +30,9 @@ export class WasmGixStore {
     this.init();
   }
 
+  /**
+   *  Loads the repository data from the storage and remounts it in the worker.
+   */
   async reloadRepository(identifier: string) {
     if (!this.rpcWorker) {
       console.error("WasmGix worker not initialized");
@@ -38,6 +41,9 @@ export class WasmGixStore {
     await this.rpcWorker.remountRepository(identifier);
   }
 
+  /**
+   * Loads a repository into the worker from the given local (outside of browser) file handle.
+   */
   async loadRepository(
     identifier: string,
     localFileHandle: FileSystemDirectoryHandle,
@@ -55,6 +61,9 @@ export class WasmGixStore {
     );
   }
 
+  /**
+   * Deletes all stored data for the given repository identifier from the worker and storage.
+   */
   async deleteRepositroyData(identifier: string) {
     if (!this.rpcWorker) {
       console.error("WasmGix worker not initialized");
@@ -63,6 +72,9 @@ export class WasmGixStore {
     await this.rpcWorker.deleteRepositoryData(identifier);
   }
 
+  /**
+   * Starts the indexing process for the given repository identifier in the worker.
+   */
   async startIndexing(
     identifier: string,
     progressCallback: (progress: number, message: string) => void,
