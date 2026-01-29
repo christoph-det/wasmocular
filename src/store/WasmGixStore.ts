@@ -79,10 +79,10 @@ export class WasmGixStore {
     identifier: string,
     progressCallback: (progress: number, message: string) => void,
     lastIndexedSha?: string
-  ): Promise<string | undefined> {
+  ): Promise<string> {
     if (!this.rpcWorker) {
       console.error("WasmGix worker not initialized");
-      return;
+      throw new Error("WasmGix worker not initialized");
     }
     try {
       const progressProxy = proxy(progressCallback);
@@ -102,7 +102,7 @@ export class WasmGixStore {
       return result.latestSha;
     } catch (error) {
       console.error("Error starting indexing:", error);
-      return;
+      throw error;
     }
   }
 }

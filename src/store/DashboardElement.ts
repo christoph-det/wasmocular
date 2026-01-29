@@ -17,6 +17,8 @@ export enum ChartType {
  * This class represents a single dashboard element (widget) that can display data
  */
 export class DashboardElement {
+  private dbStore: DatabaseStore;
+  dashboardStore: DashboardStore;
   id: string;
   title: string;
   description: string;
@@ -27,8 +29,6 @@ export class DashboardElement {
   error: string | null = null;
   type: ChartType;
   timeResolution: TimeResolution;
-  dbStore: DatabaseStore;
-  dashboardStore: DashboardStore;
 
   constructor(
     id: string,
@@ -57,6 +57,9 @@ export class DashboardElement {
     });
   }
 
+  /**
+   * Loads data for this dashboard element by executing its SQL query with the database.
+   */
   async loadData(): Promise<void> {
     runInAction(() => {
       this.dataLoading = true;
@@ -78,11 +81,15 @@ export class DashboardElement {
     });
   }
 
+  /**
+   * Toggles the width of the dashboard element between "half" and "full" -screen.
+   */
   toggleWidth() {
     this.chartWidth = this.chartWidth === "half" ? "full" : "half";
   }
 
   // CTE approach to apply date filters, TODO: maybe take care of joins later
+  // TODO: make this work for issues and other tables as well
   private makeCTEQuery(userQuery: string): string {
     const conditions: string[] = [];
     const { activeDateFilterFrom, activeDateFilterTo, unselectedAuthors } =

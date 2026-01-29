@@ -398,7 +398,8 @@ const LoadPage = observer(() => {
       return;
     }
 
-    indexingStore.setGitHubApiConfig(trimmedUrl, githubToken.trim());
+    indexingStore.githubApiUrl = trimmedUrl;
+    indexingStore.githubApiToken = githubToken.trim();
     setGithubConfigured(true);
     setOpenGitHubApiDialog(false);
     showSuccess(

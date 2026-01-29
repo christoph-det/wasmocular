@@ -171,6 +171,7 @@ export class DatabaseStore {
    * Adds the issue array to its own database table.
    */
   async insertGitHubIssues(issues: GitHubIssue[]) {
+    if (!issues || issues.length === 0) return;
     await this.awaitDatabaseInitialization;
     if (!this.rpcWorker) {
       throw new Error("Database worker not initialized");
@@ -184,6 +185,7 @@ export class DatabaseStore {
    * Adds the issue events array to its own database table.
    */
   async insertGitHubIssueEvents(events: GitHubIssueEvent[]) {
+    if (!events || events.length === 0) return;
     await this.awaitDatabaseInitialization;
     if (!this.rpcWorker) {
       throw new Error("Database worker not initialized");

@@ -5,7 +5,7 @@ import { TimeResolution } from "@/lib/chartConverters/BaseChartConverter";
 
 /**
  * Structure for storing data of a whole dashboard in localStorage.
-*/
+ */
 interface StoredDashboardData {
   dashboardId: string;
   widgets: StoredDashboardElement[];
@@ -54,7 +54,7 @@ export class DashboardStore {
   private readonly STORAGE_KEY = "dashboardStore_";
   private readonly rootStore: RootStore;
   private autoSaveDisposer: (() => void) | null = null;
-  private availableAuthors: Map<string, boolean> = new Map<string, boolean>();
+  availableAuthors: Map<string, boolean> = new Map<string, boolean>();
   activeDashboard: DashboardData | null = null;
   activeDateFilterFrom: Date | undefined = undefined;
   activeDateFilterTo: Date | undefined = undefined;
@@ -166,7 +166,7 @@ export class DashboardStore {
   }
 
   /**
-    * Exports the active dashboard as a JSON file and triggers a download in the browser.
+   * Exports the active dashboard as a JSON file and triggers a download in the browser.
    */
   exportActiveDashboard() {
     if (this.activeDashboard === null) {

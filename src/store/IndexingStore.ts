@@ -174,7 +174,7 @@ export class IndexingStore {
   }
 
   /**
-    * Creates a new project and initializes it.
+   * Creates a new project and initializes it.
    */
   async createNewProject(
     name: string,
@@ -222,7 +222,6 @@ export class IndexingStore {
     }
     this.project.lastIndexedSha = sha;
   }
-
 
   /**
    * Sets the indexing progress percentage used for tracking indexing status in the UI and storage.
