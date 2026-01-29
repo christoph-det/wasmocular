@@ -4,7 +4,9 @@ interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
 }
-
+/**
+ * Error boundary component to catch and display errors in chart rendering.
+ */
 export class ChartErrorBoundary extends Component<
   { children: React.ReactNode },
   ErrorBoundaryState

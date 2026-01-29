@@ -18,6 +18,7 @@ import {
   DialogTitle
 } from "@/components/ui/dialog";
 
+// enable types for the Directory Picker API
 declare global {
   function showDirectoryPicker({
     mode
@@ -26,12 +27,18 @@ declare global {
   }): Promise<FileSystemDirectoryHandle>;
 }
 
+/**
+ * LoadPage component for creating a new project by selecting a local Git repository
+ * or cloning from a public GitHub URL and configuring optional GitHub issue data.
+ */
 const LoadPage = observer(() => {
   const wasmGitStore = useStores().wasmGitStore;
   const wasmGixStore = useStores().wasmGixStore;
   const indexingStore = useStores().indexingStore;
   const dashboardStore = useStores().dashboardStore;
+
   const { showError, showInfo, showSuccess } = useToast();
+
   const [projectName, setProjectName] = useState<string>("");
   const [gitRepoUrl, setGitRepoUrl] = useState<string>("");
   const [localRepoDirHandle, setLocalRepoDirHandle] =
@@ -48,23 +55,157 @@ const LoadPage = observer(() => {
   const [githubToken, setGithubToken] = useState<string>("");
   const [githubConfigured, setGithubConfigured] = useState<boolean>(false);
 
-  const handleprojectNameInputChange = (event: {
-    target: { value: SetStateAction<string> };
-  }) => {
-    setProjectName(event.target.value);
-  };
-
   const handleSaveProxyUrl = () => {
     indexingStore.proxyURL = proxyUrl;
     setOpenProxyUrlDialog(false);
     showSuccess("Proxy URL updated.");
   };
 
+  // redirect to explore page when indexing has been done already
   useEffect(() => {
     if (indexingStore.dataLoadingState === DataLoadingState.INDEXING_FINISHED) {
       globalThis.location.hash = "#explore-customquery";
     }
   }, [indexingStore.dataLoadingState]);
+
+  const progressCallback = (progress: number, message: string) => {
+    setLoadingProgress(progress);
+    setLoadingProgressMessage(message);
+  };
+
+  /**
+   * Creates a project by either cloning a GitHub repository or loading a local Git repository.
+   */
+  async function clickCreateProject() {
+    setProjectCreationError("");
+    // Get project name from input
+    if (!projectName || projectName.trim() === "") {
+      setProjectName("state::Error");
+      setProjectCreationError("Please enter a project name before continuing.");
+      return;
+    }
+
+    // Ensure a repository source is chosen
+    if (!localRepoDirHandle && gitRepoUrl.trim() === "") {
+      setProjectCreationError(
+        "Select a local repository or paste a public GitHub URL."
+      );
+      return;
+    }
+
+    setLoadingProgress(0);
+    setLoadingProgressMessage(
+      "Counting and compressing objects... (might take a while for large repositories)"
+    );
+
+    const repoIdentifier = generateRepoIdentifier(); // Simple unique ID based on timestamp
+
+    const trimmedUrl = gitRepoUrl.trim();
+
+    // If a GitHub URL is provided, trigger clone from remote
+    if (trimmedUrl) {
+      showInfo("Cloning repository in the background...");
+      wasmGitStore
+        .cloneRepository(trimmedUrl, repoIdentifier, proxyUrl, progressCallback)
+        .then(async () => {
+          showInfo("Repository successfully cloned.");
+          await wasmGixStore.reloadRepository(repoIdentifier);
+          const dashboardId = dashboardStore.createNewDashboard();
+          await indexingStore.createNewProject(
+            projectName,
+            repoIdentifier,
+            dashboardId,
+            trimmedUrl
+          );
+          await indexingStore.setDataLoadingState(
+            DataLoadingState.REPOSITORY_LOADED
+          );
+          // redirect to index page
+          globalThis.location.hash = "#index";
+          showSuccess("Project created successfully.");
+        })
+        .catch((error: Error) => {
+          console.error("Error cloning repository:", error.message);
+          showError(
+            "Failed to clone the repository. Please check the URL and try again. Error: " +
+              error.message
+          );
+          setProjectCreationError(
+            "Failed to clone the repository. Please check the URL and try again."
+          );
+          setLoadingProgress(-1);
+          setLoadingProgressMessage("");
+        });
+    } else {
+      showInfo("Loading local repository...");
+      await wasmGixStore.loadRepository(
+        repoIdentifier,
+        localRepoDirHandle!,
+        progressCallback
+      );
+      const dashboardId = dashboardStore.createNewDashboard();
+      await indexingStore.createNewProject(
+        projectName,
+        repoIdentifier,
+        dashboardId
+      );
+      await indexingStore.setDataLoadingState(
+        DataLoadingState.REPOSITORY_LOADED
+      );
+      // redirect to index page
+      globalThis.location.hash = "#index";
+      showSuccess("Project created successfully.");
+    }
+  }
+
+  /**
+   * Handles the directory picker for selecting a local Git repository.
+   * The API for that is not supported in all browsers. (Only Chromium-based for now)
+   */
+  function handleDirectoryPicker() {
+    if (typeof globalThis.showDirectoryPicker !== "function") {
+      console.error("Directory Picker API is not supported in this browser.");
+      showInfo("Directory Picker API is not available in this browser.");
+      return;
+    }
+
+    globalThis
+      .showDirectoryPicker({ mode: "read" })
+      .then((dirHandle: FileSystemDirectoryHandle) => {
+        setLocalRepoDirHandle(dirHandle);
+        showSuccess("Local repository selected.");
+      })
+      .catch((error: Error) => {
+        setLocalRepoDirHandle(null);
+        if (error?.name === "AbortError") {
+          return;
+        }
+        console.error("Error during directory selection:", error);
+        showError(
+          "Failed to open the directory picker. Please try again. Cause: " +
+            error.message
+        );
+      });
+  }
+
+  /**
+   * Handles saving the GitHub API configuration for issues.
+   */
+  function handleSaveGitHubConfig() {
+    const trimmedUrl = githubRepoUrl.trim();
+    if (!trimmedUrl.startsWith("https://github.com/")) {
+      showError("Please enter a GitHub repository URL.");
+      return;
+    }
+
+    indexingStore.githubApiUrl = trimmedUrl;
+    indexingStore.githubApiToken = githubToken.trim();
+    setGithubConfigured(true);
+    setOpenGitHubApiDialog(false);
+    showSuccess(
+      "GitHub API configuration saved. Issues will be fetched during indexing."
+    );
+  }
 
   return (
     <div className="pt-10 mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-[90vh]">
@@ -94,7 +235,7 @@ const LoadPage = observer(() => {
             </Label>
             <Input
               type="text"
-              onChange={handleprojectNameInputChange}
+              onChange={(e) => setProjectName(e.target.value)}
               hasError={projectName == "state::Error"}
             />
             <Label className="mt-8 mb-2">
@@ -279,133 +420,6 @@ const LoadPage = observer(() => {
       </div>
     </div>
   );
-
-  async function clickCreateProject() {
-    setProjectCreationError("");
-    // Get project name from input
-    if (!projectName || projectName.trim() === "") {
-      setProjectName("state::Error");
-      setProjectCreationError("Please enter a project name before continuing.");
-      return;
-    }
-
-    // Ensure a repository source is chosen
-    if (!localRepoDirHandle && gitRepoUrl.trim() === "") {
-      setProjectCreationError(
-        "Select a local repository or paste a public GitHub URL."
-      );
-      return;
-    }
-
-    setLoadingProgress(0);
-    setLoadingProgressMessage(
-      "Counting and compressing objects... (might take a while for large repositories)"
-    );
-
-    const repoIdentifier = generateRepoIdentifier(); // Simple unique ID based on timestamp
-
-    // If a GitHub URL is provided, trigger clone in the background
-    const trimmedUrl = gitRepoUrl.trim();
-
-    const progressCallback = (progress: number, message: string) => {
-      setLoadingProgress(progress);
-      setLoadingProgressMessage(message);
-    };
-
-    if (trimmedUrl) {
-      showInfo("Cloning repository in the background...");
-      wasmGitStore
-        .cloneRepository(trimmedUrl, repoIdentifier, proxyUrl, progressCallback)
-        .then(async () => {
-          showInfo("Repository successfully cloned.");
-          await wasmGixStore.reloadRepository(repoIdentifier);
-          const dashboardId = dashboardStore.createNewDashboard();
-          await indexingStore.createNewProject(
-            projectName,
-            repoIdentifier,
-            dashboardId,
-            trimmedUrl
-          );
-          await indexingStore.setDataLoadingState(
-            DataLoadingState.REPOSITORY_LOADED
-          );
-          globalThis.location.hash = "#index";
-          showSuccess("Project created successfully.");
-        })
-        .catch((error: Error) => {
-          console.error("Error cloning repository:", error.message);
-          showError(
-            "Failed to clone the repository. Please check the URL and try again. Error: " +
-              error.message
-          );
-          setProjectCreationError(
-            "Failed to clone the repository. Please check the URL and try again."
-          );
-          setLoadingProgress(-1);
-          setLoadingProgressMessage("");
-        });
-    } else {
-      showInfo("Loading local repository...");
-      await wasmGixStore.loadRepository(
-        repoIdentifier,
-        localRepoDirHandle!,
-        progressCallback
-      );
-      const dashboardId = dashboardStore.createNewDashboard();
-      await indexingStore.createNewProject(
-        projectName,
-        repoIdentifier,
-        dashboardId
-      );
-      await indexingStore.setDataLoadingState(
-        DataLoadingState.REPOSITORY_LOADED
-      );
-      globalThis.location.hash = "#index";
-      showSuccess("Project created successfully.");
-    }
-  }
-
-  function handleDirectoryPicker() {
-    if (typeof globalThis.showDirectoryPicker !== "function") {
-      console.error("Directory Picker API is not supported in this browser.");
-      showInfo("Directory Picker API is not available in this browser.");
-      return;
-    }
-
-    globalThis
-      .showDirectoryPicker({ mode: "read" })
-      .then((dirHandle: FileSystemDirectoryHandle) => {
-        setLocalRepoDirHandle(dirHandle);
-        showSuccess("Local repository selected.");
-      })
-      .catch((error: Error) => {
-        setLocalRepoDirHandle(null);
-        if (error?.name === "AbortError") {
-          return;
-        }
-        console.error("Error during directory selection:", error);
-        showError(
-          "Failed to open the directory picker. Please try again. Cause: " +
-            error.message
-        );
-      });
-  }
-
-  function handleSaveGitHubConfig() {
-    const trimmedUrl = githubRepoUrl.trim();
-    if (!trimmedUrl.startsWith("https://github.com/")) {
-      showError("Please enter a GitHub repository URL.");
-      return;
-    }
-
-    indexingStore.githubApiUrl = trimmedUrl;
-    indexingStore.githubApiToken = githubToken.trim();
-    setGithubConfigured(true);
-    setOpenGitHubApiDialog(false);
-    showSuccess(
-      "GitHub API configuration saved. Issues will be fetched during indexing."
-    );
-  }
 });
 
 export default LoadPage;

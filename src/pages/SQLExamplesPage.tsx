@@ -65,6 +65,9 @@ SELECT closed_at AS date, author || '(closed)' AS series, -1 AS value FROM githu
   }
 ];
 
+/**
+ * Page displays example SQL queries for users to get started.
+ */
 const SQLExamplesPage = () => {
   return (
     <div className="mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen">

@@ -13,10 +13,11 @@ import { useToast } from "@/hooks/useToast";
 interface LoadOtherProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Set false when opening from nested menus to avoid focus locking the page */
-  modal?: boolean;
 }
 
+/**
+ * Dialog component for loading or deleting other projects from local storage.
+ */
 const LoadOtherProjectDialog = ({
   open,
   onOpenChange
@@ -25,8 +26,10 @@ const LoadOtherProjectDialog = ({
   const dashboardStore = useStores().dashboardStore;
   const databaseStore = useStores().dbStore;
   const wasmGixStore = useStores().wasmGixStore;
+
   const { showSuccess } = useToast();
 
+  // loads the selected project and sets its dashboard as active
   const handleLoadClick = async (
     repositoryIdentifier: string | undefined,
     defaultDashboardId?: string | null

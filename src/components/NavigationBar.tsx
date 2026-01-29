@@ -13,6 +13,9 @@ import {
 import LoadOtherProjectDialog from "./LoadOtherProjectDialog";
 import { Button } from "./ui/button";
 
+/**
+ * Main navigation bar for the application, allowing navigation between different pages and showing steps.
+ */
 const NavigationBar = observer(() => {
   const indexingStore = useStores().indexingStore;
 
@@ -29,6 +32,7 @@ const NavigationBar = observer(() => {
   const isRepoLoaded =
     indexingStore.dataLoadingState !== DataLoadingState.NOT_STARTED;
 
+  // displays an icon next to the index page representing the current indexing state
   const getIndexStatusIcon = (state: DataLoadingState) => {
     switch (state) {
       case DataLoadingState.INDEXING_STARTED:
@@ -50,9 +54,9 @@ const NavigationBar = observer(() => {
   };
 
   const handleLoadOtherProjectSelect = () => {
-    setIsProjectMenuOpen(false);
+    setIsLoadOtherDialogOpen(false)
     // Defer opening dialog until menu fully closes to avoid focus trapping
-    setTimeout(() => setIsLoadOtherDialogOpen(true), 0);
+    setTimeout(() => setIsLoadOtherDialogOpen(true), 1);
   };
 
   return (
@@ -142,6 +146,7 @@ const NavigationBar = observer(() => {
           </div>
         </div>
         <div className="flex justify-end">
+          { /* Dropdown menu displayed if project is loaded, otherwise show a button to load old projects */}
           {(indexingStore.project && (
             <DropdownMenu
               open={isProjectMenuOpen}

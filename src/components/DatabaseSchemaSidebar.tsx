@@ -4,14 +4,19 @@ import { Spinner } from "./ui/spinner";
 import { useToast } from "@/hooks/useToast";
 import { observer } from "mobx-react-lite";
 
+/**
+ * Sidebar component that displays the database schema with tables and their columns
+ * inferred from the database.
+ */
 const DatabaseSchemaSidebar = observer(() => {
+  const databaseStore = useStores().dbStore;
   const { showError } = useToast();
   const [expandedTables, setExpandedTables] = useState<Set<string>>(new Set());
   const [tablesAndColumns, setTablesAndColumns] = useState<
     Record<string, { column_name: string; data_type: string }[]>
   >({});
-  const databaseStore = useStores().dbStore;
 
+  // fetch schema
   useEffect(() => {
     databaseStore
       .getTableAndColumnNames()
@@ -23,6 +28,7 @@ const DatabaseSchemaSidebar = observer(() => {
       });
   }, [databaseStore, showError, databaseStore.tablesAndColumns]);
 
+  // toggle expand of table - columns display
   const toggleTable = (tableName: string) => {
     const newExpanded = new Set(expandedTables);
     if (newExpanded.has(tableName)) {

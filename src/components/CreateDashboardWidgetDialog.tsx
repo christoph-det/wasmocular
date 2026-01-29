@@ -28,6 +28,9 @@ interface CreateDashboardWidgetDialogProps {
 
 const CHART_TYPE_OPTIONS = Object.values(ChartType) as ChartType[];
 
+/**
+ * Holds the state of the form inputs for creating or editing a dashboard widget before submission.
+ */
 interface FormState {
   title: string;
   description: string;
@@ -37,12 +40,18 @@ interface FormState {
   timeResolution: TimeResolution;
 }
 
+/**
+ * Formats the ChartType enum value into a more readable label for display.
+ */
 const formatChartTypeLabel = (type: ChartType) =>
   type
     .split("_")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 
+/**
+ * Dialog component for creating or editing a dashboard widget.
+ */
 const CreateDashboardWidgetDialog = ({
   sqlQuery,
   trigger,
@@ -51,6 +60,7 @@ const CreateDashboardWidgetDialog = ({
 }: CreateDashboardWidgetDialogProps) => {
   const { dashboardStore } = useStores();
   const { showError, showSuccess } = useToast();
+
   const [open, setOpen] = useState(false);
   const [formState, setFormState] = useState<FormState>({
     title: dashboardElement?.title ?? "",
@@ -81,6 +91,8 @@ const CreateDashboardWidgetDialog = ({
       return;
     }
 
+    // if in edit mode, update the form with existing dashboard element values
+    // otherwise create a new dashboard element
     if (editMode && dashboardElement) {
       dashboardElement.title = formState.title;
       dashboardElement.description = formState.description;

@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 
+/**
+ * Navigation bar for the Explore page, allowing to switch between Custom Query and Dashboard.
+ */
 const ExploreNavigationBar = () => {
   const [current, setCurrent] = useState(window.location.hash || "#/");
 

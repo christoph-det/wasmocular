@@ -50,7 +50,9 @@ const SettingsPage = observer(() => {
     ) {
       const repositoryIdentifier = indexingStore.project?.repositoryIdentifier;
       if (!repositoryIdentifier) {
-        alert("Cannot delete project: No project loaded/inconsistent state.");
+        console.warn(
+          "Cannot delete project: No project loaded/inconsistent state."
+        );
         return;
       }
       try {
@@ -65,11 +67,13 @@ const SettingsPage = observer(() => {
         globalThis.location.hash = "#/";
       } catch (error) {
         console.error("Failed to delete project:", error);
-        alert("Failed to delete project from local storage.");
       }
     }
   };
 
+  /**
+   * Starts the reindexing process for the current repository.
+   */
   const handleReindexClick = async () => {
     const repositoryIdentifier = indexingStore.project!.repositoryIdentifier;
     const lastIndexedSha = indexingStore.project!.lastIndexedSha;
@@ -137,6 +141,9 @@ const SettingsPage = observer(() => {
     }
   };
 
+  /**
+   * Exports the DuckDB database file from the OPFS for the current project and triggers a download.
+   */
   async function exportDuckDB() {
     const opfsRoot = await navigator.storage.getDirectory();
     const databaseFileName = `wasmocular_database_${indexingStore.project?.repositoryIdentifier}.db`;

@@ -11,6 +11,7 @@ import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { tags } from "@lezer/highlight";
 import CreateDashboardWidgetDialog from "@/components/CreateDashboardWidgetDialog";
 
+// custom CodeMirror theme 
 const customSQLTheme = EditorView.theme(
   {
     "&": {
@@ -34,6 +35,7 @@ const customSQLTheme = EditorView.theme(
   { dark: true }
 );
 
+// custom syntax highlighting for SQL in CodeMirror
 const customSQLHighlighting = HighlightStyle.define([
   { tag: tags.keyword, color: "#7dd3fc", fontWeight: 600 },
   {
@@ -49,7 +51,12 @@ const customSQLHighlighting = HighlightStyle.define([
   { tag: [tags.punctuation, tags.separator], color: "#ffffff" }
 ]);
 
+/**
+ * Page component for exploring the database with SQL queries, tables and creating dashboard widgets.
+ */
 const ExplorePageCustomQuery = () => {
+  const databaseStore = useStores().dbStore;
+
   const [searchParams] = useSearchParams();
   const [queryState, setQueryState] = useState({
     select: [] as string[],
@@ -70,7 +77,6 @@ const ExplorePageCustomQuery = () => {
     "-- Write your SQL query here"
   );
 
-  const databaseStore = useStores().dbStore;
 
   const editorRef: React.MutableRefObject<HTMLDivElement | null> = useRef(null);
   const viewRef: React.MutableRefObject<EditorView | null> = useRef(null);
@@ -79,6 +85,7 @@ const ExplorePageCustomQuery = () => {
   const sqlDisplayViewRef: React.MutableRefObject<EditorView | null> =
     useRef(null);
 
+  // Exports the current query results to a CSV file and triggers a download.
   const handleExportCsv = () => {
     const headers = Object.keys(queryResult[0] ?? {});
 
@@ -113,6 +120,7 @@ const ExplorePageCustomQuery = () => {
     URL.revokeObjectURL(url);
   };
 
+  // Executes the current SQL query in the database and updates the results state.
   const handleRunQuery = () => {
     setLoading(true);
     setQueryError(null);
@@ -133,6 +141,7 @@ const ExplorePageCustomQuery = () => {
       });
   };
 
+  // Puts together the SQL query string based on the current query state for both query builder and manual mode.
   const buildSqlQueryString = useCallback(() => {
     return `SELECT ${queryState.select.length > 0 ? queryState.select.join(", ") : "*"} FROM ${queryState.from} ${
       queryState.limit > 0 ? `LIMIT ${queryState.limit};` : ";"
@@ -154,6 +163,7 @@ const ExplorePageCustomQuery = () => {
       });
   }, [databaseStore.tablesAndColumns, databaseStore]);
 
+  // Initialize CodeMirror editor for manual SQL query mode
   useEffect(() => {
     if (editorRef.current && !viewRef.current) {
       const view = new EditorView({
@@ -182,6 +192,7 @@ const ExplorePageCustomQuery = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- manualSQLQuery intentionally excluded; editor only needs initial value
   }, [manualQueryMode]);
 
+  // setup CodeMirror view to display generated SQL query
   useEffect(() => {
     if (sqlDisplayRef.current) {
       const view = new EditorView({
@@ -384,7 +395,7 @@ const ExplorePageCustomQuery = () => {
                   </p>
                 )}
                 <div className="mt-4">
-                  {/* Simple table to display results */}
+                  {/* Table to display results */}
                   <div className="overflow-x-auto">
                     <table className="min-w-full table-auto border-collapse border border-gray-200">
                       <thead>

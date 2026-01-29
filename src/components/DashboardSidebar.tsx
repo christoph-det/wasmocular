@@ -11,12 +11,17 @@ import {
 import { ChevronDownIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 
+/**
+ * DashboardSidebar provides filtering options and actions for the dashboard.
+ */
 const DashboardSidebar = observer(() => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const dashboardStore = useStores().dashboardStore;
   const dbStore = useStores().dbStore;
+  const dashboardStore = useStores().dashboardStore;
   const indexingStore = useStores().indexingStore;
+
   const { showSuccess } = useToast();
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [openDateTo, setOpenDateTo] = useState(false);
   const [openDateFrom, setOpenDateFrom] = useState(false);
 
@@ -26,6 +31,7 @@ const DashboardSidebar = observer(() => {
 
   const currentProjectIdentifier = indexingStore.project?.repositoryIdentifier;
 
+  // update available authors for filtering
   useEffect(() => {
     dbStore
       .runQuery("SELECT DISTINCT author_signature FROM commits;")
@@ -117,6 +123,7 @@ const DashboardSidebar = observer(() => {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Date Range:
             </label>
+            {/* Date selection */}
             <Popover open={openDateFrom} onOpenChange={setOpenDateFrom}>
               <PopoverTrigger asChild>
                 <Button
@@ -175,6 +182,7 @@ const DashboardSidebar = observer(() => {
               </PopoverContent>
             </Popover>
             <br />
+            {/* Author selection */}
             <label className="block text-sm font-medium text-gray-700 mb-1 mt-3">
               Authors:
             </label>
@@ -199,6 +207,7 @@ const DashboardSidebar = observer(() => {
               )}
             </div>
           </div>
+          {/* Export/Import actions */}
           <p className="mt-20">Dashboard Actions:</p>
           <div className="flex">
             <Button onClick={handleExportDashboard} className="" variant="link">
