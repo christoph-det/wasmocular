@@ -11,7 +11,7 @@ import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { tags } from "@lezer/highlight";
 import CreateDashboardWidgetDialog from "@/components/CreateDashboardWidgetDialog";
 
-// custom CodeMirror theme 
+// custom CodeMirror theme
 const customSQLTheme = EditorView.theme(
   {
     "&": {
@@ -76,7 +76,6 @@ const ExplorePageCustomQuery = () => {
   const [manualSQLQuery, setManualSQLQuery] = useState(
     "-- Write your SQL query here"
   );
-
 
   const editorRef: React.MutableRefObject<HTMLDivElement | null> = useRef(null);
   const viewRef: React.MutableRefObject<EditorView | null> = useRef(null);

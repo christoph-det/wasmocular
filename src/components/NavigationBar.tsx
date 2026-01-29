@@ -54,7 +54,7 @@ const NavigationBar = observer(() => {
   };
 
   const handleLoadOtherProjectSelect = () => {
-    setIsLoadOtherDialogOpen(false)
+    setIsLoadOtherDialogOpen(false);
     // Defer opening dialog until menu fully closes to avoid focus trapping
     setTimeout(() => setIsLoadOtherDialogOpen(true), 1);
   };
@@ -146,7 +146,7 @@ const NavigationBar = observer(() => {
           </div>
         </div>
         <div className="flex justify-end">
-          { /* Dropdown menu displayed if project is loaded, otherwise show a button to load old projects */}
+          {/* Dropdown menu displayed if project is loaded, otherwise show a button to load old projects */}
           {(indexingStore.project && (
             <DropdownMenu
               open={isProjectMenuOpen}
