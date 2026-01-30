@@ -17,30 +17,45 @@ const MANUAL_BUNDLES: duckdb.DuckDBBundles = {
   }
 };
 
+/**
+ * Worker to manage DuckDB database operations.
+ */
 export class DatabaseWorker {
-  worker: Worker | null = null;
-  db: duckdb.AsyncDuckDB | null = null;
-  connection: duckdb.AsyncDuckDBConnection | null = null;
-  isInitialized = false;
-  repositoryIdentifier: string | null = null;
-  accessMode: duckdb.DuckDBAccessMode | null = null;
+  private worker: Worker | null = null;
+  private db: duckdb.AsyncDuckDB | null = null;
+  private connection: duckdb.AsyncDuckDBConnection | null = null;
+  private isInitialized = false;
+  private repositoryIdentifier: string | null = null;
+  private accessMode: duckdb.DuckDBAccessMode | null = null;
 
-  private async openReadOnlySnapshot(repositoryIdentifier: string) {
-    if (!this.db) {
-      throw new Error("Database not instantiated");
+  /**
+   * Initializes the database for the given repository identifier and access mode.
+   */
+  async initialize(
+    repositoryIdentifier: string,
+    accessMode: duckdb.DuckDBAccessMode
+  ) {
+    if (this.isInitialized) {
+      const sameIdentifier = this.repositoryIdentifier === repositoryIdentifier;
+      const sameMode = this.accessMode === accessMode;
+
+      if (sameIdentifier && sameMode) {
+        return;
+      }
+
+      await this.shutdown(!sameIdentifier);
     }
 
-    const dbFileName = `wasmocular_database_${repositoryIdentifier}.db`;
-    const root = await navigator.storage.getDirectory();
-    const fileHandle = await root.getFileHandle(dbFileName);
-    const file = await fileHandle.getFile();
-    const buffer = new Uint8Array(await file.arrayBuffer());
+    await this.instantiateDatabase(repositoryIdentifier, accessMode);
 
-    await this.db.registerFileBuffer(dbFileName, buffer);
-    await this.db.open({
-      path: dbFileName,
-      accessMode: duckdb.DuckDBAccessMode.READ_ONLY
-    });
+    this.repositoryIdentifier = repositoryIdentifier;
+    this.accessMode = accessMode;
+    this.isInitialized = true;
+    this.connection = null;
+
+    console.log(
+      `Database initialized for identifier "${repositoryIdentifier}" in ${duckdb.DuckDBAccessMode[accessMode]} mode`
+    );
   }
 
   private async instantiateDatabase(
@@ -70,6 +85,26 @@ export class DatabaseWorker {
       throw error;
     }
   }
+
+  private async openReadOnlySnapshot(repositoryIdentifier: string) {
+    if (!this.db) {
+      throw new Error("Database not instantiated");
+    }
+
+    const dbFileName = `wasmocular_database_${repositoryIdentifier}.db`;
+    const root = await navigator.storage.getDirectory();
+    const fileHandle = await root.getFileHandle(dbFileName);
+    const file = await fileHandle.getFile();
+    const buffer = new Uint8Array(await file.arrayBuffer());
+
+    await this.db.registerFileBuffer(dbFileName, buffer);
+    await this.db.open({
+      path: dbFileName,
+      accessMode: duckdb.DuckDBAccessMode.READ_ONLY
+    });
+  }
+
+  
 
   private async shutdown(resetRepositoryInfo: boolean) {
     if (this.connection) {
@@ -106,6 +141,9 @@ export class DatabaseWorker {
     }
   }
 
+  /**
+   * Deletes the database file for the given repository identifier.
+   */
   async deleteDatabase(repositoryIdentifier: string) {
     this.repositoryIdentifier = repositoryIdentifier;
     const dbPath = `wasmocular_database_${repositoryIdentifier}.db`;
@@ -122,32 +160,7 @@ export class DatabaseWorker {
     }
   }
 
-  async initialize(
-    repositoryIdentifier: string,
-    accessMode: duckdb.DuckDBAccessMode
-  ) {
-    if (this.isInitialized) {
-      const sameIdentifier = this.repositoryIdentifier === repositoryIdentifier;
-      const sameMode = this.accessMode === accessMode;
-
-      if (sameIdentifier && sameMode) {
-        return;
-      }
-
-      await this.shutdown(!sameIdentifier);
-    }
-
-    await this.instantiateDatabase(repositoryIdentifier, accessMode);
-
-    this.repositoryIdentifier = repositoryIdentifier;
-    this.accessMode = accessMode;
-    this.isInitialized = true;
-    this.connection = null;
-
-    console.log(
-      `Database initialized for identifier "${repositoryIdentifier}" in ${duckdb.DuckDBAccessMode[accessMode]} mode`
-    );
-  }
+  
 
   private async connect() {
     if (!this.db || !this.isInitialized) {
@@ -158,10 +171,28 @@ export class DatabaseWorker {
     this.connection = await this.db.connect();
   }
 
+  private async ensureConnection(
+    write = false
+  ): Promise<duckdb.AsyncDuckDBConnection> {
+    if (!this.repositoryIdentifier) {
+      throw new Error("Database not initialized for any repository");
+    }
+    if (write && this.accessMode !== duckdb.DuckDBAccessMode.READ_WRITE) {
+      await this.switchAccessMode(duckdb.DuckDBAccessMode.READ_WRITE);
+    }
+    if (!this.connection) {
+      await this.connect();
+    }
+    return this.connection!;
+  }
+
   async terminate() {
     await this.shutdown(true);
   }
 
+  /**
+   * Sets the connection access mode (READ_ONLY or READ_WRITE).
+   */
   async switchAccessMode(accessMode: duckdb.DuckDBAccessMode) {
     if (!this.repositoryIdentifier) {
       throw new Error("Cannot switch access mode before initialization");
@@ -183,30 +214,23 @@ export class DatabaseWorker {
     );
   }
 
-  async persistCheckpoint() {
+  // Saves the current state of the database to persistent storage.
+  private async persistCheckpoint() {
     if (!this.connection) {
       throw new Error("No active database connection for checkpointing");
     }
     await this.connection.query("CHECKPOINT;");
   }
 
+  /**
+   * Executes the given SQL query and returns the results.
+   */
   async query(sql: string) {
-    if (!this.repositoryIdentifier) {
-      throw new Error("Database not initialized for any repository");
-    }
-
-    if (!this.connection) {
-      await this.connect();
-    }
-
-    if (!this.connection) {
-      throw new Error("No connection to database");
-    }
-
-    const result = await this.connection.query(sql);
+    const connection = await this.ensureConnection();
+    const result = await connection.query(sql);
     const rows = result
       .toArray()
-      .map((row: unknown) =>
+      .map((row) =>
         row && typeof (row as { toJSON?: () => unknown }).toJSON === "function"
           ? (row as { toJSON: () => unknown }).toJSON()
           : row
@@ -219,31 +243,20 @@ export class DatabaseWorker {
     return cloneableResult;
   }
 
+  /**
+   * Inserts indexer data (in Arrow IPC format) into the database.
+   */
   async insertIndexerData(identifier: string, buffer: Uint8Array) {
-    if (!this.repositoryIdentifier) {
-      throw new Error("Database not initialized for any repository");
-    }
-
     if (identifier !== this.repositoryIdentifier) {
       throw new Error(
         `Indexer data identifier "${identifier}" does not match initialized repository "${this.repositoryIdentifier}"`
       );
     }
 
-    if (this.accessMode !== duckdb.DuckDBAccessMode.READ_WRITE) {
-      await this.switchAccessMode(duckdb.DuckDBAccessMode.READ_WRITE);
-    }
-
-    if (!this.connection) {
-      await this.connect();
-    }
-
-    if (!this.connection) {
-      throw new Error("No connection to database");
-    }
+    const connection = await this.ensureConnection(true);
 
     const tableName = `commits`;
-    const tableExistsResult = await this.connection
+    const tableExistsResult = await connection
       .query(`SELECT COUNT(table_name)
       FROM information_schema.tables
       WHERE table_schema = 'main' and table_name = '${tableName}'
@@ -254,7 +267,7 @@ export class DatabaseWorker {
         "count(table_name)"
       ] > 0;
 
-    await this.connection.insertArrowFromIPCStream(buffer, {
+    await connection.insertArrowFromIPCStream(buffer, {
       name: tableName,
       create: !tableExists
     });
@@ -263,26 +276,14 @@ export class DatabaseWorker {
     console.log(`DB Worker: Inserted indexer data into table ${tableName}`);
   }
 
+  /**
+   * Inserts GitHub issues into the database and creates the necessary table.
+   */
   async insertGitHubIssues(issues: GitHubIssue[]) {
-    if (!this.repositoryIdentifier) {
-      throw new Error("Database not initialized for any repository");
-    }
-
-    if (this.accessMode !== duckdb.DuckDBAccessMode.READ_WRITE) {
-      await this.switchAccessMode(duckdb.DuckDBAccessMode.READ_WRITE);
-    }
-
-    if (!this.connection) {
-      await this.connect();
-    }
-
-    if (!this.connection) {
-      throw new Error("No connection to database");
-    }
-
+    const connection = await this.ensureConnection(true);
     const tableName = "github_issues";
 
-    await this.connection.query(`
+    await connection.query(`
       CREATE TABLE ${tableName} (
         id BIGINT,
         number INTEGER,
@@ -298,9 +299,8 @@ export class DatabaseWorker {
       )
     `);
 
-    // Insert issues
     if (issues.length > 0) {
-      const stmt = await this.connection.prepare(
+      const stmt = await connection.prepare(
         `INSERT INTO ${tableName} VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       );
 
@@ -326,26 +326,14 @@ export class DatabaseWorker {
     console.log(`DB Worker: Inserted ${issues.length} GitHub issues.`);
   }
 
+  /**
+   * Inserts GitHub issue events into the database and creates the necessary table.
+   */
   async insertGitHubIssueEvents(events: GitHubIssueEvent[]) {
-    if (!this.repositoryIdentifier) {
-      throw new Error("Database not initialized for any repository");
-    }
-
-    if (this.accessMode !== duckdb.DuckDBAccessMode.READ_WRITE) {
-      await this.switchAccessMode(duckdb.DuckDBAccessMode.READ_WRITE);
-    }
-
-    if (!this.connection) {
-      await this.connect();
-    }
-
-    if (!this.connection) {
-      throw new Error("No connection to database");
-    }
-
+    const connection = await this.ensureConnection(true);
     const tableName = "github_issue_events";
 
-    await this.connection.query(`
+    await connection.query(`
       CREATE TABLE ${tableName} (
         issue_number INTEGER,
         event_type VARCHAR,
@@ -355,9 +343,8 @@ export class DatabaseWorker {
       )
     `);
 
-    // Insert events
     if (events.length > 0) {
-      const stmt = await this.connection.prepare(
+      const stmt = await connection.prepare(
         `INSERT INTO ${tableName} VALUES (?, ?, ?, ?, ?)`
       );
 
