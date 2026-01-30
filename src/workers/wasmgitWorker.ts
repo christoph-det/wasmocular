@@ -37,7 +37,6 @@ export class WasmGitWorker {
   /**
    * Clones a remote Git repository into IndexedDB using WasmGit.
    * @param gitRepoURL Expects the URL in the following format: https://github.com/repo-owner/repo-name.git
-   * @param repoIdentifier Repository identifier to be used as folder name in IndexedDB and as DB name
    */
   async cloneRepository(
     gitRepoURL: string,
@@ -114,10 +113,6 @@ export class WasmGitWorker {
     return null;
   }
 
-  /**
-   * Sets the current repository URL.
-   * @param url
-   */
   private setCurrentRepository(url: string, proxyURL: string) {
     // if the url contains github remove everything before and including github.com/
     if (url.includes("https://github.com/")) {
@@ -129,6 +124,7 @@ export class WasmGitWorker {
     this.repoURL = proxyURL + `/git-proxy/` + this.repoURL;
   }
 
+  // mounts the indexedDB filesystem at /repos, it is provided by emscripten and thus can also be used by wasm-gix
   private mountIDBFS() {
     if (this.isMounted) {
       return;
@@ -178,7 +174,4 @@ export class WasmGitWorker {
 }
 
 const wasmGitWorker = new WasmGitWorker();
-
-(function () {
-  Comlink.expose(wasmGitWorker);
-})();
+Comlink.expose(wasmGitWorker);

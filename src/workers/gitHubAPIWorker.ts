@@ -1,6 +1,9 @@
 import * as Comlink from "comlink";
 import { GitHubIssue, GitHubIssueEvent } from "./dbWorker.d";
-import type { GitHubIssueResponse, GitHubTimelineEvent } from "./gitHubAPIWorker.d";
+import type {
+  GitHubIssueResponse,
+  GitHubTimelineEvent
+} from "./gitHubAPIWorker.d";
 
 const ISSUES_PER_PAGE = 100;
 
@@ -8,7 +11,6 @@ const ISSUES_PER_PAGE = 100;
  * Worker to interact with the GitHub API for fetching issues and their associated events.
  */
 export class GitHubAPIWorker {
-
   /**
    * Returns all issues and their associated timeline events from a specified GitHub repository.
    * The token is optional but recommended to avoid rate limiting and to fetch issue timeline events. It should be a fine-grained personal access token with repo reading scope.
