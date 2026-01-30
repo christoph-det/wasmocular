@@ -1,21 +1,7 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
 import * as Comlink from "comlink";
-import duckdb_wasm from "@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm?url";
-import mvp_worker from "@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?url";
-import duckdb_wasm_eh from "@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url";
-import eh_worker from "@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url";
 import type { GitHubIssue, GitHubIssueEvent } from "./dbWorker.d";
-
-const MANUAL_BUNDLES: duckdb.DuckDBBundles = {
-  mvp: {
-    mainModule: duckdb_wasm,
-    mainWorker: mvp_worker
-  },
-  eh: {
-    mainModule: duckdb_wasm_eh,
-    mainWorker: eh_worker
-  }
-};
+import { MANUAL_BUNDLES } from "./dbWorker.d";
 
 /**
  * Worker to manage DuckDB database operations.
@@ -104,8 +90,6 @@ export class DatabaseWorker {
     });
   }
 
-  
-
   private async shutdown(resetRepositoryInfo: boolean) {
     if (this.connection) {
       try {
@@ -159,8 +143,6 @@ export class DatabaseWorker {
       );
     }
   }
-
-  
 
   private async connect() {
     if (!this.db || !this.isInitialized) {
@@ -256,8 +238,7 @@ export class DatabaseWorker {
     const connection = await this.ensureConnection(true);
 
     const tableName = `commits`;
-    const tableExistsResult = await connection
-      .query(`SELECT COUNT(table_name)
+    const tableExistsResult = await connection.query(`SELECT COUNT(table_name)
       FROM information_schema.tables
       WHERE table_schema = 'main' and table_name = '${tableName}'
     `);
