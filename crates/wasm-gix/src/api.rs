@@ -1,11 +1,11 @@
+use anyhow::{anyhow, Context, Result};
 use std::path::Path;
 use std::sync::Arc;
-use anyhow::{anyhow, Context, Result};
 
 use arrow_array::array::ArrayRef;
-use arrow_array::{StringArray, TimestampMillisecondArray, UInt64Array};
 use arrow_array::RecordBatch;
-use arrow_ipc::writer::{StreamWriter};
+use arrow_array::{StringArray, TimestampMillisecondArray, UInt64Array};
+use arrow_ipc::writer::StreamWriter;
 use arrow_schema::{DataType, Field, Schema, TimeUnit};
 
 pub fn repo_head(repo_path: &Path) -> Result<String> {
@@ -62,9 +62,7 @@ pub fn branches(repo_path: &Path) -> Result<Vec<String>> {
     let repo = gix::open(repo_path)
         .with_context(|| format!("failed to open repository at {}", repo_path.display()))?;
 
-    let references = repo
-        .references()
-        .context("failed to access references")?;
+    let references = repo.references().context("failed to access references")?;
     let mut refs = references
         .prefixed("refs/heads/")
         .context("failed to iterate local branches")?;
@@ -88,7 +86,10 @@ pub fn branches(repo_path: &Path) -> Result<Vec<String>> {
 }
 
 // runs from head and goes backwards, collecting commit data
-pub fn run_git_indexer(repo_path: &Path, last_indexed_commit_sha: Option<String>) -> Result<Vec<u8>> {
+pub fn run_git_indexer(
+    repo_path: &Path,
+    last_indexed_commit_sha: Option<String>,
+) -> Result<Vec<u8>> {
     let repo = gix::open(repo_path)?;
 
     let mut head = repo.head()?;
@@ -112,15 +113,14 @@ pub fn run_git_indexer(repo_path: &Path, last_indexed_commit_sha: Option<String>
     let mut deletions: Vec<u64> = Vec::new();
 
     println!("[gitoxide] Starting commit indexing...");
-    let commit_count = repo
-    .rev_walk([head_id.clone()])
-    .all()?
-    .try_fold(0usize, |acc, item| -> Result<_, gix::revision::walk::iter::Error> {
-        item?;
-        Ok(acc + 1)
-    })?;
+    let commit_count = repo.rev_walk([head_id.clone()]).all()?.try_fold(
+        0usize,
+        |acc, item| -> Result<_, gix::revision::walk::iter::Error> {
+            item?;
+            Ok(acc + 1)
+        },
+    )?;
     println!("[gitoxide] Commit count: {}", commit_count);
-
 
     while let Some(item) = walk.next() {
         let commit = item?.object()?;
@@ -178,8 +178,9 @@ pub fn run_git_indexer(repo_path: &Path, last_indexed_commit_sha: Option<String>
     let commits: ArrayRef = Arc::new(StringArray::from(shas));
     let messages: ArrayRef = Arc::new(StringArray::from(messages));
     let authors: ArrayRef = Arc::new(StringArray::from(author_signatures));
-    let timestamps: ArrayRef =
-        Arc::new(TimestampMillisecondArray::from_iter_values(authored_at.iter().copied()));
+    let timestamps: ArrayRef = Arc::new(TimestampMillisecondArray::from_iter_values(
+        authored_at.iter().copied(),
+    ));
     let branch_hints: ArrayRef = Arc::new(StringArray::from(branch_hints));
     let additions: ArrayRef = Arc::new(UInt64Array::from(additions));
     let deletions: ArrayRef = Arc::new(UInt64Array::from(deletions));
@@ -207,7 +208,6 @@ pub fn run_git_indexer(repo_path: &Path, last_indexed_commit_sha: Option<String>
 
     Ok(buffer)
 }
-
 
 fn commit_line_stats<'repo>(
     repo: &'repo gix::Repository,
