@@ -1,34 +1,64 @@
 import * as Comlink from "comlink";
 import { GitHubIssue, GitHubIssueEvent } from "./dbWorker.d";
+import type { GitHubIssueResponse, GitHubTimelineEvent } from "./gitHubAPIWorker.d";
 
 const ISSUES_PER_PAGE = 100;
-
-interface GitHubIssueResponse {
-  id: number;
-  number: number;
-  title: string;
-  state: string;
-  created_at: string;
-  updated_at: string;
-  closed_at: string | null;
-  user: { login: string } | null;
-  labels: { name: string }[];
-  comments: number;
-  body: string | null;
-  pull_request?: unknown;
-}
-
-interface GitHubTimelineEvent {
-  event: string;
-  commit_id?: string | null;
-  created_at: string;
-  actor?: { login: string } | null;
-}
 
 /**
  * Worker to interact with the GitHub API for fetching issues and their associated events.
  */
 export class GitHubAPIWorker {
+
+  /**
+   * Returns all issues and their associated timeline events from a specified GitHub repository.
+   * The token is optional but recommended to avoid rate limiting and to fetch issue timeline events. It should be a fine-grained personal access token with repo reading scope.
+   */
+  async fetchIssuesAndEvents(
+    repoUrl: string,
+    onProgress: (progress: number, message: string) => void,
+    token: string
+  ): Promise<{
+    issues: GitHubIssue[];
+    events: GitHubIssueEvent[];
+  }> {
+    const url = new URL(repoUrl);
+    const [, owner, repo] = url.pathname.split("/");
+    const repoName = repo.replace(/\.git$/, "");
+    const hasToken = token.trim().length > 0;
+
+    onProgress(5, "Starting to fetch issues...");
+
+    try {
+      const headers = this.createHeaders(token);
+
+      const allIssues: GitHubIssue[] = await this.fetchAllIssues(
+        headers,
+        onProgress,
+        owner,
+        repoName
+      );
+
+      // Fetch timeline for issues to get commit references (only when user provides token)
+      let allEvents: GitHubIssueEvent[] = [];
+
+      if (hasToken) {
+        allEvents = await this.fetchIssueTimelineEvents(
+          allIssues,
+          headers,
+          onProgress,
+          owner,
+          repoName
+        );
+      }
+
+      onProgress(95, "Saving to database...");
+      return { issues: allIssues, events: allEvents };
+    } catch (error) {
+      onProgress(100, "Error fetching issues: " + (error as Error).message);
+      throw error;
+    }
+  }
+
   private createHeaders(token: string): Record<string, string> {
     const headers: Record<string, string> = {
       Accept: "application/vnd.github+json"
@@ -79,56 +109,6 @@ export class GitHubAPIWorker {
       endProgress,
       startProgress + Math.floor((current / total) * range)
     );
-  }
-
-  /**
-   * Returns all issues and their associated timeline events from a specified GitHub repository.
-   * The token is optional but recommended to avoid rate limiting and to fetch issue timeline events. It should be a fine-grained personal access token with repo reading scope.
-   */
-  async fetchIssuesAndEvents(
-    repoUrl: string,
-    onProgress: (progress: number, message: string) => void,
-    token: string
-  ): Promise<{
-    issues: GitHubIssue[];
-    events: GitHubIssueEvent[];
-  }> {
-    const url = new URL(repoUrl);
-    const [, owner, repo] = url.pathname.split("/");
-    const repoName = repo.replace(/\.git$/, "");
-    const hasToken = token.trim().length > 0;
-
-    onProgress(5, "Starting to fetch issues...");
-
-    try {
-      const headers = this.createHeaders(token);
-
-      const allIssues: GitHubIssue[] = await this.fetchAllIssues(
-        headers,
-        onProgress,
-        owner,
-        repoName
-      );
-
-      // Fetch timeline for issues to get commit references (only when user provides token)
-      let allEvents: GitHubIssueEvent[] = [];
-
-      if (hasToken) {
-        allEvents = await this.fetchIssueTimelineEvents(
-          allIssues,
-          headers,
-          onProgress,
-          owner,
-          repoName
-        );
-      }
-
-      onProgress(95, "Saving to database...");
-      return { issues: allIssues, events: allEvents };
-    } catch (error) {
-      onProgress(100, "Error fetching issues: " + (error as Error).message);
-      throw error;
-    }
   }
 
   private async fetchAllIssues(
