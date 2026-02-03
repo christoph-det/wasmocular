@@ -85,6 +85,7 @@ export class WasmGixStore {
       throw new Error("WasmGix worker not initialized");
     }
     try {
+      const startTime = performance.now();
       const progressProxy = proxy(progressCallback);
       const result = await this.rpcWorker.startIndexing(
         identifier,
@@ -94,11 +95,17 @@ export class WasmGixStore {
       if (!result) {
         throw new Error("Indexing failed: no result returned");
       }
+      const endTime = performance.now();
+      const duration = ((endTime - startTime) / 1000).toFixed(2);
       await this.rootStore.dbStore.receiveIndexerResults(
         identifier,
         result.buffer
       );
-      progressCallback(100, "Indexing completed successfully.");
+      const dbInsertionTime = ((performance.now() - endTime) / 1000).toFixed(2);
+      progressCallback(
+        100,
+        `Indexing completed successfully in ${duration}s. Database insertion took ${dbInsertionTime}s.`
+      );
       return result.latestSha;
     } catch (error) {
       console.error("Error starting indexing:", error);
