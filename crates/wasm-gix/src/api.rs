@@ -311,3 +311,7 @@ mod api_tests;
 #[cfg(test)]
 #[path = "performance_test.rs"]
 mod performance_test;
+
+#[cfg(test)]
+#[path = "integration_tests.rs"]
+mod integration_tests;

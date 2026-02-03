@@ -11,7 +11,7 @@ pub fn execute_git_command(args: &[&str], path: &Path) {
         .expect("failed to execute git command");
 }
 
-fn create_test_repo() -> TempDir {
+pub fn create_test_repo() -> TempDir {
     let dir = TempDir::new().expect("failed to create temp dir");
     let path = dir.path();
 

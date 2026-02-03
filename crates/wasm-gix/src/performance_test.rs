@@ -3,7 +3,6 @@ use std::time::Instant;
 use tempfile::TempDir;
 
 #[test]
-#[ignore]
 fn benchmark_git_indexer_tiny_repo() {
     // clone smaller repo for performance testing, about 1350 commits at time of writing
     let repo_url = "https://github.com/christoph-det/test-repo-wasmocular.git";
