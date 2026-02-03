@@ -1,13 +1,11 @@
+use crate::api;
+/**
+ * The foreign function interface (FFI) exposes functions for interacting with a git repository.
+ */
 use std::cell::RefCell;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::path::Path;
-
-use crate::api;
-
-/**
- * The foreign function interface (FFI) exposes functions for interacting with a git repository.
- */
 
 thread_local! {
     static RETURN_BUFFER: RefCell<Vec<u8>> = RefCell::new(Vec::with_capacity(64));
@@ -52,9 +50,7 @@ fn read_utf8(ptr: *const c_char) -> Result<String, &'static str> {
         .map_err(|_| "invalid utf-8")
 }
 
-/**
- * Gets the current HEAD commit SHA of the repository at the given path, stored for reindexing.
- */
+/// Gets the current HEAD commit SHA of the repository at the given path, stored for reindexing.
 #[no_mangle]
 pub extern "C" fn gitoxide_repo_head(repo_path: *const c_char) -> *const c_char {
     let repo_path = match read_utf8(repo_path) {
@@ -64,9 +60,7 @@ pub extern "C" fn gitoxide_repo_head(repo_path: *const c_char) -> *const c_char 
     format_result(api::repo_head(Path::new(&repo_path)))
 }
 
-/**
- * Gets the tracked paths of the repository at the given path.
- */
+/// Gets the tracked paths of the repository at the given path.
 #[no_mangle]
 pub extern "C" fn gitoxide_tracked_paths(repo_path: *const c_char) -> *const c_char {
     let repo_path = match read_utf8(repo_path) {
@@ -76,9 +70,7 @@ pub extern "C" fn gitoxide_tracked_paths(repo_path: *const c_char) -> *const c_c
     format_lines_result(api::tracked_paths(Path::new(&repo_path)))
 }
 
-/**
- * Gets the list of branches of the repository at the given path. Currently unused but for futre extensions to mine branch-specific data.
- */
+/// Gets the list of branches of the repository at the given path. Currently unused but for futre extensions to mine branch-specific data.
 #[no_mangle]
 pub extern "C" fn gitoxide_branches(repo_path: *const c_char) -> *const c_char {
     let repo_path = match read_utf8(repo_path) {
@@ -88,9 +80,7 @@ pub extern "C" fn gitoxide_branches(repo_path: *const c_char) -> *const c_char {
     format_lines_result(api::branches(Path::new(&repo_path)))
 }
 
-/**
- * Runs the git indexer on the repository at the given path, optionally starting from the last indexed commit SHA.
- */
+/// Runs the git indexer on the repository at the given path, optionally starting from the last indexed commit SHA.
 #[no_mangle]
 pub extern "C" fn gitoxide_run_git_indexer(
     repo_path: *const c_char,
