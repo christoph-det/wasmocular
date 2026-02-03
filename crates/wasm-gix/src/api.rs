@@ -307,3 +307,7 @@ fn commit_line_stats<'repo>(
 #[cfg(test)]
 #[path = "api_tests.rs"]
 mod api_tests;
+
+#[cfg(test)]
+#[path = "performance_test.rs"]
+mod performance_test;

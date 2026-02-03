@@ -9,6 +9,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:rust": "cargo test --manifest-path crates/wasm-gix/Cargo.toml",
+    "bench:rust": "cargo test --release --manifest-path crates/wasm-gix/Cargo.toml -- --ignored --nocapture --test-threads=1",
     "build": "tsc && vite build",
     "build:wasm-gix": "cargo build --release --target wasm32-unknown-emscripten --bin wasm_gix --no-default-features --manifest-path crates/wasm-gix/Cargo.toml && cp crates/wasm-gix/target/wasm32-unknown-emscripten/release/wasm_gix.js crates/wasm-gix/target/wasm32-unknown-emscripten/release/wasm_gix.wasm src/workers/wasm-gix-library/",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
