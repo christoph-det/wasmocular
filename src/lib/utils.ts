@@ -6,8 +6,8 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Returns a new repo indentifier based on the current date.
+ * Returns a new repo indentifier based on the current date and a random value.
  */
 export function generateRepoIdentifier(): string {
-  return Date.now().toString(16);
+  return Date.now().toString(16) + Math.random().toString(16).slice(2, 5);
 }
