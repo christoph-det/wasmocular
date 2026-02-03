@@ -4,15 +4,16 @@ import initGitoxide, {
 import * as Comlink from "comlink";
 
 const GITOXIDE_LOG_PREFIX = "[gitoxide]";
+// path in the virtual FS
 const PERSIST_ROOT = "/repos";
 
-// TODO: cleanup, maybe bring some methods outside of the worker
-// TODO: handle data deletion
-
+/**
+ * WasmGixWorker provides methods to interact with git repositories using the gitoxide module.
+ */
 export class WasmGixWorker {
-  gitoxide!: GitoxideModule;
-  createdDirs: Set<string> = new Set<string>(["/"]);
-  storedRepositories: string[] = [];
+  private gitoxide!: GitoxideModule;
+  private createdDirs: Set<string> = new Set<string>(["/"]);
+  // route log messages from gitoxide to the UI
   private gitoxideLogListener?: (message: string) => void;
 
   async init() {
@@ -34,9 +35,13 @@ export class WasmGixWorker {
       }
       return;
     }
+    // logs without prefix to console 
     (isError ? console.error : console.log)(message);
   }
 
+  /**
+   * Deletes all data associated with a repository from the virtual emscripten file system.
+   */
   async deleteRepositoryData(identifier: string) {
     const repoPath = `${PERSIST_ROOT}/${identifier}`;
     try {
@@ -50,6 +55,10 @@ export class WasmGixWorker {
     }
   }
 
+  /**
+   * Indexes the repository at the given identifier, providing progress updates via the callback. If a lastIndexedSha is provided, indexing only goes until that commit.
+   * @returns a buffer containing the indexed repository data and the latest commit SHA for storing in the database, or undefined if indexing failed.
+   */
   async startIndexing(
     identifier: string,
     progressCallback: (progress: number, message: string) => void,
@@ -57,8 +66,9 @@ export class WasmGixWorker {
   ): Promise<{ buffer: Uint8Array; latestSha: string } | undefined> {
     const repoPath = `${PERSIST_ROOT}/${identifier}`;
 
-    await this.syncFs(true);
     progressCallback(1, "Starting indexing process...");
+    // loading the repository from IndexedDB into the in-memory FS
+    await this.syncFs(true);
 
     let commitCount = 0;
     let timestampLastEstimateUpdate = Date.now();
@@ -67,14 +77,17 @@ export class WasmGixWorker {
     const estimateHistoryMs: number[] = [];
     const MAX_ESTIMATE_HISTORY = 8;
 
+    // handle log messages from gitoxide to track progress
     this.gitoxideLogListener = (message: string) => {
       let currentlyIndexedCommits = 0;
+      // total commit count message
       if (message.startsWith("Commit count: ")) {
         commitCount = parseInt(message.slice("Commit count: ".length - 1));
         lastIndexedCommitCountForEstimate = 0;
         timestampLastEstimateUpdate = Date.now();
       }
-      if (message.startsWith("Indexed commits:")) {
+      // progress message
+      else if (message.startsWith("Indexed commits:")) {
         currentlyIndexedCommits = parseInt(
           message.slice("Indexed commits: ".length - 1)
         );
@@ -88,6 +101,7 @@ export class WasmGixWorker {
           commitsSinceLastEstimate / (Date.now() - timestampLastEstimateUpdate);
         const remainingMs = remainingCommits / commitsPerMs;
         estimateHistoryMs.push(remainingMs);
+        // keep a sliding window of recent estimates
         if (estimateHistoryMs.length > MAX_ESTIMATE_HISTORY) {
           estimateHistoryMs.shift();
         }
@@ -96,7 +110,7 @@ export class WasmGixWorker {
           estimateHistoryMs.length;
         const estimatedSeconds = Math.round(averageRemainingMs / 1000);
         currentEstimatedTimeLeft = Number.isFinite(estimatedSeconds)
-          ? Math.max(0, estimatedSeconds).toString()
+          ? estimatedSeconds.toString()
           : "...";
         timestampLastEstimateUpdate = Date.now();
         lastIndexedCommitCountForEstimate = currentlyIndexedCommits;
@@ -110,6 +124,7 @@ export class WasmGixWorker {
     };
 
     try {
+      // call gitoxide Rust indexing function via ccall directly
       const resultFilePath = this.gitoxide.ccall(
         "gitoxide_run_git_indexer",
         "string",
@@ -119,13 +134,13 @@ export class WasmGixWorker {
       if (!resultFilePath || resultFilePath.startsWith("error:")) {
         throw new Error(resultFilePath);
       }
-      const bytes = this.gitoxide.FS.readFile(resultFilePath, {
+      const buffer = this.gitoxide.FS.readFile(resultFilePath, {
         encoding: "binary"
       });
-      const buffer: Uint8Array =
-        bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
 
-      // Get the latest commit SHA for storing
+      this.gitoxide.FS.unlink(resultFilePath);
+
+      // Get the latest commit SHA for reindexing purposes
       const latestSha = this.getLatestCommitSha(repoPath);
 
       progressCallback(
@@ -144,12 +159,19 @@ export class WasmGixWorker {
     }
   }
 
+  /**
+   * Remounts the repository from IndexedDB into the in-memory FS.
+   * Mainly used when cloning with wasm-git and analyzing afterwards.
+   */
   async remountRepository(identifier: string) {
     const repoPath = `${PERSIST_ROOT}/${identifier}`;
     await this.syncFs(true);
     console.log(`Repository remounted at ${repoPath}`);
   }
 
+  /**
+   * Mounting a repository from a local directory handle into virtual FS and persisting it in IndexedDB.
+   */
   async mountRepository(
     identifier: string,
     localFileHandle: FileSystemDirectoryHandle,
@@ -158,6 +180,7 @@ export class WasmGixWorker {
     const repoPath = `${PERSIST_ROOT}/${identifier}`;
     this.ensureDirExists(repoPath);
 
+    // write a single file to the virtual FS, making sure the directory exists
     const writeFile = async ({
       file,
       relativePath
@@ -165,7 +188,7 @@ export class WasmGixWorker {
       file: File;
       relativePath: string;
     }) => {
-      const destination = `${repoPath}/${relativePath}`.replace(/\\/g, "/");
+      const destination = `${repoPath}/${this.normalizePath(relativePath)}`;
       const directoryEnd = destination.lastIndexOf("/");
       if (directoryEnd > repoPath.length) {
         this.ensureDirExists(destination.slice(0, directoryEnd));
@@ -194,13 +217,13 @@ export class WasmGixWorker {
       }
     }
 
-    await this.syncFs(false);
-
+    // now write tracked files
     const tracked = this.trackedPathsFor(repoPath);
     const trackedList = Array.from(tracked);
     let copiedTracked = 0;
 
     if (trackedList.length > 0) {
+      // collect paths first to provide progress updates
       const trackedFiles = await this.collectTrackedFileEntries(
         localFileHandle,
         trackedList,
@@ -212,6 +235,7 @@ export class WasmGixWorker {
         }
       );
 
+      // write tracked files
       for (const entry of trackedFiles) {
         if (await writeFile(entry)) {
           writtenFiles += 1;
@@ -229,6 +253,7 @@ export class WasmGixWorker {
       "Finalizing repository mount, syncronizing file system..."
     );
 
+    // final sync to persist all data
     await this.syncFs(false);
 
     console.log(
@@ -236,7 +261,8 @@ export class WasmGixWorker {
     );
   }
 
-  async collectGitDirectoryEntries(
+  // recursively collect all entries in the .git directory
+  private async collectGitDirectoryEntries(
     localFileHandle: FileSystemDirectoryHandle,
     onProgress: (number: number) => void
   ) {
@@ -248,7 +274,7 @@ export class WasmGixWorker {
     } catch (error: unknown) {
       throw new Error(
         "Selected directory does not contain a .git directory." +
-          (error instanceof Error ? error.message : "")
+        (error instanceof Error ? error.message : "")
       );
     }
 
@@ -256,6 +282,7 @@ export class WasmGixWorker {
     let count = 0;
     const stack = [{ handle: gitHandle, path: ".git" }];
 
+    // depth-first traversal of directory tree
     while (stack.length > 0) {
       const popped = stack.pop();
       if (!popped) {
@@ -275,9 +302,7 @@ export class WasmGixWorker {
         const nextPath = `${path}/${entry.name}`;
         if (entry.kind === "file") {
           // Avoid copying the Git index to the virtual FS. The index is large
-          // and not needed for read-only history operations. Importing it
-          // can cause the wasm runtime to read and hash it, triggering
-          // memory pressure and out-of-bounds traps.
+          // and not needed for read-only analytics operations.
           if (nextPath === ".git/index") {
             continue;
           }
@@ -286,9 +311,7 @@ export class WasmGixWorker {
             const file = await fileHandle.getFile();
             files.push({ file, relativePath: nextPath });
             count += 1;
-            if (typeof onProgress === "function") {
-              onProgress(count);
-            }
+            onProgress(count);
           } catch (error) {
             console.warn("Failed to read .git entry", nextPath, error);
           }
@@ -304,8 +327,8 @@ export class WasmGixWorker {
     return { files, fileCount: count };
   }
 
-  // TODO: cleanup
-  async collectTrackedFileEntries(
+  // collect entries for tracked files
+  private async collectTrackedFileEntries(
     localFileHandle: FileSystemDirectoryHandle,
     trackedPaths: string[],
     onProgress: (processed: number, total: number) => void
@@ -317,22 +340,20 @@ export class WasmGixWorker {
     const total = trackedPaths.length;
     let processed = 0;
 
+    // iterate over all tracked paths
     for (const rawPath of trackedPaths) {
-      const relativePath = rawPath?.replace(/^[\\/]+/, "");
+      // normalize path
+      const relativePath = this.normalizePath(rawPath);
       if (!relativePath) {
         processed += 1;
-        if (typeof onProgress === "function") {
-          onProgress(processed, total);
-        }
+        onProgress(processed, total);
         continue;
       }
 
       const segments = relativePath.split("/").filter(Boolean);
       if (segments.length === 0) {
         processed += 1;
-        if (typeof onProgress === "function") {
-          onProgress(processed, total);
-        }
+        onProgress(processed, total);
         continue;
       }
 
@@ -352,28 +373,25 @@ export class WasmGixWorker {
           create: false
         });
         const file = await fileHandle.getFile();
+        // add to entries
         entries.push({ file, relativePath });
       } catch (error) {
         console.warn(`Failed to read tracked path ${relativePath}`, error);
       } finally {
         processed += 1;
-        if (typeof onProgress === "function") {
-          onProgress(processed, total);
-        }
+        onProgress(processed, total);
       }
     }
 
     return entries;
   }
 
-  async getDirectoryHandleCached(
+  // get directory handle with caching to avoid redundant lookups
+  private async getDirectoryHandleCached(
     localDirectoryHandle: FileSystemDirectoryHandle,
     cache: Map<string, FileSystemDirectoryHandle | null>,
     path: string
   ) {
-    if (!path) {
-      return localDirectoryHandle;
-    }
     if (cache.has(path)) {
       return cache.get(path);
     }
@@ -387,7 +405,7 @@ export class WasmGixWorker {
       if (cache.has(currentPath)) {
         const cachedHandle = cache.get(currentPath);
         if (!cachedHandle) {
-          cache.set(path, null);
+          console.warn(`Directory ${currentPath} has invalid handle in cache`);
           return null;
         }
         currentHandle = cachedHandle;
@@ -412,7 +430,8 @@ export class WasmGixWorker {
     return currentHandle;
   }
 
-  ensureDirExists(path: string) {
+  // ensures that a directory path exists (all layers) in the virtual FS and create it if necessary
+  private ensureDirExists(path: string) {
     const parts = path.split("/").filter((part) => part.length > 0);
     let currentPath = "";
     for (const part of parts) {
@@ -430,6 +449,7 @@ export class WasmGixWorker {
     }
   }
 
+  // used for deleting repository data when project is removed
   private removePathRecursive(path: string) {
     let stat;
     try {
@@ -454,7 +474,8 @@ export class WasmGixWorker {
     }
   }
 
-  async setupPersistentFs() {
+  // setup filesystem using IDBFS
+  private async setupPersistentFs() {
     try {
       this.gitoxide.FS.mkdir(PERSIST_ROOT);
     } catch (error) {
@@ -469,11 +490,10 @@ export class WasmGixWorker {
 
     await this.syncFs(true);
     this.createdDirs.add(PERSIST_ROOT);
-    //persistentReady = true;
-    this.refreshStoredRepos();
   }
 
-  async syncFs(populate: boolean) {
+  // sync the in-memory FS with IndexedDB; if populate is true, data is loaded from IndexedDB into the in-memory FS, otherwise changes are written back to IndexedDB
+  private async syncFs(populate: boolean) {
     return new Promise((resolve, reject) => {
       this.gitoxide.FS.syncfs(populate, (error: Error) => {
         if (error) {
@@ -488,19 +508,8 @@ export class WasmGixWorker {
     });
   }
 
-  refreshStoredRepos() {
-    let repos: string[] = [];
-    try {
-      repos = this.gitoxide.FS.readdir(PERSIST_ROOT)
-        .filter((name: string) => name !== "." && name !== "..")
-        .sort((a: string, b: string) => a.localeCompare(b));
-    } catch (error) {
-      console.warn("Failed to enumerate stored repositories", error);
-    }
-    this.storedRepositories = repos;
-  }
-
-  trackedPathsFor(repositoryPath: string): Set<string> {
+  // gets set of all tracked paths using gitoxide
+  private trackedPathsFor(repositoryPath: string): Set<string> {
     const tracked = new Set<string>();
 
     try {
@@ -542,6 +551,10 @@ export class WasmGixWorker {
       console.warn("Could not get HEAD SHA", error);
     }
     return "";
+  }
+
+  private normalizePath(path: string): string {
+    return path.replace(/\\/g, "/").replace(/^[\\/]+/, "");
   }
 }
 
