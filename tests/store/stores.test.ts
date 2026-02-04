@@ -14,10 +14,11 @@ vi.mock("@/store/StoreContext", () => ({
 
 // universal worker mock
 class MockWorker {
-  postMessage = vi.fn();
+  postMessage = vi.fn(() => Promise.resolve());
   terminate = vi.fn();
   addEventListener = vi.fn();
   removeEventListener = vi.fn();
+  onmessage: ((this: MockWorker, ev: MessageEvent) => any) | null = null;
 }
 
 Object.defineProperty(global, "Worker", {
@@ -25,13 +26,27 @@ Object.defineProperty(global, "Worker", {
   configurable: true
 });
 
+// mocking comlink, especially for the dbWorker
+const mockComlinkWorkerInstance = {
+  initialize: vi.fn().mockResolvedValue(undefined),
+  query: vi.fn().mockResolvedValue([{ value: 1 }]),
+  terminate: vi.fn().mockResolvedValue(undefined),
+  deleteDatabase: vi.fn().mockResolvedValue(undefined),
+  insertIndexerData: vi.fn().mockResolvedValue(undefined),
+};
+vi.mock("comlink", () => ({
+  wrap: vi.fn(() => mockComlinkWorkerInstance),
+  transfer: vi.fn((data) => data),
+  expose: vi.fn()
+}));
+
 import { RootStore } from "../../src/store/RootStore.ts";
 import { RepositoryProject } from "../../src/store/IndexingStore.ts";
-import { runInAction } from "mobx";
 import {
   ChartType,
   DashboardElement
 } from "../../src/store/DashboardElement.ts";
+import { DuckDBAccessMode } from "@duckdb/duckdb-wasm";
 
 // Mock localStorage of browser
 const localStorageMock = (() => {
@@ -165,7 +180,7 @@ describe("Test RootStore and Sub-stores", () => {
     expect(rootStore.dashboardStore.activeDashboard?.widgets).toHaveLength(1);
   });
 
-  test("DashboardStore manages authors selection", () => {
+  test("DashboardStore manages authors selection correctly", () => {
     const authors = new Map([
       ["Alice", true],
       ["Bob", false]
@@ -180,6 +195,33 @@ describe("Test RootStore and Sub-stores", () => {
   });
 
   // DatabaseStore
+
+  test("DatabaseStore can run a simple query", async () => {
+    rootStore.dbStore.ensureInitialization("test_project", DuckDBAccessMode.READ_ONLY);
+    const result = await rootStore.dbStore.runQuery("SELECT 1 AS value;");
+    console.log("Query result:", result);
+    expect(result).toBeDefined();
+    expect((result as any[])[0].value).toBe(1);
+  });
+
+  test("DatabaseStore retrieves table and column names", async () => {
+    // only tests flow, not actual db content
+    const tableNames = await rootStore.dbStore.getTableAndColumnNames(); 
+    expect(tableNames).toBeDefined();
+  });
+
+  test("DB access mode gets propagated and closing connection resets state and cleans up resources", async () => {
+    rootStore.dbStore.ensureInitialization("test_project", DuckDBAccessMode.READ_ONLY);
+    expect(mockComlinkWorkerInstance.initialize).toHaveBeenCalled();
+    await rootStore.dbStore.ensureInitialization("test_project", DuckDBAccessMode.READ_WRITE);
+    expect(mockComlinkWorkerInstance.initialize).toHaveBeenCalledTimes(2);
+    await rootStore.dbStore.ensureInitialization("test_project", DuckDBAccessMode.READ_WRITE);
+    expect(mockComlinkWorkerInstance.initialize).not.toHaveBeenCalledTimes(3); 
+    await rootStore.dbStore.closeConnection();
+    await rootStore.dbStore.ensureInitialization("test_project", DuckDBAccessMode.READ_WRITE);
+    // new instance + initialization called once now
+    expect(mockComlinkWorkerInstance.terminate).toHaveBeenCalledTimes(1);
+  });
 
   // IndexingStore
   test("IndexingStore can reload current project from storage", () => {
