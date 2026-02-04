@@ -35,7 +35,7 @@ export class WasmGixWorker {
       }
       return;
     }
-    // logs without prefix to console 
+    // logs without prefix to console
     (isError ? console.error : console.log)(message);
   }
 
@@ -274,7 +274,7 @@ export class WasmGixWorker {
     } catch (error: unknown) {
       throw new Error(
         "Selected directory does not contain a .git directory." +
-        (error instanceof Error ? error.message : "")
+          (error instanceof Error ? error.message : "")
       );
     }
 
