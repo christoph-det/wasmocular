@@ -32,7 +32,7 @@ const mockComlinkWorkerInstance = {
   query: vi.fn().mockResolvedValue([{ value: 1 }]),
   terminate: vi.fn().mockResolvedValue(undefined),
   deleteDatabase: vi.fn().mockResolvedValue(undefined),
-  insertIndexerData: vi.fn().mockResolvedValue(undefined),
+  insertIndexerData: vi.fn().mockResolvedValue(undefined)
 };
 vi.mock("comlink", () => ({
   wrap: vi.fn(() => mockComlinkWorkerInstance),
@@ -197,7 +197,10 @@ describe("Test RootStore and Sub-stores", () => {
   // DatabaseStore
 
   test("DatabaseStore can run a simple query", async () => {
-    rootStore.dbStore.ensureInitialization("test_project", DuckDBAccessMode.READ_ONLY);
+    rootStore.dbStore.ensureInitialization(
+      "test_project",
+      DuckDBAccessMode.READ_ONLY
+    );
     const result = await rootStore.dbStore.runQuery("SELECT 1 AS value;");
     console.log("Query result:", result);
     expect(result).toBeDefined();
@@ -206,19 +209,31 @@ describe("Test RootStore and Sub-stores", () => {
 
   test("DatabaseStore retrieves table and column names", async () => {
     // only tests flow, not actual db content
-    const tableNames = await rootStore.dbStore.getTableAndColumnNames(); 
+    const tableNames = await rootStore.dbStore.getTableAndColumnNames();
     expect(tableNames).toBeDefined();
   });
 
   test("DB access mode gets propagated and closing connection resets state and cleans up resources", async () => {
-    rootStore.dbStore.ensureInitialization("test_project", DuckDBAccessMode.READ_ONLY);
+    rootStore.dbStore.ensureInitialization(
+      "test_project",
+      DuckDBAccessMode.READ_ONLY
+    );
     expect(mockComlinkWorkerInstance.initialize).toHaveBeenCalled();
-    await rootStore.dbStore.ensureInitialization("test_project", DuckDBAccessMode.READ_WRITE);
+    await rootStore.dbStore.ensureInitialization(
+      "test_project",
+      DuckDBAccessMode.READ_WRITE
+    );
     expect(mockComlinkWorkerInstance.initialize).toHaveBeenCalledTimes(2);
-    await rootStore.dbStore.ensureInitialization("test_project", DuckDBAccessMode.READ_WRITE);
-    expect(mockComlinkWorkerInstance.initialize).not.toHaveBeenCalledTimes(3); 
+    await rootStore.dbStore.ensureInitialization(
+      "test_project",
+      DuckDBAccessMode.READ_WRITE
+    );
+    expect(mockComlinkWorkerInstance.initialize).not.toHaveBeenCalledTimes(3);
     await rootStore.dbStore.closeConnection();
-    await rootStore.dbStore.ensureInitialization("test_project", DuckDBAccessMode.READ_WRITE);
+    await rootStore.dbStore.ensureInitialization(
+      "test_project",
+      DuckDBAccessMode.READ_WRITE
+    );
     // new instance + initialization called once now
     expect(mockComlinkWorkerInstance.terminate).toHaveBeenCalledTimes(1);
   });

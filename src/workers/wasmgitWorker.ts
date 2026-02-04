@@ -11,7 +11,7 @@ export class WasmGitWorker {
   private isMounted = false;
   private logCallback: ((logMessage: string) => void) | null = null;
 
-  async init() {
+  private async init() {
     // Prevent lg2 from printing to the console by overriding Emscripten print handlers
     this.lg = await createWasmGitModule({
       locateFile: (path: string) => {
