@@ -17,7 +17,7 @@ const compat = new FlatCompat({
 });
 
 export default defineConfig([
-  globalIgnores(["**/dist", "**/dev-dist", "**/public"]),
+  globalIgnores(["**/dist", "**/dev-dist", "**/public", "**/coverage", "**/tests"]),
   {
     extends: fixupConfigRules(
       compat.extends(

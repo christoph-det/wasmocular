@@ -16,7 +16,24 @@ jobs:
         run: npm install -g pnpm && pnpm install
 
       - name: Install Rust
-        uses: dtolnay/rust-action@stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          path: emsdk
+
+      - name: Add wasm32-unknown-emscripten target
+        run: rustup target add wasm32-unknown-emscripten
+
+      - name: Build wasm-gix module
+        shell: bash
+        env:
+          CARGO_TARGET_WASM32_UNKNOWN_EMSCRIPTEN_LINKER: ${{ env.EMSDK }}/upstream/emscripten/emcc
+          CARGO_TARGET_WASM32_UNKNOWN_EMSCRIPTEN_AR: ${{ env.EMSDK }}/upstream/emscripten/emar
+        run: |
+          source $EMSDK/emsdk_env.sh
+          pnpm run build:wasm-gix
 
       - name: Run ESLint
         run: pnpm eslint --version && pnpm run lint
@@ -28,4 +45,4 @@ jobs:
         run: pnpm run test
 
       - name: Run Rust tests
-        run: cargo test --manifest-path crates/wasm-gix/Cargo.toml
+        run: pnpm run test:rust
