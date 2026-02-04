@@ -127,7 +127,7 @@ describe("Test RootStore and Sub-stores", () => {
     const mockAnchor = {
       href: "",
       download: "",
-      click: vi.fn(),
+      click: vi.fn()
     };
 
     // Create dashboard with widget
@@ -157,9 +157,11 @@ describe("Test RootStore and Sub-stores", () => {
     const exportedData = JSON.parse(blobText);
     expect(exportedData.widgets).toHaveLength(1);
     expect(exportedData.widgets[0].title).toBe("Test Widget 1");
-    
+
     // Test import
-    rootStore.dashboardStore.importDashboardFromJSON(JSON.stringify(exportedData));
+    rootStore.dashboardStore.importDashboardFromJSON(
+      JSON.stringify(exportedData)
+    );
     expect(rootStore.dashboardStore.activeDashboard?.widgets).toHaveLength(1);
   });
 

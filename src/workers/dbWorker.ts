@@ -207,21 +207,21 @@ export class DatabaseWorker {
   /**
    * Executes the given SQL query and returns the results.
    */
-  async query(sql: string) {
+  async query(sql: string): Promise<unknown> {
     const connection = await this.ensureConnection();
     const result = await connection.query(sql);
     const rows = result
       .toArray()
-      .map((row) =>
+      .map((row): unknown =>
         row && typeof (row as { toJSON?: () => unknown }).toJSON === "function"
           ? (row as { toJSON: () => unknown }).toJSON()
           : row
       );
-    const cloneableResult: unknown = JSON.parse(
+    const cloneableResult = JSON.parse(
       JSON.stringify(rows, (_, value: unknown) =>
         typeof value === "bigint" ? value.toString() : value
       )
-    );
+    ) as unknown;
     return cloneableResult;
   }
 
