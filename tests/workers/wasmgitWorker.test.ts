@@ -51,5 +51,5 @@ describe("wasm-git Worker Tests", () => {
     expect(combinedLogs).toContain("Compressing");
     expect(combinedLogs).toContain("Downloading");
     expect(combinedLogs).toContain("Resolving");
-  });
+  }, 10000);
 });

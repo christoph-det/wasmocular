@@ -9,14 +9,18 @@ vi.mock("comlink", () => ({
 
 describe("GitHub API Worker Tests", () => {
   test("should fetch issues and events from a GitHub repository", async () => {
+    const token = "demo_token_testing";
     const originalCreateHeaders =
-    // @ts-expect-error - accessing private property for testing
+      // @ts-expect-error - accessing private property for testing
       githubApiWorker.createHeaders.bind(githubApiWorker);
     // @ts-expect-error - accessing private property for testing
     githubApiWorker.createHeaders = (token: string) => {
       const headers = originalCreateHeaders(token);
-      // unset authentication header to avoid actual API calls during testing
-      delete headers.Authorization;
+      // unset authentication header to use public API, but trick the worker into
+      // fetching events
+      if (token === "demo_token_testing") {
+        delete headers.Authorization;
+      }
       return headers;
     };
     const { issues, events } = await githubApiWorker.fetchIssuesAndEvents(
