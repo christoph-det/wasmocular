@@ -12,6 +12,11 @@ vi.mock("@/store/StoreContext", () => ({
         commits: [{ column_name: "author_signature", data_type: "VARCHAR" }]
       }),
       tablesAndColumns: {}
+    },
+    indexingStore: {
+      project: {
+        repositoryIdentifier: "owner/repo"
+      }
     }
   })
 }));

@@ -113,7 +113,6 @@ This project uses the following notable open-source libraries:
 - [DuckDB WASM](https://github.com/duckdb/duckdb-wasm) - In-browser analytical database (MIT)
 - [Apache Arrow](https://arrow.apache.org/) - Columnar data format (Apache-2.0)
 
-
 ## Citation
 
 ```latex

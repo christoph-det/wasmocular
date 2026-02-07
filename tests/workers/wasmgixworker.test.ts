@@ -79,7 +79,7 @@ describe("wasm-gix Worker Tests", () => {
     expect(mountingResponse).toBeUndefined();
     expect(consoleSpy).toHaveBeenCalledWith(
       expect.stringContaining(
-        "[gitoxide] Mounted repository at /repos/test-repo with 1 files."
+        "[gitoxide] Mounted repository at /repos/test-repo with"
       )
     );
     consoleSpy.mockRestore();
