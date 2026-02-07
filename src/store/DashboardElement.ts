@@ -4,13 +4,21 @@ import type { DatabaseStore } from "./DatabaseStore";
 import { DashboardStore } from "./DashboardStore";
 import { TimeResolution } from "@/lib/chartConverters/BaseChartConverter";
 
+/**
+ * Represents the contents single dashboard element.
+ */
 export enum ChartType {
   TEXT = "text",
   STACKED_AREA_CHART = "stacked_area_chart",
   HEATMAP = "heatmap"
 }
 
+/**
+ * This class represents a single dashboard element (widget) that can display data
+ */
 export class DashboardElement {
+  private dbStore: DatabaseStore;
+  dashboardStore: DashboardStore;
   id: string;
   title: string;
   description: string;
@@ -21,8 +29,6 @@ export class DashboardElement {
   error: string | null = null;
   type: ChartType;
   timeResolution: TimeResolution;
-  dbStore: DatabaseStore;
-  dashboardStore: DashboardStore;
 
   constructor(
     id: string,
@@ -51,6 +57,9 @@ export class DashboardElement {
     });
   }
 
+  /**
+   * Loads data for this dashboard element by executing its SQL query with the database.
+   */
   async loadData(): Promise<void> {
     runInAction(() => {
       this.dataLoading = true;
@@ -72,11 +81,15 @@ export class DashboardElement {
     });
   }
 
+  /**
+   * Toggles the width of the dashboard element between "half" and "full" -screen.
+   */
   toggleWidth() {
     this.chartWidth = this.chartWidth === "half" ? "full" : "half";
   }
 
-  // CTE approach to apply date filters, TODO: maybe take care of joins later
+  // CTE approach to apply date filters
+  // TODO: maybe also implement this for issues / events
   private makeCTEQuery(userQuery: string): string {
     const conditions: string[] = [];
     const { activeDateFilterFrom, activeDateFilterTo, unselectedAuthors } =

@@ -13,6 +13,9 @@ import {
 import LoadOtherProjectDialog from "./LoadOtherProjectDialog";
 import { Button } from "./ui/button";
 
+/**
+ * Main navigation bar for the application, allowing navigation between different pages and showing steps.
+ */
 const NavigationBar = observer(() => {
   const indexingStore = useStores().indexingStore;
 
@@ -29,6 +32,7 @@ const NavigationBar = observer(() => {
   const isRepoLoaded =
     indexingStore.dataLoadingState !== DataLoadingState.NOT_STARTED;
 
+  // displays an icon next to the index page representing the current indexing state
   const getIndexStatusIcon = (state: DataLoadingState) => {
     switch (state) {
       case DataLoadingState.INDEXING_STARTED:
@@ -42,7 +46,7 @@ const NavigationBar = observer(() => {
 
   const handleCreateNewProjectClick = () => {
     window.location.hash = "#";
-    indexingStore.resetIndexingStore();
+    indexingStore.resetIndexingStore().catch(console.error);
   };
 
   const handleSettingsClick = () => {
@@ -50,15 +54,15 @@ const NavigationBar = observer(() => {
   };
 
   const handleLoadOtherProjectSelect = () => {
-    setIsProjectMenuOpen(false);
+    setIsLoadOtherDialogOpen(false);
     // Defer opening dialog until menu fully closes to avoid focus trapping
-    setTimeout(() => setIsLoadOtherDialogOpen(true), 0);
+    setTimeout(() => setIsLoadOtherDialogOpen(true), 1);
   };
 
   return (
     <>
       <nav className="flex items-center justify-between p-4 bg-white/80 backdrop-blur border-b shadow-sm">
-        <div className="flex items-center w-1/4">
+        <a href="#/" className="flex items-center">
           <img
             src="./wasmocular-logo.png"
             alt="WasmOcular Logo"
@@ -67,9 +71,9 @@ const NavigationBar = observer(() => {
           <span className="ml-3 text-xl font-extrabold text-blue-700 tracking-wide select-none">
             WasmOcular
           </span>
-        </div>
-        <div className="flex justify-center w-2/4">
-          <div className="flex space-x-10 text-lg font-medium">
+        </a>
+        <div className="hidden md:flex justify-center">
+          <div className="flex space-x-4 lg:space-x-10 text-lg font-medium">
             <a
               href={"#/"}
               onClick={(e) => isRepoLoaded && e.preventDefault()}
@@ -141,7 +145,8 @@ const NavigationBar = observer(() => {
             </a>
           </div>
         </div>
-        <div className="flex justify-end w-1/4 pr-4">
+        <div className="flex justify-end">
+          {/* Dropdown menu displayed if project is loaded, otherwise show a button to load old projects */}
           {(indexingStore.project && (
             <DropdownMenu
               open={isProjectMenuOpen}
@@ -149,7 +154,7 @@ const NavigationBar = observer(() => {
                 setIsProjectMenuOpen(open);
               }}
             >
-              <DropdownMenuTrigger className="max-w-[280px] truncate text-xl text-black-700 tracking-wide px-4 py-2 rounded-lg transition-colors cursor-pointer duration-150 hover:bg-blue-50 hover:text-blue-700">
+              <DropdownMenuTrigger className="max-w-[150px] sm:max-w-[280px] truncate text-base sm:text-xl text-black-700 tracking-wide px-2 sm:px-4 py-2 rounded-lg transition-colors cursor-pointer duration-150 hover:bg-blue-50 hover:text-blue-700">
                 Project: {indexingStore.project?.name}
               </DropdownMenuTrigger>
               <DropdownMenuContent>

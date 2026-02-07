@@ -3,6 +3,10 @@ import { proxy, Remote, wrap } from "comlink";
 import WasmGixWorkerFactory from "@/workers/wasmgixWorker?worker";
 import type { WasmGixWorker } from "@/workers/wasmgixWorker";
 
+/**
+ * This store handles the lifecycle of a Git repository Worker that performs loading indexing
+ * operations.
+ */
 export class WasmGixStore {
   private worker: Worker | null = null;
   private rpcWorker: Remote<WasmGixWorker> | null = null;
@@ -14,7 +18,7 @@ export class WasmGixStore {
     console.log("WasmGixStore initialized");
   }
 
-  init() {
+  private init() {
     this.worker = new WasmGixWorkerFactory();
     this.rpcWorker = wrap(this.worker);
   }
@@ -26,6 +30,9 @@ export class WasmGixStore {
     this.init();
   }
 
+  /**
+   *  Loads the repository data from the storage and remounts it in the worker.
+   */
   async reloadRepository(identifier: string) {
     if (!this.rpcWorker) {
       console.error("WasmGix worker not initialized");
@@ -34,6 +41,9 @@ export class WasmGixStore {
     await this.rpcWorker.remountRepository(identifier);
   }
 
+  /**
+   * Loads a repository into the worker from the given local (outside of browser) file handle.
+   */
   async loadRepository(
     identifier: string,
     localFileHandle: FileSystemDirectoryHandle,
@@ -51,6 +61,9 @@ export class WasmGixStore {
     );
   }
 
+  /**
+   * Deletes all stored data for the given repository identifier from the worker and storage.
+   */
   async deleteRepositroyData(identifier: string) {
     if (!this.rpcWorker) {
       console.error("WasmGix worker not initialized");
@@ -59,16 +72,20 @@ export class WasmGixStore {
     await this.rpcWorker.deleteRepositoryData(identifier);
   }
 
+  /**
+   * Starts the indexing process for the given repository identifier in the worker.
+   */
   async startIndexing(
     identifier: string,
     progressCallback: (progress: number, message: string) => void,
     lastIndexedSha?: string
-  ): Promise<string | undefined> {
+  ): Promise<string> {
     if (!this.rpcWorker) {
       console.error("WasmGix worker not initialized");
-      return;
+      throw new Error("WasmGix worker not initialized");
     }
     try {
+      const startTime = performance.now();
       const progressProxy = proxy(progressCallback);
       const result = await this.rpcWorker.startIndexing(
         identifier,
@@ -78,15 +95,21 @@ export class WasmGixStore {
       if (!result) {
         throw new Error("Indexing failed: no result returned");
       }
+      const endTime = performance.now();
+      const duration = ((endTime - startTime) / 1000).toFixed(2);
       await this.rootStore.dbStore.receiveIndexerResults(
         identifier,
         result.buffer
       );
-      progressCallback(100, "Indexing completed successfully.");
+      const dbInsertionTime = ((performance.now() - endTime) / 1000).toFixed(2);
+      progressCallback(
+        100,
+        `Indexing completed successfully in ${duration}s. Database insertion took ${dbInsertionTime}s.`
+      );
       return result.latestSha;
     } catch (error) {
       console.error("Error starting indexing:", error);
-      return;
+      throw error;
     }
   }
 }

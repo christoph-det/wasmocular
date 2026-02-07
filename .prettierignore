@@ -1,3 +1,2 @@
 pnpm-lock.yaml
-wasm-git-library/
-wasm-gix-library/
+src/workers/wasm-gix-library/

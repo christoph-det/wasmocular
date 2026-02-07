@@ -2,6 +2,9 @@ import WasmGitWorkerFactory from "@/workers/wasmgitWorker?worker";
 import type { WasmGitWorker } from "@/workers/wasmgitWorker";
 import { proxy, Remote, wrap } from "comlink";
 
+/**
+ * This store handles the lifecycle of a Git repository Worker that performs remote cloning operations.
+ */
 export class WasmGitStore {
   private worker: Worker | null = null;
   private rpcWorker: Remote<WasmGitWorker> | null = null;
@@ -11,7 +14,7 @@ export class WasmGitStore {
     console.log("WasmGitStore initialized");
   }
 
-  init() {
+  private init() {
     this.worker = new WasmGitWorkerFactory();
     this.rpcWorker = wrap(this.worker);
   }
@@ -23,6 +26,9 @@ export class WasmGitStore {
     this.init();
   }
 
+  /**
+   * Clones a Git repository using the WasmGit worker. We use a proxy to avoid CORS issues.
+   */
   cloneRepository(
     gitRepoURL: string,
     repoIdentifier: string,

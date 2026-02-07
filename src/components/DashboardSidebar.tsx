@@ -7,16 +7,21 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger
-} from "@radix-ui/react-popover";
+} from "@/components/ui/popover";
 import { ChevronDownIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 
+/**
+ * DashboardSidebar provides filtering options and actions for the dashboard.
+ */
 const DashboardSidebar = observer(() => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const dashboardStore = useStores().dashboardStore;
   const dbStore = useStores().dbStore;
+  const dashboardStore = useStores().dashboardStore;
   const indexingStore = useStores().indexingStore;
+
   const { showSuccess } = useToast();
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [openDateTo, setOpenDateTo] = useState(false);
   const [openDateFrom, setOpenDateFrom] = useState(false);
 
@@ -26,6 +31,7 @@ const DashboardSidebar = observer(() => {
 
   const currentProjectIdentifier = indexingStore.project?.repositoryIdentifier;
 
+  // update available authors for filtering
   useEffect(() => {
     dbStore
       .runQuery("SELECT DISTINCT author_signature FROM commits;")
@@ -76,6 +82,10 @@ const DashboardSidebar = observer(() => {
     }
   };
 
+  const handleAuthorSelectionChange = (author: string, selected: boolean) => {
+    dashboardStore.setAuthorSelected(author, selected);
+  };
+
   return (
     <div
       className={`bg-white shadow-md p-4 min-h-screen transition-all duration-300 ease-in-out ${
@@ -111,12 +121,13 @@ const DashboardSidebar = observer(() => {
       {!sidebarCollapsed && (
         <div className="mt-4">
           <p className="text-gray-600">
-            Apply global filters to apply to all dashboard widgets.
+            Apply global filters to apply to all dashboard widgets.<br /><small>Only applying to commit data at the moment.</small>
           </p>
           <div className="mt-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Date Range:
             </label>
+            {/* Date selection */}
             <Popover open={openDateFrom} onOpenChange={setOpenDateFrom}>
               <PopoverTrigger asChild>
                 <Button
@@ -175,6 +186,7 @@ const DashboardSidebar = observer(() => {
               </PopoverContent>
             </Popover>
             <br />
+            {/* Author selection */}
             <label className="block text-sm font-medium text-gray-700 mb-1 mt-3">
               Authors:
             </label>
@@ -186,10 +198,7 @@ const DashboardSidebar = observer(() => {
                       type="checkbox"
                       checked={dashboardStore.availableAuthors.get(author)}
                       onChange={(e) => {
-                        dashboardStore.setAuthorSelected(
-                          author,
-                          e.target.checked
-                        );
+                        handleAuthorSelectionChange(author, e.target.checked);
                       }}
                       className="mr-2"
                     />
@@ -199,6 +208,7 @@ const DashboardSidebar = observer(() => {
               )}
             </div>
           </div>
+          {/* Export/Import actions */}
           <p className="mt-20">Dashboard Actions:</p>
           <div className="flex">
             <Button onClick={handleExportDashboard} className="" variant="link">

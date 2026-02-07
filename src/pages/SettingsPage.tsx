@@ -50,7 +50,9 @@ const SettingsPage = observer(() => {
     ) {
       const repositoryIdentifier = indexingStore.project?.repositoryIdentifier;
       if (!repositoryIdentifier) {
-        alert("Cannot delete project: No project loaded/inconsistent state.");
+        console.warn(
+          "Cannot delete project: No project loaded/inconsistent state."
+        );
         return;
       }
       try {
@@ -60,16 +62,18 @@ const SettingsPage = observer(() => {
           indexingStore.project!.defaultDashboardId ?? ""
         );
         indexingStore.deleteProjectFromStorage(repositoryIdentifier);
-        indexingStore.resetIndexingStore();
+        await indexingStore.resetIndexingStore();
         showSuccess("Project deleted successfully.");
         globalThis.location.hash = "#/";
       } catch (error) {
         console.error("Failed to delete project:", error);
-        alert("Failed to delete project from local storage.");
       }
     }
   };
 
+  /**
+   * Starts the reindexing process for the current repository.
+   */
   const handleReindexClick = async () => {
     const repositoryIdentifier = indexingStore.project!.repositoryIdentifier;
     const lastIndexedSha = indexingStore.project!.lastIndexedSha;
@@ -137,6 +141,9 @@ const SettingsPage = observer(() => {
     }
   };
 
+  /**
+   * Exports the DuckDB database file from the OPFS for the current project and triggers a download.
+   */
   async function exportDuckDB() {
     const opfsRoot = await navigator.storage.getDirectory();
     const databaseFileName = `wasmocular_database_${indexingStore.project?.repositoryIdentifier}.db`;
@@ -185,7 +192,7 @@ const SettingsPage = observer(() => {
             </h3>
           </div>
           <div className="p-6">
-            <p className="mb-6 text-gray-600">
+            <p className="mb-6 text-gray-600 break-all">
               Project ID: {indexingStore.project?.repositoryIdentifier}
             </p>
             <Label className="mb-2" htmlFor="text">
@@ -207,12 +214,12 @@ const SettingsPage = observer(() => {
               <p className="text-sm text-gray-600 mb-3">
                 Update the database with new commits since the last indexing.
                 {indexingStore.project?.lastIndexedSha && (
-                  <span className="block mt-1 text-gray-500">
+                  <span className="block mt-1 text-gray-500 break-all">
                     Last indexed commit: {indexingStore.project.lastIndexedSha}
                   </span>
                 )}
                 {indexingStore.project?.sourceUrl && (
-                  <span className="block mt-1 text-gray-500">
+                  <span className="block mt-1 text-gray-500 break-all">
                     Source: {indexingStore.project.sourceUrl}
                   </span>
                 )}

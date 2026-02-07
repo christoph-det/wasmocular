@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import tailwindcss from "@tailwindcss/vite";
@@ -53,6 +54,19 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src")
+    }
+  },
+  test: {
+    setupFiles: ["./tests/setup.ts"],
+    coverage: {
+      provider: "v8",
+      include: ["src/**/*.{ts,tsx}"],
+      // exclude compiled wasm files, ShadCn files and binocular files from coverage
+      exclude: [
+        "src/workers/wasm-gix-library/**",
+        "src/components/ui/**",
+        "src/components/vizualisation/binocular/**"
+      ]
     }
   }
 });

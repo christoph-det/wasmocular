@@ -3,11 +3,16 @@ import { DashboardElement, type ChartType } from "./DashboardElement";
 import { RootStore } from "./RootStore";
 import { TimeResolution } from "@/lib/chartConverters/BaseChartConverter";
 
+/**
+ * Structure for storing data of a whole dashboard in localStorage.
+ */
 interface StoredDashboardData {
   dashboardId: string;
   widgets: StoredDashboardElement[];
 }
-
+/**
+ * This class represents one element inside a dashboard.
+ */
 interface StoredDashboardElement {
   id: string;
   title: string;
@@ -18,6 +23,9 @@ interface StoredDashboardElement {
   timeResolution: TimeResolution;
 }
 
+/**
+ * This class represents the data of a dashboard.
+ */
 class DashboardData {
   dashboardId: string;
   widgets: DashboardElement[];
@@ -38,24 +46,28 @@ class DashboardData {
   }
 }
 
+/**
+ * This store manages the state of dashboards, including loading, saving,
+ * creating, deleting, importing, and exporting dashboards.
+ */
 export class DashboardStore {
   private readonly STORAGE_KEY = "dashboardStore_";
+  private readonly rootStore: RootStore;
   private autoSaveDisposer: (() => void) | null = null;
-  // dashboard is defined by its own id
+  availableAuthors: Map<string, boolean> = new Map<string, boolean>();
   activeDashboard: DashboardData | null = null;
-  activeDashboardId: string | null = null;
-  rootStore: RootStore;
-  ready: Promise<void>;
   activeDateFilterFrom: Date | undefined = undefined;
   activeDateFilterTo: Date | undefined = undefined;
-  availableAuthors: Map<string, boolean> = new Map<string, boolean>();
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
     makeAutoObservable(this);
-    this.ready = Promise.resolve(this.loadFromStorage());
+    void this.loadFromStorage();
   }
 
+  /**
+   * Get a list of authors that are currently unselected, i.e., those that should not be displayed.
+   */
   get unselectedAuthors(): string[] {
     return Array.from(this.availableAuthors.entries())
       .filter(([, selected]) => !selected)
@@ -73,12 +85,14 @@ export class DashboardStore {
   createNewDashboard(): string {
     const newDashboardId = crypto.randomUUID();
     this.activeDashboard = new DashboardData(newDashboardId, []);
-    this.activeDashboardId = newDashboardId;
     this.saveToStorage();
     this.setupAutoSave();
     return newDashboardId;
   }
 
+  /**
+   * Deletes the dashboard with the given ID from localStorage.
+   */
   deleteDashboard(dashboardId: string) {
     const storageKey = `${this.STORAGE_KEY}${dashboardId}`;
     try {
@@ -114,10 +128,6 @@ export class DashboardStore {
       dashboardId ??
       this.rootStore.indexingStore.project?.defaultDashboardId ??
       null;
-
-    runInAction(() => {
-      this.activeDashboardId = targetDashboardId;
-    });
 
     if (targetDashboardId === null) {
       console.warn("No active dashboard ID set for loading.");
@@ -155,6 +165,9 @@ export class DashboardStore {
     }
   }
 
+  /**
+   * Exports the active dashboard as a JSON file and triggers a download in the browser.
+   */
   exportActiveDashboard() {
     if (this.activeDashboard === null) {
       console.warn("No active dashboard to export.");
@@ -171,6 +184,9 @@ export class DashboardStore {
     URL.revokeObjectURL(url);
   }
 
+  /**
+   * Imports a dashboard from the given JSON data string and sets it as the active dashboard.
+   */
   importDashboardFromJSON(jsonData: string) {
     try {
       const data: StoredDashboardData = JSON.parse(
@@ -193,7 +209,6 @@ export class DashboardStore {
       );
       runInAction(() => {
         this.activeDashboard = new DashboardData(newDashboardId, widgets);
-        this.activeDashboardId = newDashboardId;
       });
       this.rootStore.indexingStore.setDefaultDashboardId(newDashboardId);
       this.saveToStorage();
@@ -216,8 +231,10 @@ export class DashboardStore {
     );
   }
 
+  /**
+   * Sets the active dashboard and syncs it with the IndexingStore project.
+   */
   async setActiveDashboard(dashboardId: string) {
-    this.activeDashboardId = dashboardId;
     this.rootStore.indexingStore.setDefaultDashboardId(dashboardId);
     await this.loadFromStorage(dashboardId);
   }

@@ -28,3 +28,15 @@ dev-dist
 *.njsproj
 *.sln
 *.sw?
+
+# crates
+**/target
+Cargo.lock
+
+#tests
+coverage/
+
+# compiled wasm files
+/src/workers/wasm-gix-library/wasm_gix.wasm
+src/workers/wasm-gix-library/wasm_gix.js
+    

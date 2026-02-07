@@ -1,8 +1,6 @@
 import * as Comlink from "comlink";
-import { parseCloneProgress } from "../lib/utils.ts";
-import createWasmGitModule from "./wasm-git-library/lg2.js";
-import lg2WasmUrl from "./wasm-git-library/lg2.wasm?url";
-import type { WasmGitModule } from "./wasm-git-library/lg2.ts";
+import createWasmGitModule, { type WasmGitModule } from "wasm-git/lg2.js";
+import lg2WasmUrl from "wasm-git/lg2.wasm?url";
 
 export class WasmGitWorker {
   private lg!: WasmGitModule;
@@ -13,7 +11,7 @@ export class WasmGitWorker {
   private isMounted = false;
   private logCallback: ((logMessage: string) => void) | null = null;
 
-  async init() {
+  private async init() {
     // Prevent lg2 from printing to the console by overriding Emscripten print handlers
     this.lg = await createWasmGitModule({
       locateFile: (path: string) => {
@@ -39,7 +37,6 @@ export class WasmGitWorker {
   /**
    * Clones a remote Git repository into IndexedDB using WasmGit.
    * @param gitRepoURL Expects the URL in the following format: https://github.com/repo-owner/repo-name.git
-   * @param repoIdentifier Repository identifier to be used as folder name in IndexedDB and as DB name
    */
   async cloneRepository(
     gitRepoURL: string,
@@ -49,7 +46,7 @@ export class WasmGitWorker {
   ) {
     await this.init();
     this.logCallback = (logMessage: string) => {
-      const progress = parseCloneProgress(logMessage);
+      const progress = this.parseCloneProgress(logMessage);
       if (!progress) {
         return;
       }
@@ -84,10 +81,38 @@ export class WasmGitWorker {
     });
   }
 
-  /**
-   * Sets the current repository URL.
-   * @param url
+  private extractPercent(line: string): number | undefined {
+    const match = /(\d+)%/.exec(line);
+    return match ? Number(match[1]) : undefined;
+  }
+
+  COUNTING_MARKER = "counting objects";
+  COMPRESSING_MARKER = "compressing objects";
+  RESOLVING_MARKER = "resolving deltas";
+  DOWNLOAD_MARKER = "net";
+
+  /** Used for We get the git cloning separate lines for the download phase, so we can parse percent there.
    */
+  private parseCloneProgress(
+    line: string
+  ): { phase: string; percent: number } | null {
+    const lowered = line.toLowerCase();
+    if (lowered.includes(this.DOWNLOAD_MARKER)) {
+      const percent = this.extractPercent(line);
+      return percent === undefined ? null : { phase: "Downloading", percent };
+    }
+    if (lowered.includes(this.COUNTING_MARKER)) {
+      return { phase: "Counting", percent: 0 };
+    }
+    if (lowered.includes(this.COMPRESSING_MARKER)) {
+      return { phase: "Compressing", percent: 0 };
+    }
+    if (lowered.includes(this.RESOLVING_MARKER)) {
+      return { phase: "Resolving", percent: 100 };
+    }
+    return null;
+  }
+
   private setCurrentRepository(url: string, proxyURL: string) {
     // if the url contains github remove everything before and including github.com/
     if (url.includes("https://github.com/")) {
@@ -99,6 +124,7 @@ export class WasmGitWorker {
     this.repoURL = proxyURL + `/git-proxy/` + this.repoURL;
   }
 
+  // mounts the indexedDB filesystem at /repos, it is provided by emscripten and thus can also be used by wasm-gix
   private mountIDBFS() {
     if (this.isMounted) {
       return;
@@ -148,7 +174,4 @@ export class WasmGitWorker {
 }
 
 const wasmGitWorker = new WasmGitWorker();
-
-(function () {
-  Comlink.expose(wasmGitWorker);
-})();
+Comlink.expose(wasmGitWorker);

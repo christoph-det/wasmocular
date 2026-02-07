@@ -5,6 +5,9 @@ import { Remote, wrap, transfer } from "comlink";
 import { makeAutoObservable } from "mobx";
 import { GitHubIssue, GitHubIssueEvent } from "@/workers/dbWorker.d";
 
+/**
+ * This store handles the lifecycle of a DuckDB Worker that performs database operations.
+ */
 export class DatabaseStore {
   private worker: Worker | null = null;
   private rpcWorker: Remote<DatabaseWorker> | null = null;
@@ -30,18 +33,16 @@ export class DatabaseStore {
     this.rpcWorker = wrap(this.worker);
   }
 
+  /**
+   * Deletes the database specified.
+   */
   async deleteDatabase(repositoryIdentifier: string) {
     if (
       this.currentRepositoryIdentifier === repositoryIdentifier &&
       this.rpcWorker
     ) {
       await this.rpcWorker.deleteDatabase(repositoryIdentifier);
-      this.currentRepositoryIdentifier = null;
-      this.currentAccessMode = null;
-      this.tablesAndColumns = {};
-      await this.rpcWorker.terminate();
-      this.worker?.terminate();
-      this.init();
+      await this.closeConnection();
     } else {
       const deleteWorker = new DatabaseWorkerFactory();
       const rpcDeleteWorker = wrap<DatabaseWorker>(deleteWorker);
@@ -57,14 +58,16 @@ export class DatabaseStore {
       this.worker?.terminate();
       this.currentRepositoryIdentifier = null;
       this.currentAccessMode = null;
+      this.awaitDatabaseInitialization = Promise.resolve();
       this.tablesAndColumns = {};
       this.init();
-      console.log("DatabaseStore: Connection closed and worker reinitialized");
     }
   }
 
+  /**
+   * Used for inserting the indexer results from the WasmGix worker into the database.
+   */
   async receiveIndexerResults(identifier: string, resultBuffer: Uint8Array) {
-    await this.awaitDatabaseInitialization;
     if (!this.rpcWorker) {
       console.error("Database worker not initialized");
       return;
@@ -73,6 +76,7 @@ export class DatabaseStore {
     this.currentRepositoryIdentifier = identifier;
     this.currentAccessMode = null;
     this.ensureInitialization(identifier, DuckDBAccessMode.READ_WRITE);
+    await this.awaitDatabaseInitialization;
 
     await this.rpcWorker.insertIndexerData(
       identifier,
@@ -80,6 +84,9 @@ export class DatabaseStore {
     );
   }
 
+  /**
+   * Ensures the initialization of the database connection with the specified access mode (read/write)
+   */
   ensureInitialization(
     repositoryIdentifier: string,
     accessMode: DuckDBAccessMode
@@ -120,10 +127,21 @@ export class DatabaseStore {
       });
   }
 
+  /**
+   * Returns the names and data types of all created tables.
+   */
   async getTableAndColumnNames(): Promise<
     Record<string, { column_name: string; data_type: string }[]>
   > {
+    if (!this.currentRepositoryIdentifier) {
+      this.tablesAndColumns = {};
+      return {};
+    }
     await this.awaitDatabaseInitialization;
+    if (!this.currentRepositoryIdentifier) {
+      this.tablesAndColumns = {};
+      return {};
+    }
     if (Object.keys(this.tablesAndColumns).length > 0) {
       return this.tablesAndColumns;
     }
@@ -142,7 +160,7 @@ export class DatabaseStore {
     return this.tablesAndColumns;
   }
 
-  async listTablesAndColumns(): Promise<
+  private async listTablesAndColumns(): Promise<
     { table_name: string; column_name: string; data_type: string }[]
   > {
     const sql = `
@@ -158,7 +176,11 @@ export class DatabaseStore {
     }[];
   }
 
+  /**
+   * Adds the issue array to its own database table.
+   */
   async insertGitHubIssues(issues: GitHubIssue[]) {
+    if (!issues || issues.length === 0) return;
     await this.awaitDatabaseInitialization;
     if (!this.rpcWorker) {
       throw new Error("Database worker not initialized");
@@ -168,7 +190,11 @@ export class DatabaseStore {
     this.tablesAndColumns = {};
   }
 
+  /**
+   * Adds the issue events array to its own database table.
+   */
   async insertGitHubIssueEvents(events: GitHubIssueEvent[]) {
+    if (!events || events.length === 0) return;
     await this.awaitDatabaseInitialization;
     if (!this.rpcWorker) {
       throw new Error("Database worker not initialized");

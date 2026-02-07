@@ -7,18 +7,81 @@ import { Spinner } from "@/components/ui/spinner";
 import { useToast } from "@/hooks/useToast";
 import { GitHubIssue, GitHubIssueEvent } from "@/workers/dbWorker.d";
 
+/**
+ * The main index page component that allows users to start indexing
+ * their loaded repository and shows the indexing progress.
+ */
 const IndexPage = observer(() => {
   const indexingStore = useStores().indexingStore;
   const dbStore = useStores().dbStore;
   const wasmGixStore = useStores().wasmGixStore;
   const githubAPIStore = useStores().githubAPIStore;
+
   const { showError, showSuccess } = useToast();
+
   const [indexingProgressMessage, setIndexingProgressMessage] =
     useState<string>("");
   const [githubProgressMessage, setGithubProgressMessage] =
     useState<string>("");
 
   const hasGitHubConfig = indexingStore.githubApiUrl != "";
+
+  // Callbacks to update indexing progress
+  const progressCallbackWasmGix = (progress: number, message: string) => {
+    indexingStore.setIndexingProgress(progress).catch(console.error);
+    setIndexingProgressMessage(message);
+  };
+  const progressCallbackGitHub = (progress: number, message: string) => {
+    indexingStore.githubIssuesProgress = progress;
+    setGithubProgressMessage(message);
+  };
+
+  // when the user clicks the start indexing button, worker starts indexing and issues
+  // are fetched from GitHub API if configured
+  async function handleStartIndexingClick() {
+    const indexingPromise = wasmGixStore.startIndexing(
+      indexingStore.project!.repositoryIdentifier,
+      progressCallbackWasmGix
+    );
+
+    // initiailize with empty results for the case that no GitHub config is provided
+    let githubPromise: Promise<{
+      issues: GitHubIssue[];
+      events: GitHubIssueEvent[];
+    }> = Promise.resolve({ issues: [], events: [] });
+
+    if (hasGitHubConfig) {
+      githubPromise = githubAPIStore
+        .fetchGitHubIssuesAndEvents(
+          indexingStore.githubApiUrl,
+          progressCallbackGitHub,
+          indexingStore.githubApiToken
+        )
+        .catch((e) => {
+          console.error("GitHub issues fetch error:", e);
+          const errorMessage = e instanceof Error ? e.message : String(e);
+          showError("Failed to fetch GitHub issues: " + errorMessage);
+          return { issues: [], events: [] };
+        });
+    }
+
+    const latestSha = await indexingPromise;
+    indexingStore.setLastIndexedSha(latestSha);
+
+    const { issues: allIssues, events: allEvents } = await githubPromise;
+
+    await dbStore.insertGitHubIssues(allIssues);
+    await dbStore.insertGitHubIssueEvents(allEvents);
+
+    indexingStore.githubIssuesProgress = 100;
+
+    setGithubProgressMessage(
+      `Done! ${allIssues.length} issues, ${allEvents.length} events indexed.`
+    );
+    showSuccess(
+      `Fetched ${allIssues.length} issues and ${allEvents.length} issue events.`
+    );
+  }
 
   return (
     <div className="p-10 pb-14 mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen">
@@ -107,66 +170,6 @@ const IndexPage = observer(() => {
       </div>
     </div>
   );
-
-  async function handleStartIndexingClick() {
-    const repositoryIdentifier = indexingStore.project!.repositoryIdentifier;
-
-    const progressCallbackWasmGix = (progress: number, message: string) => {
-      indexingStore.setIndexingProgress(progress).catch(console.error);
-      setIndexingProgressMessage(message);
-    };
-
-    const progressCallbackGitHub = (progress: number, message: string) => {
-      indexingStore.githubIssuesProgress = progress;
-      setGithubProgressMessage(message);
-    };
-
-    const indexingPromise = wasmGixStore.startIndexing(
-      repositoryIdentifier,
-      progressCallbackWasmGix
-    );
-
-    let githubPromise: Promise<{
-      issues: GitHubIssue[];
-      events: GitHubIssueEvent[];
-    }> = Promise.resolve({ issues: [], events: [] });
-    if (hasGitHubConfig) {
-      githubPromise = githubAPIStore
-        .fetchGitHubIssuesAndEvents(
-          indexingStore.githubApiUrl,
-          progressCallbackGitHub,
-          indexingStore.githubApiToken
-        )
-        .catch((e) => {
-          console.error("GitHub issues fetch error:", e);
-          const errorMessage = e instanceof Error ? e.message : String(e);
-          showError("Failed to fetch GitHub issues: " + errorMessage);
-          return { issues: [], events: [] };
-        });
-    }
-
-    const latestSha = await indexingPromise;
-    if (latestSha) {
-      indexingStore.setLastIndexedSha(latestSha);
-    }
-
-    const { issues: allIssues, events: allEvents } = await githubPromise;
-
-    if (allIssues.length > 0) {
-      await dbStore.insertGitHubIssues(allIssues);
-    }
-    if (allEvents.length > 0) {
-      await dbStore.insertGitHubIssueEvents(allEvents);
-    }
-
-    indexingStore.githubIssuesProgress = 100;
-    setGithubProgressMessage(
-      `Done! ${allIssues.length} issues, ${allEvents.length} events indexed.`
-    );
-    showSuccess(
-      `Fetched ${allIssues.length} issues and ${allEvents.length} issue events.`
-    );
-  }
 });
 
 export default IndexPage;

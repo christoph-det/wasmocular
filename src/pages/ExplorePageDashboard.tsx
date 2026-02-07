@@ -5,6 +5,9 @@ import ChartCard from "@/components/ChartCard";
 import { useStores } from "@/store/StoreContext";
 import { observer } from "mobx-react-lite";
 
+/**
+ * ExplorePageDashboard component renders the dashboard page (with widgets) and navigation bar,
+ */
 const ExplorePageDashboard = observer(() => {
   const dashboardStore = useStores().dashboardStore;
 

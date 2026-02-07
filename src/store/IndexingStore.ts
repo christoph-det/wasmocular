@@ -2,6 +2,9 @@ import { makeAutoObservable, reaction } from "mobx";
 import { RootStore } from "./RootStore";
 import { DuckDBAccessMode } from "@duckdb/duckdb-wasm";
 
+/**
+ * Enum representing the different states of data loading and indexing.
+ */
 export enum DataLoadingState {
   NOT_STARTED = "NOT_STARTED",
   REPOSITORY_LOADED = "REPOSITORY_LOADED",
@@ -9,6 +12,9 @@ export enum DataLoadingState {
   INDEXING_FINISHED = "INDEXING_FINISHED"
 }
 
+/**
+ * Structure for storing indexing data in localStorage.
+ */
 interface StoredIndexingData {
   indexingProgress?: number;
   dataLoadingState?: DataLoadingState;
@@ -21,6 +27,9 @@ interface StoredIndexingData {
   };
 }
 
+/**
+ * Class representing a project associated with a repository.
+ */
 export class RepositoryProject {
   name = "";
   repositoryIdentifier = "";
@@ -32,8 +41,13 @@ export class RepositoryProject {
     makeAutoObservable(this);
   }
 }
+
+/**
+ * Store managing the indexing state and related data.
+ */
 export class IndexingStore {
-  rootStore: RootStore;
+  readonly ready: Promise<void>;
+  private rootStore: RootStore;
   indexingProgress = 0; // Percentage of indexing progress
   dataLoadingState = DataLoadingState.NOT_STARTED;
 
@@ -42,11 +56,10 @@ export class IndexingStore {
   githubIssuesProgress = 0;
 
   proxyURL = "https://dawn-salad-f180.c-dethloff.workers.dev";
-  readonly ready: Promise<void>;
 
   project: RepositoryProject | null = null;
 
-  STORAGE_KEY = (projectIdentifier?: string) => {
+  private readonly STORAGE_KEY = (projectIdentifier?: string) => {
     return (
       "indexingStore_" +
       (projectIdentifier ?? this.project?.repositoryIdentifier ?? "no_project")
@@ -68,10 +81,19 @@ export class IndexingStore {
   }
 
   private toJSON() {
+    const project = this.project
+      ? {
+          name: this.project.name,
+          repositoryIdentifier: this.project.repositoryIdentifier,
+          defaultDashboardId: this.project.defaultDashboardId,
+          lastIndexedSha: this.project.lastIndexedSha,
+          sourceUrl: this.project.sourceUrl
+        }
+      : null;
     return {
       indexingProgress: this.indexingProgress,
       dataLoadingState: this.dataLoadingState,
-      project: this.project
+      project
     };
   }
 
@@ -87,6 +109,9 @@ export class IndexingStore {
     }
   }
 
+  /**
+   * Loads the indexing store data from localStorage.
+   */
   loadFromStorage(projectIdentifier?: string) {
     let stored;
 
@@ -118,19 +143,25 @@ export class IndexingStore {
     }
   }
 
-  resetIndexingStore() {
+  /**
+   * Resets the indexing store to its initial state and clears related data.
+   */
+  async resetIndexingStore() {
     this.project = null;
     this.dataLoadingState = DataLoadingState.NOT_STARTED;
     this.indexingProgress = 0;
     this.githubApiUrl = "";
     this.githubApiToken = "";
     this.githubIssuesProgress = 0;
-    this.rootStore.dbStore.closeConnection().catch(console.error);
+    await this.rootStore.dbStore.closeConnection();
     this.rootStore.wasmGixStore.reset();
     this.rootStore.wasmGitStore.reset();
     this.rootStore.githubAPIStore.reset();
   }
 
+  /**
+   * Deletes the project data from localStorage.
+   */
   deleteProjectFromStorage(projectIdentifier: string) {
     try {
       localStorage.removeItem(this.STORAGE_KEY(projectIdentifier));
@@ -142,6 +173,9 @@ export class IndexingStore {
     }
   }
 
+  /**
+   * Creates a new project and initializes it.
+   */
   async createNewProject(
     name: string,
     repositoryIdentifier: string,
@@ -159,47 +193,39 @@ export class IndexingStore {
     this.updateDatabaseAccessMode();
   }
 
-  setGitHubApiConfig(repoUrl: string, token: string) {
-    this.githubApiUrl = repoUrl;
-    this.githubApiToken = token;
-  }
-
   changeProjectName(name: string) {
     if (this.project) {
       this.project.name = name;
-      this.saveToStorage();
     } else {
       console.warn("No project loaded to change name");
     }
   }
 
+  /**
+   * Sets the dashboard ID for the current project.
+   */
   setDefaultDashboardId(dashboardId: string) {
     if (!this.project) {
       console.warn("No project loaded to set default dashboard ID");
       return;
     }
     this.project.defaultDashboardId = dashboardId;
-    this.saveToStorage();
   }
 
+  /**
+   * Sets the last indexed SHA for the current project to use for reindexing.
+   */
   setLastIndexedSha(sha: string) {
     if (!this.project) {
       console.warn("No project loaded to set last indexed SHA");
       return;
     }
     this.project.lastIndexedSha = sha;
-    this.saveToStorage();
   }
 
-  setSourceUrl(url: string) {
-    if (!this.project) {
-      console.warn("No project loaded to set source URL");
-      return;
-    }
-    this.project.sourceUrl = url;
-    this.saveToStorage();
-  }
-
+  /**
+   * Sets the indexing progress percentage used for tracking indexing status in the UI and storage.
+   */
   async setIndexingProgress(progress: number) {
     await this.ready;
     this.indexingProgress = progress;
@@ -213,12 +239,18 @@ export class IndexingStore {
     }
   }
 
+  /**
+   * Sets the data loading state and updates database access mode accordingly.
+   */
   async setDataLoadingState(state: DataLoadingState) {
     await this.ready;
     this.dataLoadingState = state;
     this.updateDatabaseAccessMode();
   }
 
+  /**
+   * Lists all stored projects in localStorage.
+   */
   listAllStoredProjects(): StoredIndexingData[] {
     const projects: StoredIndexingData[] = [];
     try {

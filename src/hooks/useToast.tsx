@@ -10,6 +10,9 @@ interface UseToastResult {
   showError: (message: string) => void;
 }
 
+/**
+ * ToastProvider component that wraps the application and provides toast notifications for information, success, and error messages.
+ */
 export const ToastProvider = ({ children }: { children: ReactNode }) => (
   <>
     {children}
@@ -17,6 +20,9 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => (
   </>
 );
 
+/**
+ * Custom hook to create notifications.
+ */
 // eslint-disable-next-line react-refresh/only-export-components
 export const useToast = (): UseToastResult => {
   return useMemo<UseToastResult>(() => {
