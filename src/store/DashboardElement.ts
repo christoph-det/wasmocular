@@ -88,8 +88,8 @@ export class DashboardElement {
     this.chartWidth = this.chartWidth === "half" ? "full" : "half";
   }
 
-  // CTE approach to apply date filters, TODO: maybe take care of joins later
-  // TODO: make this work for issues and other tables as well
+  // CTE approach to apply date filters
+  // TODO: maybe also implement this for issues / events
   private makeCTEQuery(userQuery: string): string {
     const conditions: string[] = [];
     const { activeDateFilterFrom, activeDateFilterTo, unselectedAuthors } =

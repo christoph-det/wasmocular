@@ -121,7 +121,7 @@ const DashboardSidebar = observer(() => {
       {!sidebarCollapsed && (
         <div className="mt-4">
           <p className="text-gray-600">
-            Apply global filters to apply to all dashboard widgets.
+            Apply global filters to apply to all dashboard widgets.<br /><small>Only applying to commit data at the moment.</small>
           </p>
           <div className="mt-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
