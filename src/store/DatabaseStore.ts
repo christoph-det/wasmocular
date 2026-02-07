@@ -58,6 +58,7 @@ export class DatabaseStore {
       this.worker?.terminate();
       this.currentRepositoryIdentifier = null;
       this.currentAccessMode = null;
+      this.awaitDatabaseInitialization = Promise.resolve();
       this.tablesAndColumns = {};
       this.init();
     }
@@ -132,7 +133,15 @@ export class DatabaseStore {
   async getTableAndColumnNames(): Promise<
     Record<string, { column_name: string; data_type: string }[]>
   > {
+    if (!this.currentRepositoryIdentifier) {
+      this.tablesAndColumns = {};
+      return {};
+    }
     await this.awaitDatabaseInitialization;
+    if (!this.currentRepositoryIdentifier) {
+      this.tablesAndColumns = {};
+      return {};
+    }
     if (Object.keys(this.tablesAndColumns).length > 0) {
       return this.tablesAndColumns;
     }

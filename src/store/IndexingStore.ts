@@ -146,14 +146,14 @@ export class IndexingStore {
   /**
    * Resets the indexing store to its initial state and clears related data.
    */
-  resetIndexingStore() {
+  async resetIndexingStore() {
     this.project = null;
     this.dataLoadingState = DataLoadingState.NOT_STARTED;
     this.indexingProgress = 0;
     this.githubApiUrl = "";
     this.githubApiToken = "";
     this.githubIssuesProgress = 0;
-    this.rootStore.dbStore.closeConnection().catch(console.error);
+    await this.rootStore.dbStore.closeConnection();
     this.rootStore.wasmGixStore.reset();
     this.rootStore.wasmGitStore.reset();
     this.rootStore.githubAPIStore.reset();

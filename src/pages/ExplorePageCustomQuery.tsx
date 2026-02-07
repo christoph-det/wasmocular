@@ -56,6 +56,7 @@ const customSQLHighlighting = HighlightStyle.define([
  */
 const ExplorePageCustomQuery = () => {
   const databaseStore = useStores().dbStore;
+  const indexingStore = useStores().indexingStore;
 
   const [searchParams] = useSearchParams();
   const [queryState, setQueryState] = useState({
@@ -152,6 +153,10 @@ const ExplorePageCustomQuery = () => {
     : buildSqlQueryString();
 
   useEffect(() => {
+    if (!indexingStore.project?.repositoryIdentifier) {
+      setTablesAndColumns({});
+      return;
+    }
     databaseStore
       .getTableAndColumnNames()
       .then((result) => {
@@ -160,7 +165,11 @@ const ExplorePageCustomQuery = () => {
       .catch((error: Error) => {
         console.error("Error fetching tables and columns:", error);
       });
-  }, [databaseStore.tablesAndColumns, databaseStore]);
+  }, [
+    databaseStore.tablesAndColumns,
+    databaseStore,
+    indexingStore.project?.repositoryIdentifier
+  ]);
 
   // Initialize CodeMirror editor for manual SQL query mode
   useEffect(() => {

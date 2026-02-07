@@ -576,6 +576,4 @@ export class WasmGixWorker {
 }
 
 const wasmGixWorker = new WasmGixWorker();
-(async function () {
-  Comlink.expose(wasmGixWorker);
-})().catch(console.error);
+Comlink.expose(wasmGixWorker);

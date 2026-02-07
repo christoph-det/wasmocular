@@ -46,7 +46,7 @@ const NavigationBar = observer(() => {
 
   const handleCreateNewProjectClick = () => {
     window.location.hash = "#";
-    indexingStore.resetIndexingStore();
+    indexingStore.resetIndexingStore().catch(console.error);
   };
 
   const handleSettingsClick = () => {

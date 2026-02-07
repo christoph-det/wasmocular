@@ -62,7 +62,7 @@ const SettingsPage = observer(() => {
           indexingStore.project!.defaultDashboardId ?? ""
         );
         indexingStore.deleteProjectFromStorage(repositoryIdentifier);
-        indexingStore.resetIndexingStore();
+        await indexingStore.resetIndexingStore();
         showSuccess("Project deleted successfully.");
         globalThis.location.hash = "#/";
       } catch (error) {
