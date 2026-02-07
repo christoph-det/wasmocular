@@ -15,8 +15,9 @@ export class WasmGixWorker {
   private createdDirs: Set<string> = new Set<string>(["/"]);
   // route log messages from gitoxide to the UI
   private gitoxideLogListener?: (message: string) => void;
+  private isInitalized: Promise<void> | null = null;
 
-  async init() {
+  private async init() {
     this.gitoxide = await initGitoxide({
       print: (text: string) => this.forwardGitoxideLog(text, false),
       printErr: (text: string) => this.forwardGitoxideLog(text, true)
@@ -43,6 +44,10 @@ export class WasmGixWorker {
    * Deletes all data associated with a repository from the virtual emscripten file system.
    */
   async deleteRepositoryData(identifier: string) {
+    if (!this.isInitalized) {
+      this.isInitalized = this.init();
+    }
+    await this.isInitalized;
     const repoPath = `${PERSIST_ROOT}/${identifier}`;
     try {
       this.removePathRecursive(repoPath);
@@ -64,6 +69,10 @@ export class WasmGixWorker {
     progressCallback: (progress: number, message: string) => void,
     lastIndexedSha?: string
   ): Promise<{ buffer: Uint8Array; latestSha: string } | undefined> {
+    if (!this.isInitalized) {
+      this.isInitalized = this.init();
+    }
+    await this.isInitalized;
     const repoPath = `${PERSIST_ROOT}/${identifier}`;
 
     progressCallback(1, "Starting indexing process...");
@@ -164,6 +173,10 @@ export class WasmGixWorker {
    * Mainly used when cloning with wasm-git and analyzing afterwards.
    */
   async remountRepository(identifier: string) {
+    if (!this.isInitalized) {
+      this.isInitalized = this.init();
+    }
+    await this.isInitalized;
     const repoPath = `${PERSIST_ROOT}/${identifier}`;
     await this.syncFs(true);
     console.log(`Repository remounted at ${repoPath}`);
@@ -177,6 +190,10 @@ export class WasmGixWorker {
     localFileHandle: FileSystemDirectoryHandle,
     progressCallback: (progress: number, message: string) => void
   ) {
+    if (!this.isInitalized) {
+      this.isInitalized = this.init();
+    }
+    await this.isInitalized;
     const repoPath = `${PERSIST_ROOT}/${identifier}`;
     this.ensureDirExists(repoPath);
 
@@ -560,6 +577,5 @@ export class WasmGixWorker {
 
 const wasmGixWorker = new WasmGixWorker();
 (async function () {
-  await wasmGixWorker.init();
   Comlink.expose(wasmGixWorker);
 })().catch(console.error);

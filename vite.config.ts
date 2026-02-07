@@ -61,7 +61,12 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["src/**/*.{ts,tsx}"],
-      exclude: ["src/workers/wasm-gix-library/**", "src/components/ui/**"]
+      // exclude compiled wasm files, ShadCn files and binocular files from coverage
+      exclude: [
+        "src/workers/wasm-gix-library/**",
+        "src/components/ui/**",
+        "src/components/vizualisation/binocular/**"
+      ]
     }
   }
 });

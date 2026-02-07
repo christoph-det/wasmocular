@@ -12,12 +12,12 @@ const BRANCH_PREFIX: &str = "refs/heads/";
 pub fn repo_head(repo_path: &Path) -> Result<String> {
     // open repository
     let repo = gix::open(repo_path)
-        .with_context(|| format!("failed to open repository at {}", repo_path.display()))?;
+        .with_context(|| format!("[gitoxide] failed to open repository at {}", repo_path.display()))?;
 
-    let mut head = repo.head().context("failed to read HEAD")?;
+    let mut head = repo.head().context("[gitoxide] failed to read HEAD")?;
 
     if head.is_unborn() {
-        return Err(anyhow!("repository has no commits"));
+        return Err(anyhow!("[gitoxide]repository has no commits"));
     }
 
     // get HEAD commit SHA
@@ -32,22 +32,22 @@ pub fn repo_head(repo_path: &Path) -> Result<String> {
 /// Returns a list of all tracked file paths in the repository at the given path.
 pub fn tracked_paths(repo_path: &Path) -> Result<Vec<String>> {
     let repo = gix::open(repo_path)
-        .with_context(|| format!("failed to open repository at {}", repo_path.display()))?;
+        .with_context(|| format!("[gitoxide]failed to open repository at {}", repo_path.display()))?;
 
     collect_tracked_paths(&repo)
 }
 
 fn collect_tracked_paths(repo: &gix::Repository) -> Result<Vec<String>> {
     // get HEAD commit
-    let mut head = repo.head().context("failed to read HEAD")?;
+    let mut head = repo.head().context("[gitoxide] failed to read HEAD")?;
     if head.is_unborn() {
         return Ok(Vec::new());
     }
     let commit = head
         .peel_to_commit()
-        .context("failed to peel HEAD to commit")?;
+        .context("[gitoxide]failed to peel HEAD to commit")?;
     // traverse the commit tree to collect file paths
-    let tree = commit.tree().context("failed to load commit tree")?;
+    let tree = commit.tree().context("[gitoxide]failed to load commit tree")?;
     let entries = tree
         .traverse()
         .breadthfirst
@@ -71,12 +71,12 @@ fn collect_tracked_paths(repo: &gix::Repository) -> Result<Vec<String>> {
 /// Returns a list of all branch names in the repository at the given path.
 pub fn branches(repo_path: &Path) -> Result<Vec<String>> {
     let repo = gix::open(repo_path)
-        .with_context(|| format!("failed to open repository at {}", repo_path.display()))?;
+        .with_context(|| format!("[gitoxide] failed to open repository at {}", repo_path.display()))?;
 
-    let references = repo.references().context("failed to access references")?;
+    let references = repo.references().context("[gitoxide] failed to access references")?;
     let refs = references
         .prefixed(BRANCH_PREFIX)
-        .context("failed to iterate local branches")?;
+        .context("[gitoxide] failed to iterate local branches")?;
 
     let mut names = Vec::new();
     // iterate over branch references and collect their short names
@@ -283,7 +283,7 @@ fn commit_line_stats<'repo>(
 
     let mut diff_platform = base_tree
         .changes()
-        .context("failed to prepare tree diff platform")?;
+        .context("[gitoxide] failed to prepare tree diff platform")?;
 
     // configure diff to track renames and copies (compromise between accuracy and performance)
     let rewrites = gix::diff::Rewrites {
@@ -299,7 +299,7 @@ fn commit_line_stats<'repo>(
     let stats = diff_platform
         .stats(&current_tree)
         .map_err(|err| anyhow!(err))
-        .with_context(|| "failed to compute tree diff stats")?;
+        .with_context(|| "[gitoxide] failed to compute tree diff stats")?;
 
     Ok((stats.lines_added, stats.lines_removed))
 }

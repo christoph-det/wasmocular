@@ -4,3 +4,8 @@ import { webcrypto } from "crypto";
 if (typeof globalThis.crypto === "undefined") {
   globalThis.crypto = webcrypto as Crypto;
 }
+
+// fsa-mock references `self` at module top-level; provide it for Node
+if (typeof globalThis.self === "undefined") {
+  globalThis.self = globalThis as any;
+}

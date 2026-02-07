@@ -82,6 +82,10 @@ const DashboardSidebar = observer(() => {
     }
   };
 
+  const handleAuthorSelectionChange = (author: string, selected: boolean) => {
+    dashboardStore.setAuthorSelected(author, selected);
+  };
+
   return (
     <div
       className={`bg-white shadow-md p-4 min-h-screen transition-all duration-300 ease-in-out ${
@@ -194,10 +198,7 @@ const DashboardSidebar = observer(() => {
                       type="checkbox"
                       checked={dashboardStore.availableAuthors.get(author)}
                       onChange={(e) => {
-                        dashboardStore.setAuthorSelected(
-                          author,
-                          e.target.checked
-                        );
+                        handleAuthorSelectionChange(author, e.target.checked);
                       }}
                       className="mr-2"
                     />
