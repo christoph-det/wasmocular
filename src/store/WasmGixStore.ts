@@ -3,6 +3,10 @@ import { proxy, Remote, wrap } from "comlink";
 import WasmGixWorkerFactory from "@/workers/wasmgixWorker?worker";
 import type { WasmGixWorker } from "@/workers/wasmgixWorker";
 
+type UserAgentMemoryPerformance = Performance & {
+  measureUserAgentSpecificMemory: () => Promise<unknown>;
+};
+
 /**
  * This store handles the lifecycle of a Git repository Worker that performs loading indexing
  * operations.
@@ -102,6 +106,25 @@ export class WasmGixStore {
         result.buffer
       );
       const dbInsertionTime = ((performance.now() - endTime) / 1000).toFixed(2);
+
+      // memory measurement
+      if (
+        crossOriginIsolated &&
+        "measureUserAgentSpecificMemory" in performance &&
+        typeof performance.measureUserAgentSpecificMemory === "function"
+      ) {
+        const memoryPerformance = performance as UserAgentMemoryPerformance;
+        // dispatched with then, because takes time to complete (needs to run garbage collection), note also it might return inaccurate data if GC ran already before
+        memoryPerformance
+          .measureUserAgentSpecificMemory()
+          .then((measurement: unknown) => {
+            console.log(`Memory measurement details:`, measurement);
+          })
+          .catch((error: unknown) => {
+            console.error("Memory measurement failed: ", error);
+          });
+      }
+
       progressCallback(
         100,
         `Indexing completed successfully in ${duration}s. Database insertion took ${dbInsertionTime}s.`
