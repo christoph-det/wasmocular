@@ -42,7 +42,12 @@ export class WasmGixStore {
       console.error("WasmGix worker not initialized");
       return;
     }
+    const startTimeReload = performance.now();
     await this.rpcWorker.remountRepository(identifier);
+    const duration = ((performance.now() - startTimeReload) / 1000).toFixed(2);
+    console.log(
+      `[wasmgix] Repository remount finished for ${identifier} in ${duration}s`
+    );
   }
 
   /**
@@ -57,11 +62,17 @@ export class WasmGixStore {
       console.error("WasmGix worker not initialized");
       return;
     }
+    const startTimeLoad = performance.now();
     const progressProxy = proxy(progressCallback);
     await this.rpcWorker.mountRepository(
       identifier,
       localFileHandle,
       progressProxy
+    );
+    const duration = ((performance.now() - startTimeLoad) / 1000).toFixed(2);
+    progressCallback(100, `Repository loaded with wasmgix in ${duration}s.`);
+    console.log(
+      `[wasmgix] Repository load finished for ${identifier} in ${duration}s`
     );
   }
 

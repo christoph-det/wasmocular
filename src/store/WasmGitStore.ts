@@ -38,12 +38,16 @@ export class WasmGitStore {
     if (!this.rpcWorker) {
       throw new Error("WasmGitStore not initialized");
     }
+    const startTimeClone = performance.now();
     const progressProxy = proxy(progressCallback);
-    return this.rpcWorker.cloneRepository(
-      gitRepoURL,
-      repoIdentifier,
-      proxyUrl,
-      progressProxy
-    );
+    return this.rpcWorker
+      .cloneRepository(gitRepoURL, repoIdentifier, proxyUrl, progressProxy)
+      .then(() => {
+        const duration = ((performance.now() - startTimeClone) / 1000).toFixed(2);
+        progressCallback(100, `Repository cloned with wasm-git in ${duration}s.`);
+        console.log(
+          `[wasm-git] Repository clone finished for ${repoIdentifier} in ${duration}s`
+        );
+      });
   }
 }
