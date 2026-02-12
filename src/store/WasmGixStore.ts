@@ -134,6 +134,10 @@ export class WasmGixStore {
           .catch((error: unknown) => {
             console.error("Memory measurement failed: ", error);
           });
+      } else {
+        console.warn(
+          "Memory measurement not supported in this environment. Requires cross-origin isolation and browser support for measureUserAgentSpecificMemory."
+        );
       }
 
       progressCallback(
