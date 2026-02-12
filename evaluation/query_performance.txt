@@ -1,0 +1,42 @@
+Query:
+SELECT 
+    author_signature, COUNT(*) AS total_commits, SUM(additions), SUM(deletions),
+FROM 
+  commits
+GROUP BY 
+    author_signature
+ORDER BY 
+    total_commits DESC
+LIMIT 20;
+
+-------
+
+Tiny
+1 rows returned in 24.10 ms.
+1 rows returned in 8.10 ms.
+1 rows returned in 6.20 ms.
+1 rows returned in 5.90 ms.
+1 rows returned in 9.80 ms.
+
+
+Zustand
+20 rows returned in 20.00 ms.
+20 rows returned in 8.10 ms.
+20 rows returned in 7.20 ms.
+20 rows returned in 9.30 ms.
+20 rows returned in 11.70 ms.
+
+
+
+Astro
+20 rows returned in 24.90 ms.
+20 rows returned in 9.30 ms.
+20 rows returned in 11.00 ms.
+20 rows returned in 11.50 ms.
+20 rows returned in 10.00 ms.
+
+
+
+
+
+
