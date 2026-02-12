@@ -1,0 +1,23 @@
+{
+  auto_https off
+  admin off
+}
+
+:{$PORT:8080} {
+  root * /srv
+  encode zstd gzip
+
+  @preflight method OPTIONS
+  respond @preflight 204
+
+  header {
+    Cross-Origin-Embedder-Policy "require-corp"
+    Cross-Origin-Opener-Policy "same-origin"
+    Access-Control-Allow-Origin "*"
+    Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+    Access-Control-Allow-Headers "Content-Type, Authorization"
+  }
+
+  try_files {path} /index.html
+  file_server
+}
