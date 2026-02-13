@@ -265,7 +265,7 @@ export class DatabaseWorker {
     const tableName = "github_issues";
 
     await connection.query(`
-      CREATE TABLE ${tableName} (
+      CREATE TABLE IF NOT EXISTS ${tableName} (
         id BIGINT,
         number INTEGER,
         title VARCHAR,
@@ -315,7 +315,7 @@ export class DatabaseWorker {
     const tableName = "github_issue_events";
 
     await connection.query(`
-      CREATE TABLE ${tableName} (
+      CREATE TABLE IF NOT EXISTS ${tableName} (
         issue_number INTEGER,
         event_type VARCHAR,
         commit_sha VARCHAR,

@@ -9,6 +9,7 @@
   "homepage": "https://christoph-det.github.io/masterarbeit",
   "scripts": {
     "dev": "vite",
+    "preview": "vite preview",
     "test": "vitest run",
     "test:dev": "vitest watch",
     "test:coverage": "vitest run --coverage",

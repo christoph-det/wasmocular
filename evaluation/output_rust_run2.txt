@@ -5,34 +5,34 @@ test api::performance_test::benchmark_git_indexer_tiny_repo ... Cloning reposito
 [gitoxide] Commit count: 3
 [gitoxide] Indexed commits: 0
 [gitoxide] Finished, indexed 3 commits
-Clone took 553.03ms, Git indexer completed in 9.77ms for repository https://github.com/christoph-det/test-repo-wasmocular.git
+Clone took 581.58ms, Git indexer completed in 1.34ms for repository https://github.com/christoph-det/test-repo-wasmocular.git
 ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.57s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.59s
 
-        0.57 real         0.04 user         0.07 sys
-             8732672  maximum resident set size
+        0.59 real         0.03 user         0.04 sys
+             8749056  maximum resident set size
                    0  average shared memory size
                    0  average unshared data size
                    0  average unshared stack size
-                3814  page reclaims
-                 328  page faults
+                4096  page reclaims
+                  39  page faults
                    0  swaps
                    0  block input operations
                    0  block output operations
                   16  messages sent
-                  43  messages received
+                  44  messages received
                    0  signals received
-                  85  voluntary context switches
-                 376  involuntary context switches
-            85091898  instructions retired
-            43961853  cycles elapsed
-             2392960  peak memory footprint
+                  73  voluntary context switches
+                 182  involuntary context switches
+            67474292  instructions retired
+            26993270  cycles elapsed
+             2409344  peak memory footprint
 
 running 1 test
 test api::performance_test::benchmark_git_indexer_small_repo ... Cloning repository: https://github.com/pmndrs/zustand.git
 [gitoxide] Starting commit indexing...
-[gitoxide] Commit count: 1314
+[gitoxide] Commit count: 1316
 [gitoxide] Indexed commits: 0
 [gitoxide] Indexed commits: 100
 [gitoxide] Indexed commits: 200
@@ -47,35 +47,35 @@ test api::performance_test::benchmark_git_indexer_small_repo ... Cloning reposit
 [gitoxide] Indexed commits: 1100
 [gitoxide] Indexed commits: 1200
 [gitoxide] Indexed commits: 1300
-[gitoxide] Finished, indexed 1314 commits
-Clone took 977.06ms, Git indexer completed in 902.65ms for repository https://github.com/pmndrs/zustand.git
+[gitoxide] Finished, indexed 1316 commits
+Clone took 1.07s, Git indexer completed in 903.51ms for repository https://github.com/pmndrs/zustand.git
 ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 1.89s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 1.99s
 
-        1.89 real         1.27 user         0.18 sys
-            33259520  maximum resident set size
+        1.99 real         1.27 user         0.17 sys
+            33177600  maximum resident set size
                    0  average shared memory size
                    0  average unshared data size
                    0  average unshared stack size
-                6728  page reclaims
-                  33  page faults
+                6707  page reclaims
+                  46  page faults
                    0  swaps
                    0  block input operations
                    0  block output operations
                   17  messages sent
-               12195  messages received
+               12332  messages received
                    0  signals received
-                3203  voluntary context switches
-                4471  involuntary context switches
-          8770576664  instructions retired
-          2936002455  cycles elapsed
-            18711680  peak memory footprint
+                2808  voluntary context switches
+                4256  involuntary context switches
+          8761512718  instructions retired
+          2935930381  cycles elapsed
+            18531520  peak memory footprint
 
 running 1 test
 test api::performance_test::benchmark_git_indexer_large_repo ... Cloning repository: https://github.com/withastro/astro.git
 [gitoxide] Starting commit indexing...
-[gitoxide] Commit count: 13523
+[gitoxide] Commit count: 13557
 [gitoxide] Indexed commits: 0
 [gitoxide] Indexed commits: 100
 [gitoxide] Indexed commits: 200
@@ -212,27 +212,27 @@ test api::performance_test::benchmark_git_indexer_large_repo ... Cloning reposit
 [gitoxide] Indexed commits: 13300
 [gitoxide] Indexed commits: 13400
 [gitoxide] Indexed commits: 13500
-[gitoxide] Finished, indexed 13523 commits
-Clone took 12.11s, Git indexer completed in 55.19s for repository https://github.com/withastro/astro.git
+[gitoxide] Finished, indexed 13557 commits
+Clone took 11.93s, Git indexer completed in 53.25s for repository https://github.com/withastro/astro.git
 ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 67.92s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 65.76s
 
-       67.93 real        65.28 user         4.84 sys
-           296288256  maximum resident set size
+       65.76 real        64.17 user         4.16 sys
+           298467328  maximum resident set size
                    0  average shared memory size
                    0  average unshared data size
                    0  average unshared stack size
-               34715  page reclaims
-                8028  page faults
+               32334  page reclaims
+                7914  page faults
                    0  swaps
                    0  block input operations
                    0  block output operations
-                  63  messages sent
-              340035  messages received
-                   1  signals received
-               94339  voluntary context switches
-              213270  involuntary context switches
-        569049145793  instructions retired
-        175771801413  cycles elapsed
-            76875456  peak memory footprint
+                  62  messages sent
+              337495  messages received
+                   0  signals received
+               83680  voluntary context switches
+              185904  involuntary context switches
+        571969936471  instructions retired
+        172182553705  cycles elapsed
+            69682752  peak memory footprint

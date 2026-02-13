@@ -37,6 +37,6 @@ Cargo.lock
 coverage/
 
 # compiled wasm files
-/src/workers/wasm-gix-library/wasm_gix.wasm
-src/workers/wasm-gix-library/wasm_gix.js
+# /src/workers/wasm-gix-library/wasm_gix.wasm
+# src/workers/wasm-gix-library/wasm_gix.js
     

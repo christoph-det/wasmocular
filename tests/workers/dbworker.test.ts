@@ -154,7 +154,7 @@ describe("db Worker Tests", () => {
 
     await databaseWorker.insertGitHubIssues(issues);
     expect(querySpy).toHaveBeenCalledWith(
-      expect.stringContaining("CREATE TABLE github_issues")
+      expect.stringContaining("CREATE TABLE IF NOT EXISTS github_issues")
     );
     expect(querySpy).toHaveBeenCalledWith("CHECKPOINT;");
   });
@@ -180,7 +180,7 @@ describe("db Worker Tests", () => {
 
     await databaseWorker.insertGitHubIssueEvents(issueEvents);
     expect(querySpy).toHaveBeenCalledWith(
-      expect.stringContaining("CREATE TABLE github_issue_events")
+      expect.stringContaining("CREATE TABLE IF NOT EXISTS github_issue_events")
     );
     expect(querySpy).toHaveBeenCalledWith("CHECKPOINT;");
   });
