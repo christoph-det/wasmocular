@@ -291,12 +291,13 @@ const LoadPage = observer(() => {
                 </DialogHeader>
                 <div className="py-4">
                   You can also deploy your own git proxy server to avoid CORS
-                  issues when cloning repositories, e.g., using Cloudflare
+                  issues when cloning repositories, e.g., using Cloudflare or locally with Node.js.
                   Workers with the provided{" "}
                   <a
-                    href="/public/gitProxy.ts"
+                    href={`${import.meta.env.BASE_URL}gitProxy.ts`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    className="underline text-blue-600"
                   >
                     gitProxy.ts
                   </a>{" "}
