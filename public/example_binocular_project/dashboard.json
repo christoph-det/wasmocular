@@ -1,0 +1,32 @@
+{
+  "dashboardId": "55126a05-b5f2-4477-b794-355593603ee7",
+  "widgets": [
+    {
+      "id": "94e74b13-376f-41b6-9cc5-837ce6a2865d",
+      "title": "Additions / Deletions by author",
+      "description": "",
+      "chartWidth": "full",
+      "sqlQuery": "SELECT\n  authored_at AS date, author_signature || ' (additions)' AS series, CAST(additions AS INTEGER) AS value FROM commits\nUNION ALL\nSELECT\n  authored_at AS date, author_signature || ' (deletions)' AS series, -CAST(deletions AS INTEGER) AS value FROM commits",
+      "type": "stacked_area_chart",
+      "timeResolution": "months"
+    },
+    {
+      "id": "e40f3adf-2176-4080-b336-c57ff19f4da8",
+      "title": "Commits by Day / Hour",
+      "description": "",
+      "chartWidth": "half",
+      "sqlQuery": "SELECT \n    dayname(authored_at) as x, -- weekdays\n    EXTRACT(HOUR FROM authored_at) as y, -- hour of day\n    COUNT(sha) as value -- number of commits\nFROM commits\nGROUP BY 1,2, EXTRACT(DOW FROM authored_at)\nORDER BY y, EXTRACT(DOW FROM authored_at);",
+      "type": "heatmap",
+      "timeResolution": "months"
+    },
+    {
+      "id": "30f52925-7aa9-4c96-a182-5890f41ff6f9",
+      "title": "Issues opened / closed over time",
+      "description": "",
+      "chartWidth": "half",
+      "sqlQuery": "SELECT created_at AS date, author || '(opened)' AS series, 1 AS value FROM github_issues\nUNION ALL\nSELECT closed_at AS date, author || '(closed)' AS series, -1 AS value FROM github_issues WHERE closed_at IS NOT NULL",
+      "type": "stacked_area_chart",
+      "timeResolution": "months"
+    }
+  ]
+}

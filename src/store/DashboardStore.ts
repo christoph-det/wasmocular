@@ -6,7 +6,7 @@ import { TimeResolution } from "@/lib/chartConverters/BaseChartConverter";
 /**
  * Structure for storing data of a whole dashboard in localStorage.
  */
-interface StoredDashboardData {
+export interface StoredDashboardData {
   dashboardId: string;
   widgets: StoredDashboardElement[];
 }
