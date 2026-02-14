@@ -240,7 +240,7 @@ export class WasmGitWorker {
       });
     } catch (error) {
       throw new Error(
-        `Could not reach repository. Please ensure the URL is correct. Cause: ${
+        `Could not reach repository via proxy (${infoRefsUrl}). Please ensure the proxy URL is reachable. Cause: ${
           (error as Error)?.message ?? error
         }`
       );

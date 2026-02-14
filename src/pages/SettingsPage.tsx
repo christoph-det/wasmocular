@@ -115,7 +115,7 @@ const SettingsPage = observer(() => {
           } catch (error) {
             progressCallback(
               1,
-              `Pull failed, falling back to fresh clone: ${error}`
+              `Pull failed, falling back to fresh clone: ${String(error)}`
             );
             await wasmGitStore.cloneRepository(
               sourceUrl,
@@ -158,7 +158,7 @@ const SettingsPage = observer(() => {
       }
     } catch (error) {
       console.error("Reindexing failed:", error);
-      showError(`Reindexing failed: ${error}`);
+      showError(`Reindexing failed: ${String(error)}`);
     } finally {
       await indexingStore.setDataLoadingState(
         DataLoadingState.INDEXING_FINISHED

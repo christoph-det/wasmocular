@@ -4,7 +4,8 @@ export default {
 
     const allowedOrigins = [
       "https://christoph-det.github.io",
-      "http://localhost:4173"
+      "http://localhost:4173",
+      "http://localhost:5173"
     ];
 
     const origin: string | null = request.headers.get("Origin");

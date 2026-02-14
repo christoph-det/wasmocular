@@ -239,7 +239,8 @@ const LoadPage = observer(() => {
               hasError={projectName == "state::Error"}
             />
             <Label className="mt-8 mb-2">
-              Select Repository Folder or paste a public GitHub URL:
+              Select Repository Folder or paste a public GitHub URL (cloned via
+              proxy, can be changed in settings):
             </Label>
             <div className="mt-4 flex flex-col md:flex-row md:items-center gap-4">
               <Input
@@ -269,9 +270,10 @@ const LoadPage = observer(() => {
               />
             </div>
             <div className="text-sm text-gray-500 mt-2 mb-8">
-              URL Format: https://github.com/user/repo.git | Only public repos.{" "}
-              <br />
-              Proxy server is used for cloning. You can also deploy your own.{" "}
+              URL Format: https://github.com/user/repo.git | Only public repos
+              with predifined proxy. <br />
+              Proxy server is used only for cloning. You can also deploy your
+              own.{" "}
               <Button
                 variant="link"
                 size="sm"
@@ -288,25 +290,41 @@ const LoadPage = observer(() => {
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>Change Proxy URL</DialogTitle>
+                  Remote Git clones are routed through a Clouflare proxy to
+                  avoid CORS issues.
                 </DialogHeader>
-                <div className="py-4">
-                  You can also deploy your own git proxy server to avoid CORS
-                  issues when cloning repositories, e.g., using Cloudflare or
-                  locally with Node.js. Workers with the provided{" "}
+                <div className="py-2">
+                  <Label className="mb-2">Proxy URL</Label>
+                  <Input
+                    type="text"
+                    className="mb-8"
+                    value={proxyUrl}
+                    onChange={(e) => setProxyUrl(e.target.value)}
+                  />
+                  You can also deploy your own git proxy, using:
+                  <br />
+                  <br />
+                  Local server (
                   <a
-                    href={`${import.meta.env.BASE_URL}gitProxy.ts`}
+                    href={`${import.meta.env.BASE_URL}gitProxyLocalServer.js`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline text-blue-600"
                   >
-                    gitProxy.ts
-                  </a>{" "}
-                  file.
-                  <Input
-                    type="text"
-                    value={proxyUrl}
-                    onChange={(e) => setProxyUrl(e.target.value)}
-                  />
+                    Example local Node.js
+                  </a>
+                  )
+                  <br />
+                  Cloudflare (
+                  <a
+                    href={`${import.meta.env.BASE_URL}gitProxyWorker.ts`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline text-blue-600"
+                  >
+                    Example Worker
+                  </a>
+                  )
                 </div>
                 <DialogFooter>
                   <DialogClose asChild>
@@ -344,10 +362,12 @@ const LoadPage = observer(() => {
               <DialogContent className="max-w-md">
                 <DialogHeader>
                   <DialogTitle>Connect GitHub Issues API</DialogTitle>
+                  Without a token, GitHub strict rate limits apply and only (a
+                  part of the) issues is fetched.
                 </DialogHeader>
                 <div className="py-4 space-y-4">
                   <div>
-                    <Label htmlFor="github-repo-url">
+                    <Label className="mb-2" htmlFor="github-repo-url">
                       GitHub Repository URL
                     </Label>
                     <Input
@@ -359,7 +379,9 @@ const LoadPage = observer(() => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="github-token">GitHub Token</Label>
+                    <Label className="mb-2" htmlFor="github-token">
+                      GitHub Token
+                    </Label>
                     <Input
                       type="password"
                       autoComplete="on"
@@ -368,9 +390,8 @@ const LoadPage = observer(() => {
                       onChange={(e) => setGithubToken(e.target.value)}
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Without a token, GitHub strict rate limits apply and only
-                      issues are fetched. With a token, issue-commit links are
-                      also fetched. Generate one{" "}
+                      With a token, issue-commit links are also fetched.
+                      Generate one{" "}
                       <a
                         href="https://github.com/settings/personal-access-tokens"
                         target="_blank"

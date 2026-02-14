@@ -111,7 +111,8 @@ const ExplorePageCustomQuery = observer(() => {
     cachedStateForCurrentRepository?.manualQueryMode ?? defaultManualQueryMode
   );
   const [manualSQLQuery, setManualSQLQuery] = useState(
-    cachedStateForCurrentRepository?.manualSQLQuery ?? "-- Write your SQL query here"
+    cachedStateForCurrentRepository?.manualSQLQuery ??
+      "-- Write your SQL query here"
   );
 
   const editorRef: React.MutableRefObject<HTMLDivElement | null> = useRef(null);
@@ -189,12 +190,14 @@ const ExplorePageCustomQuery = observer(() => {
     : buildSqlQueryString();
 
   useEffect(() => {
-    if (currentRepositoryIdentifier !== cachedExplorePageState?.repositoryIdentifier) {
+    if (
+      currentRepositoryIdentifier !==
+      cachedExplorePageState?.repositoryIdentifier
+    ) {
       setQueryState(DEFAULT_QUERY_STATE);
       setQueryResult([]);
       setQueryTime(null);
       setQueryError(null);
-      setManualQueryMode(defaultManualQueryMode);
       setManualSQLQuery("-- Write your SQL query here");
     }
     cachedExplorePageState = {
