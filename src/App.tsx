@@ -13,18 +13,14 @@ import SQLExamplesPage from "./pages/SQLExamplesPage";
 import { createExampleProjectOnFirstVisit } from "./lib/bootstrapExampleProject";
 
 const App: React.FC = () => {
-  useEffect(() => {
-    const ensureExampleProject = async () => {
-      await rootStore.indexingStore.ready;
-      const storedProjectsCount =
-        rootStore.indexingStore.listAllStoredProjects().length;
-      if (storedProjectsCount === 0) {
-        createExampleProjectOnFirstVisit();
-      }
-    };
+  const hasNoStoredProjects =
+    rootStore.indexingStore.listAllStoredProjects().length === 0;
 
-    void ensureExampleProject();
-  }, [rootStore.indexingStore.listAllStoredProjects().length === 0]);
+  useEffect(() => {
+    if (hasNoStoredProjects) {
+      createExampleProjectOnFirstVisit();
+    }
+  }, [hasNoStoredProjects]);
 
   return (
     <StoreContext.Provider value={rootStore}>
