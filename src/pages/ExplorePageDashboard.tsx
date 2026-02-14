@@ -24,7 +24,10 @@ const ExplorePageDashboard = observer(() => {
             {widgets.length === 0 ? (
               <div>
                 Need some inspiration? Copy an example query from{" "}
-                <Link to="/sql-examples" className="text-blue-600 hover:underline">
+                <Link
+                  to="/sql-examples"
+                  className="text-blue-600 hover:underline"
+                >
                   here
                 </Link>{" "}
                 and create your first chart.
