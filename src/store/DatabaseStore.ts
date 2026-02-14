@@ -90,7 +90,10 @@ export class DatabaseStore {
       throw new Error("Database worker not initialized");
     }
 
-    this.currentRepositoryIdentifier = repositoryIdentifier;
+    if (this.currentRepositoryIdentifier !== repositoryIdentifier) {
+      this.tablesAndColumns = {};
+      this.currentRepositoryIdentifier = repositoryIdentifier;
+    }
 
     this.awaitDatabaseInitialization = this.rpcWorker
       .initialize(repositoryIdentifier, accessMode)

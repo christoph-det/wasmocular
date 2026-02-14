@@ -10,6 +10,30 @@ import { sql } from "@codemirror/lang-sql";
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { tags } from "@lezer/highlight";
 import CreateDashboardWidgetDialog from "@/components/CreateDashboardWidgetDialog";
+import { observer } from "mobx-react-lite";
+
+interface QueryBuilderState {
+  select: string[];
+  from: string;
+  limit: number;
+}
+
+interface ExplorePageStateCache {
+  repositoryIdentifier: string | null;
+  queryState: QueryBuilderState;
+  queryResult: Record<string, unknown>[];
+  queryTime: number | null;
+  queryError: string | null;
+  manualQueryMode: boolean;
+  manualSQLQuery: string;
+}
+
+const DEFAULT_QUERY_STATE: QueryBuilderState = {
+  select: [],
+  from: "",
+  limit: 100
+};
+let cachedExplorePageState: ExplorePageStateCache | null = null;
 
 // custom CodeMirror theme
 const customSQLTheme = EditorView.theme(
@@ -54,28 +78,40 @@ const customSQLHighlighting = HighlightStyle.define([
 /**
  * Page component for exploring the database with SQL queries, tables and creating dashboard widgets.
  */
-const ExplorePageCustomQuery = () => {
+const ExplorePageCustomQuery = observer(() => {
   const databaseStore = useStores().dbStore;
   const indexingStore = useStores().indexingStore;
 
   const [searchParams] = useSearchParams();
-  const [queryState, setQueryState] = useState({
-    select: [] as string[],
-    from: "" as string,
-    limit: 100 as number
-  });
+  const currentRepositoryIdentifier =
+    indexingStore.project?.repositoryIdentifier ?? null;
+  const defaultManualQueryMode = searchParams.get("mode") === "manual";
+  const cachedStateForCurrentRepository =
+    cachedExplorePageState?.repositoryIdentifier === currentRepositoryIdentifier
+      ? cachedExplorePageState
+      : null;
+
+  const [queryState, setQueryState] = useState<QueryBuilderState>(
+    cachedStateForCurrentRepository?.queryState ?? DEFAULT_QUERY_STATE
+  );
   const [tablesAndColumns, setTablesAndColumns] = useState<
     Record<string, { column_name: string; data_type: string }[]>
   >({});
-  const [queryResult, setQueryResult] = useState<Record<string, unknown>[]>([]);
-  const [queryTime, setQueryTime] = useState<number | null>(null);
-  const [queryError, setQueryError] = useState<string | null>(null);
+  const [queryResult, setQueryResult] = useState<Record<string, unknown>[]>(
+    cachedStateForCurrentRepository?.queryResult ?? []
+  );
+  const [queryTime, setQueryTime] = useState<number | null>(
+    cachedStateForCurrentRepository?.queryTime ?? null
+  );
+  const [queryError, setQueryError] = useState<string | null>(
+    cachedStateForCurrentRepository?.queryError ?? null
+  );
   const [loading, setLoading] = useState(false);
   const [manualQueryMode, setManualQueryMode] = useState(
-    searchParams.get("mode") === "manual"
+    cachedStateForCurrentRepository?.manualQueryMode ?? defaultManualQueryMode
   );
   const [manualSQLQuery, setManualSQLQuery] = useState(
-    "-- Write your SQL query here"
+    cachedStateForCurrentRepository?.manualSQLQuery ?? "-- Write your SQL query here"
   );
 
   const editorRef: React.MutableRefObject<HTMLDivElement | null> = useRef(null);
@@ -151,6 +187,34 @@ const ExplorePageCustomQuery = () => {
   const currentSqlQuery = manualQueryMode
     ? manualSQLQuery
     : buildSqlQueryString();
+
+  useEffect(() => {
+    if (currentRepositoryIdentifier !== cachedExplorePageState?.repositoryIdentifier) {
+      setQueryState(DEFAULT_QUERY_STATE);
+      setQueryResult([]);
+      setQueryTime(null);
+      setQueryError(null);
+      setManualQueryMode(defaultManualQueryMode);
+      setManualSQLQuery("-- Write your SQL query here");
+    }
+    cachedExplorePageState = {
+      repositoryIdentifier: currentRepositoryIdentifier,
+      queryState,
+      queryResult,
+      queryTime,
+      queryError,
+      manualQueryMode,
+      manualSQLQuery
+    };
+  }, [
+    currentRepositoryIdentifier,
+    queryState,
+    queryResult,
+    queryTime,
+    queryError,
+    manualQueryMode,
+    manualSQLQuery
+  ]);
 
   useEffect(() => {
     if (!indexingStore.project?.repositoryIdentifier) {
@@ -448,6 +512,6 @@ const ExplorePageCustomQuery = () => {
       </div>
     </div>
   );
-};
+});
 
 export default ExplorePageCustomQuery;
