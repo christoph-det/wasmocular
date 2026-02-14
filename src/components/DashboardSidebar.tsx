@@ -33,6 +33,9 @@ const DashboardSidebar = observer(() => {
 
   // update available authors for filtering
   useEffect(() => {
+    if (!currentProjectIdentifier) {
+      return;
+    }
     dbStore
       .runQuery("SELECT DISTINCT author_signature FROM commits;")
       .then((result) => {

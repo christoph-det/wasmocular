@@ -12,7 +12,6 @@ export class DatabaseStore {
   private worker: Worker | null = null;
   private rpcWorker: Remote<DatabaseWorker> | null = null;
   private currentRepositoryIdentifier: string | null = null;
-  private currentAccessMode: DuckDBAccessMode | null = null;
   private awaitDatabaseInitialization: Promise<void>;
   tablesAndColumns: Record<
     string,
@@ -57,7 +56,6 @@ export class DatabaseStore {
       await this.rpcWorker.terminate();
       this.worker?.terminate();
       this.currentRepositoryIdentifier = null;
-      this.currentAccessMode = null;
       this.awaitDatabaseInitialization = Promise.resolve();
       this.tablesAndColumns = {};
       this.init();
@@ -73,10 +71,7 @@ export class DatabaseStore {
       return;
     }
     // Ensure we are in write mode before pushing indexing data.
-    this.currentRepositoryIdentifier = identifier;
-    this.currentAccessMode = null;
-    this.ensureInitialization(identifier, DuckDBAccessMode.READ_WRITE);
-    await this.awaitDatabaseInitialization;
+    await this.ensureInitialization(identifier, DuckDBAccessMode.READ_WRITE);
 
     await this.rpcWorker.insertIndexerData(
       identifier,
@@ -90,34 +85,35 @@ export class DatabaseStore {
   ensureInitialization(
     repositoryIdentifier: string,
     accessMode: DuckDBAccessMode
-  ) {
+  ): Promise<void> {
     if (!this.rpcWorker) {
       throw new Error("Database worker not initialized");
     }
-    const hasMatchingIdentifier =
-      this.currentRepositoryIdentifier === repositoryIdentifier;
-    const hasMatchingMode = this.currentAccessMode === accessMode;
-
-    if (hasMatchingIdentifier && hasMatchingMode) {
-      return;
-    }
 
     this.currentRepositoryIdentifier = repositoryIdentifier;
-    this.currentAccessMode = accessMode;
 
-    this.awaitDatabaseInitialization = this.rpcWorker.initialize(
-      repositoryIdentifier,
-      accessMode
-    );
+    this.awaitDatabaseInitialization = this.rpcWorker
+      .initialize(repositoryIdentifier, accessMode)
+      .catch((error) => {
+        // If initialization fails, clear identifier so a follow-up call retries.
+        this.currentRepositoryIdentifier = null;
+        throw error;
+      });
+
+    return this.awaitDatabaseInitialization;
   }
 
-  async runQuery(sql: string): Promise<unknown> {
+  private async awaitInitialization(): Promise<Remote<DatabaseWorker>> {
     await this.awaitDatabaseInitialization;
     if (!this.rpcWorker) {
       throw new Error("Database worker not initialized");
     }
+    return this.rpcWorker;
+  }
 
-    return this.rpcWorker
+  async runQuery(sql: string): Promise<unknown> {
+    const rpcWorker = await this.awaitInitialization();
+    return rpcWorker
       .query(sql)
       .then((result) => {
         return result;
@@ -137,7 +133,7 @@ export class DatabaseStore {
       this.tablesAndColumns = {};
       return {};
     }
-    await this.awaitDatabaseInitialization;
+    await this.awaitInitialization();
     if (!this.currentRepositoryIdentifier) {
       this.tablesAndColumns = {};
       return {};
@@ -181,11 +177,8 @@ export class DatabaseStore {
    */
   async insertGitHubIssues(issues: GitHubIssue[]) {
     if (!issues || issues.length === 0) return;
-    await this.awaitDatabaseInitialization;
-    if (!this.rpcWorker) {
-      throw new Error("Database worker not initialized");
-    }
-    await this.rpcWorker.insertGitHubIssues(issues);
+    const rpcWorker = await this.awaitInitialization();
+    await rpcWorker.insertGitHubIssues(issues);
     // reset cached tables and columns to force reload in UI
     this.tablesAndColumns = {};
   }
@@ -195,11 +188,8 @@ export class DatabaseStore {
    */
   async insertGitHubIssueEvents(events: GitHubIssueEvent[]) {
     if (!events || events.length === 0) return;
-    await this.awaitDatabaseInitialization;
-    if (!this.rpcWorker) {
-      throw new Error("Database worker not initialized");
-    }
-    await this.rpcWorker.insertGitHubIssueEvents(events);
+    const rpcWorker = await this.awaitInitialization();
+    await rpcWorker.insertGitHubIssueEvents(events);
     // reset cached tables and columns to force reload in UI
     this.tablesAndColumns = {};
   }

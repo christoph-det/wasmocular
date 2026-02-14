@@ -112,7 +112,7 @@ export class IndexingStore {
   /**
    * Loads the indexing store data from localStorage.
    */
-  loadFromStorage(projectIdentifier?: string) {
+  async loadFromStorage(projectIdentifier?: string) {
     let stored;
 
     try {
@@ -135,7 +135,7 @@ export class IndexingStore {
           data.dataLoadingState ?? DataLoadingState.NOT_STARTED;
         if (data.project) {
           this.project = Object.assign(new RepositoryProject(), data.project);
-          this.updateDatabaseAccessMode();
+          await this.updateDatabaseAccessMode();
         }
       }
     } catch (error) {
@@ -190,7 +190,7 @@ export class IndexingStore {
     if (sourceUrl) {
       this.project.sourceUrl = sourceUrl;
     }
-    this.updateDatabaseAccessMode();
+    await this.updateDatabaseAccessMode();
   }
 
   changeProjectName(name: string) {
@@ -245,7 +245,7 @@ export class IndexingStore {
   async setDataLoadingState(state: DataLoadingState) {
     await this.ready;
     this.dataLoadingState = state;
-    this.updateDatabaseAccessMode();
+    await this.updateDatabaseAccessMode();
   }
 
   /**
@@ -274,7 +274,7 @@ export class IndexingStore {
     return projects;
   }
 
-  private updateDatabaseAccessMode() {
+  private async updateDatabaseAccessMode() {
     if (!this.project) {
       return;
     }
@@ -284,7 +284,7 @@ export class IndexingStore {
         ? DuckDBAccessMode.READ_ONLY
         : DuckDBAccessMode.READ_WRITE;
 
-    this.rootStore.dbStore.ensureInitialization(
+    await this.rootStore.dbStore.ensureInitialization(
       this.project.repositoryIdentifier,
       mode
     );
