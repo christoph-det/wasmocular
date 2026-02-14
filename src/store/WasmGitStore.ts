@@ -55,4 +55,28 @@ export class WasmGitStore {
         );
       });
   }
+
+  hasRepository(repoIdentifier: string): Promise<boolean> {
+    if (!this.rpcWorker) {
+      throw new Error("WasmGitStore not initialized");
+    }
+    return this.rpcWorker.hasRepository(repoIdentifier);
+  }
+
+  pullChanges(
+    gitRepoURL: string,
+    repoIdentifier: string,
+    proxyUrl: string,
+    progressCallback: (progress: number, message: string) => void
+  ): Promise<void> {
+    if (!this.rpcWorker) {
+      throw new Error("WasmGitStore not initialized");
+    }
+    const progressProxy = proxy(progressCallback);
+    return this.rpcWorker
+      .pullChanges(gitRepoURL, repoIdentifier, proxyUrl, progressProxy)
+      .then(() => {
+        progressCallback(100, `Repository updated with wasm-git pull.`);
+      });
+  }
 }

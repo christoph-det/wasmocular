@@ -56,28 +56,112 @@ export class WasmGitWorker {
         `${phase} - ${Number.isNaN(percent) ? 100 : percent} %`
       );
     };
-    this.setCurrentRepository(gitRepoURL, proxyURL);
-    await this.ensureRepositoryIsPublic();
-    this.mountIDBFS();
-    this.lg.callMain(["clone", this.repoURL, `/repos/${repoIdentifier}`]);
+
+    const repoPath = `/repos/${repoIdentifier}`;
     try {
-      // remove git index to reduce memory usage and bc gitoxide runs into memory issues with it
-      this.FS.unlink(`/repos/${repoIdentifier}/.git/index`);
-    } catch (error: unknown) {
-      const err = error as { code?: string | number } | undefined;
-      if (err?.code !== "ENOENT") {
-        console.error(
-          `${this.wasmGitLogPrefix} Failed to remove Git index`,
-          error
-        );
-        throw error;
+      this.setCurrentRepository(gitRepoURL, proxyURL);
+      await this.ensureRepositoryIsPublic();
+      this.mountIDBFS();
+      await this.syncFs(true);
+
+      this.lg.callMain(["clone", this.repoURL, repoPath]);
+
+      try {
+        // remove git index to reduce memory usage and bc gitoxide runs into memory issues with it
+        this.FS.unlink(`${repoPath}/.git/index`);
+      } catch (error: unknown) {
+        const err = error as { code?: string | number } | undefined;
+        if (err?.code !== "ENOENT") {
+          console.error(
+            `${this.wasmGitLogPrefix} Failed to remove Git index`,
+            error
+          );
+          throw error;
+        }
       }
+
+      if (!this.repositoryExists(repoPath)) {
+        throw new Error(
+          `Clone did not create a valid git repository at ${repoPath}.`
+        );
+      }
+      // NOTE: When syncing the fs to indexed DB, for some repos we get an error (code 43), here. For example the wasm-git repo itself. I am assuming this could be bacause the repo links
+      // 2 alias files, and due to a bug in emscripten, this causes an error
+      await this.syncFs(false);
+    } finally {
+      this.logCallback = null;
     }
-    // NOTE: When syncing the fs to indexed DB, for some repos we get an error (code 43), here. For example the wasm-git repo itself. I am assuming this could be bacause the repo links
-    // 2 alias files, and due to a bug in emscripten, this causes an error
-    this.FS.syncfs((err: unknown) => {
-      if (err)
-        console.error(`${this.wasmGitLogPrefix} syncfs(save) error:`, err);
+  }
+
+  /**
+   * Checks if a repository with the given identifier exists in the Emscripten FS.
+   */
+  async hasRepository(repoIdentifier: string): Promise<boolean> {
+    await this.init();
+    this.mountIDBFS();
+    await this.syncFs(true);
+
+    const repoPath = `/repos/${repoIdentifier}`;
+    return this.repositoryExists(repoPath);
+  }
+
+  /**
+   * Instead of cloning the whole repo again, we can just pull changes to the virtual FS (given the files are still saved).
+   */
+  async pullChanges(
+    gitRepoURL: string,
+    repoIdentifier: string,
+    proxyURL: string,
+    progressCallback: (progress: number, message: string) => void
+  ) {
+    await this.init();
+    this.logCallback = (logMessage: string) => {
+      const progress = this.parseCloneProgress(logMessage);
+      if (!progress) {
+        return;
+      }
+      const { phase, percent } = progress;
+      progressCallback(
+        percent,
+        `${phase} - ${Number.isNaN(percent) ? 100 : percent} %`
+      );
+    };
+
+    const repoPath = `/repos/${repoIdentifier}`;
+    try {
+      this.setCurrentRepository(gitRepoURL, proxyURL);
+      // could be removed but just to be sure the repo is still accessible before pulling changes
+      await this.ensureRepositoryIsPublic();
+      this.mountIDBFS();
+      await this.syncFs(true);
+
+      this.lg.callMain(["pull", this.repoURL, repoPath]);
+      await this.syncFs(false);
+    } finally {
+      this.logCallback = null;
+    }
+  }
+
+  private repositoryExists(repoPath: string): boolean {
+    try {
+      this.FS.stat(`${repoPath}/.git/HEAD`);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private async syncFs(populate: boolean): Promise<void> {
+    await new Promise<void>((resolve) => {
+      this.FS.syncfs(populate, (error: unknown) => {
+        if (error) {
+          console.error(
+            `${this.wasmGitLogPrefix} Failed to sync filesystem`,
+            error
+          );
+        }
+        resolve();
+      });
     });
   }
 
@@ -130,9 +214,16 @@ export class WasmGitWorker {
       return;
     }
     const mountPath = "/repos";
-    this.isMounted = true;
-    this.FS.mkdir(mountPath);
+    try {
+      this.FS.mkdir(mountPath);
+    } catch (error: unknown) {
+      const err = error as { code?: string | number } | undefined;
+      if (err?.code !== "EEXIST") {
+        throw error;
+      }
+    }
     this.FS.mount(this.IDBFS, {}, mountPath);
+    this.isMounted = true;
   }
 
   private async ensureRepositoryIsPublic() {

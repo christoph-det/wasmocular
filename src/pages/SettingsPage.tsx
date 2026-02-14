@@ -98,14 +98,41 @@ const SettingsPage = observer(() => {
       await indexingStore.setDataLoadingState(
         DataLoadingState.INDEXING_STARTED
       );
-      // If we have a source URL, use wasm-git to clone the repository
+      // If we have a source URL, use wasm-git and decide between pull or clone.
       if (sourceUrl) {
-        await wasmGitStore.cloneRepository(
-          sourceUrl,
-          repositoryIdentifier,
-          indexingStore.proxyURL,
-          progressCallback
-        );
+        // check if file data is still in virtual FS
+        const hasStoredRepository =
+          await wasmGitStore.hasRepository(repositoryIdentifier);
+        if (hasStoredRepository) {
+          try {
+            progressCallback(1, "Stored repository found. Pulling changes...");
+            await wasmGitStore.pullChanges(
+              sourceUrl,
+              repositoryIdentifier,
+              indexingStore.proxyURL,
+              progressCallback
+            );
+          } catch (error) {
+            progressCallback(
+              1,
+              `Pull failed, falling back to fresh clone: ${error}`
+            );
+            await wasmGitStore.cloneRepository(
+              sourceUrl,
+              repositoryIdentifier,
+              indexingStore.proxyURL,
+              progressCallback
+            );
+          }
+        } else {
+          progressCallback(1, "No stored repository found. Cloning...");
+          await wasmGitStore.cloneRepository(
+            sourceUrl,
+            repositoryIdentifier,
+            indexingStore.proxyURL,
+            progressCallback
+          );
+        }
         await wasmGixStore.reloadRepository(repositoryIdentifier);
       } else {
         // For local repos without source URL, we need to select the folder again
@@ -131,7 +158,7 @@ const SettingsPage = observer(() => {
       }
     } catch (error) {
       console.error("Reindexing failed:", error);
-      showError("Reindexing failed. See console for details.");
+      showError(`Reindexing failed: ${error}`);
     } finally {
       await indexingStore.setDataLoadingState(
         DataLoadingState.INDEXING_FINISHED

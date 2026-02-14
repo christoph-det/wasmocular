@@ -32,7 +32,9 @@ describe("wasm-git Worker Tests", () => {
     wasmGitWorker.init = async () => {
       await originalInit();
       // @ts-expect-error - accessing private property for testing
-      wasmGitWorker.FS.syncfs = vi.fn((callback) => callback(null));
+      wasmGitWorker.syncFs = async (_) => {
+        return;
+      };
     };
 
     const progressLogs: string[] = [];
