@@ -1,5 +1,7 @@
 import ExploreNavigationBar from "@/components/ExploreNavigationBar";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/useToast";
 
 const sqlExamples = [
   {
@@ -11,9 +13,11 @@ const sqlExamples = [
     title: "Additions and deletions by author (Stacked Area Chart)",
     description:
       "Shows the number of additions and deletions made by each author over time in a diverging stacked area chart.",
-    query: `SELECT authored_at AS date, author_signature || ' (additions)' AS series, CAST(additions AS INTEGER) AS value FROM commits
+    query: `SELECT
+  authored_at AS date, author_signature || ' (additions)' AS series, CAST(additions AS INTEGER) AS value FROM commits
 UNION ALL
-SELECT authored_at AS date, author_signature || ' (deletions)' AS series, -CAST(deletions AS INTEGER) AS value FROM commits`
+SELECT
+  authored_at AS date, author_signature || ' (deletions)' AS series, -CAST(deletions AS INTEGER) AS value FROM commits`
   },
   {
     title: "Commit count by author (Stacked Area Chart)",
@@ -69,6 +73,13 @@ SELECT closed_at AS date, author || '(closed)' AS series, -1 AS value FROM githu
  * Page displays example SQL queries for users to get started.
  */
 const SQLExamplesPage = () => {
+  const { showError, showSuccess } = useToast();
+
+  const handleCopyQuery = async (query: string) => {
+    await navigator.clipboard.writeText(query);
+    showSuccess("SQL query copied.");
+  };
+
   return (
     <div className="mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen">
       <ExploreNavigationBar />
@@ -93,7 +104,21 @@ const SQLExamplesPage = () => {
               <h2 className="text-xl font-semibold mb-2">{example.title}</h2>
               <p className="text-gray-600 mb-3">{example.description}</p>
               <div className="relative">
-                <pre className="bg-slate-900 text-slate-200 p-4 rounded-md overflow-x-auto text-sm font-mono">
+                {navigator.clipboard && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="absolute top-2 right-2 cursor-pointer text-white"
+                    onClick={() =>
+                      void handleCopyQuery(example.query).catch(() => {
+                        showError("Failed to copy SQL query.");
+                      })
+                    }
+                  >
+                    Copy
+                  </Button>
+                )}
+                <pre className="bg-slate-900 text-slate-200 p-7 rounded-md overflow-x-auto text-sm font-mono">
                   {example.query}
                 </pre>
               </div>

@@ -33,6 +33,9 @@ const DashboardSidebar = observer(() => {
 
   // update available authors for filtering
   useEffect(() => {
+    if (!currentProjectIdentifier) {
+      return;
+    }
     dbStore
       .runQuery("SELECT DISTINCT author_signature FROM commits;")
       .then((result) => {
@@ -84,6 +87,12 @@ const DashboardSidebar = observer(() => {
 
   const handleAuthorSelectionChange = (author: string, selected: boolean) => {
     dashboardStore.setAuthorSelected(author, selected);
+  };
+
+  const clearSelectedAuthors = (deselct: boolean) => {
+    dashboardStore.availableAuthors.forEach((_, author) => {
+      dashboardStore.setAuthorSelected(author, deselct);
+    });
   };
 
   return (
@@ -189,10 +198,20 @@ const DashboardSidebar = observer(() => {
             </Popover>
             <br />
             {/* Author selection */}
-            <label className="block text-sm font-medium text-gray-700 mb-1 mt-3">
+            <label className="block text-sm font-medium text-gray-700 mb-0 mt-5">
               Authors:
             </label>
-            <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-md p-2">
+            <Button
+              variant={"link"}
+              className="mt-0 mb-2"
+              onClick={() => clearSelectedAuthors(false)}
+            >
+              Deselect All
+            </Button>
+            <Button variant={"link"} onClick={() => clearSelectedAuthors(true)}>
+              Select All
+            </Button>
+            <div className="max-h-70 overflow-y-auto border border-gray-200 rounded-md p-2">
               {Array.from(dashboardStore.availableAuthors.keys()).map(
                 (author) => (
                   <div key={author} className="flex items-center mb-1">

@@ -121,9 +121,8 @@ export class DashboardElement {
 
   private replaceTableNamesInQuery(sql: string): string {
     // replace CTE in user query with comma because CTE is already defined at the beginning
-    if (!sql.toLowerCase().startsWith("with ")) {
-      sql = sql.replace("WITH ", ", ");
-    }
+    // \s*: optional whitespace, \s+: at least one whitespace after with, case insensitive, multiline
+    sql = sql.replace(/^\s*with\s+/im, ", ");
     // i = case insensitive, g = global
     const regex = new RegExp("\\bfrom commits\\b", "gi");
     return sql.replaceAll(regex, "from commits_filtered");

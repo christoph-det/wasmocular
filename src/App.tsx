@@ -1,4 +1,5 @@
 import { HashRouter as Router, Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
 import "./App.css";
 import NavigationBar from "./components/NavigationBar";
 import IndexPage from "./pages/IndexPage";
@@ -9,8 +10,18 @@ import ExplorePageDashboard from "./pages/ExplorePageDashboard";
 import ExplorePageCustomQuery from "./pages/ExplorePageCustomQuery";
 import SettingsPage from "./pages/SettingsPage";
 import SQLExamplesPage from "./pages/SQLExamplesPage";
+import { createExampleProjectOnFirstVisit } from "./lib/bootstrapExampleProject";
 
 const App: React.FC = () => {
+  const hasNoStoredProjects =
+    rootStore.indexingStore.listAllStoredProjects().length === 0;
+
+  useEffect(() => {
+    if (hasNoStoredProjects) {
+      createExampleProjectOnFirstVisit();
+    }
+  }, [hasNoStoredProjects]);
+
   return (
     <StoreContext.Provider value={rootStore}>
       <Router>

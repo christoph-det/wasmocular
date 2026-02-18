@@ -228,7 +228,7 @@ describe("Test RootStore and Sub-stores", () => {
       "test_project",
       DuckDBAccessMode.READ_WRITE
     );
-    expect(mockComlinkWorkerInstance.initialize).not.toHaveBeenCalledTimes(3);
+    expect(mockComlinkWorkerInstance.initialize).toHaveBeenCalledTimes(3);
     await rootStore.dbStore.closeConnection();
     await rootStore.dbStore.ensureInitialization(
       "test_project",
@@ -236,6 +236,24 @@ describe("Test RootStore and Sub-stores", () => {
     );
     // new instance + initialization called once now
     expect(mockComlinkWorkerInstance.terminate).toHaveBeenCalledTimes(1);
+  });
+
+  test("DatabaseStore clears schema cache when repository changes", async () => {
+    await rootStore.dbStore.ensureInitialization(
+      "test_project_a",
+      DuckDBAccessMode.READ_ONLY
+    );
+
+    rootStore.dbStore.tablesAndColumns = {
+      commits: [{ column_name: "author_name", data_type: "VARCHAR" }]
+    };
+
+    await rootStore.dbStore.ensureInitialization(
+      "test_project_b",
+      DuckDBAccessMode.READ_ONLY
+    );
+
+    expect(rootStore.dbStore.tablesAndColumns).toEqual({});
   });
 
   // IndexingStore

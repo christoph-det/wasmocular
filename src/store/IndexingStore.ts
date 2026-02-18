@@ -48,6 +48,9 @@ export class RepositoryProject {
 export class IndexingStore {
   readonly ready: Promise<void>;
   private rootStore: RootStore;
+  private readonly DEFAULT_PROXY_URL =
+    "https://dawn-salad-f180.c-dethloff.workers.dev";
+  private readonly PROXY_STORAGE_KEY = "PROXY_URL";
   indexingProgress = 0; // Percentage of indexing progress
   dataLoadingState = DataLoadingState.NOT_STARTED;
 
@@ -55,7 +58,7 @@ export class IndexingStore {
   githubApiToken = "";
   githubIssuesProgress = 0;
 
-  proxyURL = "https://dawn-salad-f180.c-dethloff.workers.dev";
+  proxyURL = this.DEFAULT_PROXY_URL;
 
   project: RepositoryProject | null = null;
 
@@ -70,6 +73,7 @@ export class IndexingStore {
     this.rootStore = rootStore;
     makeAutoObservable(this);
 
+    this.loadProxyURL();
     this.ready = Promise.resolve(this.loadFromStorage());
 
     // trigger auto-save on changes
@@ -77,6 +81,13 @@ export class IndexingStore {
       () => this.toJSON(),
       () => this.saveToStorage(),
       { delay: 100 } // Debounce saving states
+    );
+
+    // persist proxy URL globally across all projects
+    reaction(
+      () => this.proxyURL,
+      () => this.saveProxyURL(),
+      { delay: 100 }
     );
   }
 
@@ -97,6 +108,28 @@ export class IndexingStore {
     };
   }
 
+  private loadProxyURL() {
+    try {
+      const storedProxyURL = localStorage
+        .getItem(this.PROXY_STORAGE_KEY)
+        ?.trim();
+      this.proxyURL = storedProxyURL ?? this.DEFAULT_PROXY_URL;
+    } catch (error) {
+      console.warn("Failed to load proxy URL from localStorage:", error);
+    }
+  }
+
+  private saveProxyURL() {
+    try {
+      localStorage.setItem(
+        this.PROXY_STORAGE_KEY,
+        this.proxyURL.trim() || this.DEFAULT_PROXY_URL
+      );
+    } catch (error) {
+      console.warn("Failed to save proxy URL to localStorage:", error);
+    }
+  }
+
   private saveToStorage() {
     try {
       localStorage.setItem(this.STORAGE_KEY(), JSON.stringify(this.toJSON()));
@@ -112,7 +145,7 @@ export class IndexingStore {
   /**
    * Loads the indexing store data from localStorage.
    */
-  loadFromStorage(projectIdentifier?: string) {
+  async loadFromStorage(projectIdentifier?: string) {
     let stored;
 
     try {
@@ -135,7 +168,7 @@ export class IndexingStore {
           data.dataLoadingState ?? DataLoadingState.NOT_STARTED;
         if (data.project) {
           this.project = Object.assign(new RepositoryProject(), data.project);
-          this.updateDatabaseAccessMode();
+          await this.updateDatabaseAccessMode();
         }
       }
     } catch (error) {
@@ -190,7 +223,7 @@ export class IndexingStore {
     if (sourceUrl) {
       this.project.sourceUrl = sourceUrl;
     }
-    this.updateDatabaseAccessMode();
+    await this.updateDatabaseAccessMode();
   }
 
   changeProjectName(name: string) {
@@ -245,7 +278,7 @@ export class IndexingStore {
   async setDataLoadingState(state: DataLoadingState) {
     await this.ready;
     this.dataLoadingState = state;
-    this.updateDatabaseAccessMode();
+    await this.updateDatabaseAccessMode();
   }
 
   /**
@@ -274,7 +307,7 @@ export class IndexingStore {
     return projects;
   }
 
-  private updateDatabaseAccessMode() {
+  private async updateDatabaseAccessMode() {
     if (!this.project) {
       return;
     }
@@ -284,7 +317,7 @@ export class IndexingStore {
         ? DuckDBAccessMode.READ_ONLY
         : DuckDBAccessMode.READ_WRITE;
 
-    this.rootStore.dbStore.ensureInitialization(
+    await this.rootStore.dbStore.ensureInitialization(
       this.project.repositoryIdentifier,
       mode
     );

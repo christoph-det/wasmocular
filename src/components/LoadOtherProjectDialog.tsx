@@ -34,7 +34,7 @@ const LoadOtherProjectDialog = ({
     repositoryIdentifier: string | undefined,
     defaultDashboardId?: string | null
   ) => {
-    indexingStore.loadFromStorage(repositoryIdentifier);
+    await indexingStore.loadFromStorage(repositoryIdentifier);
     if (defaultDashboardId) {
       await dashboardStore.setActiveDashboard(defaultDashboardId);
     }

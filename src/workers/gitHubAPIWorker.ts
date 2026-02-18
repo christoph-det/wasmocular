@@ -131,6 +131,11 @@ export class GitHubAPIWorker {
 
       if (!response.ok) {
         const errorText = await response.text();
+        if (allIssues.length > 0) {
+          const warningMessage = `Warning: Failed to fetch all issues. Successfully fetched ${allIssues.length} issues. Error: ${response.status} - ${errorText}`;
+          onProgress(40, warningMessage);
+          return allIssues;
+        }
         throw new Error(`GitHub API error: ${response.status} - ${errorText}`);
       }
 
