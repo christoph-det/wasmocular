@@ -76,6 +76,7 @@ export class WasmGitWorker {
             `${this.wasmGitLogPrefix} Failed to remove Git index`,
             error
           );
+          (error as Error).message += "Failed to remove Git index.";
           throw error;
         }
       }

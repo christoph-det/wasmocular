@@ -89,6 +89,12 @@ const DashboardSidebar = observer(() => {
     dashboardStore.setAuthorSelected(author, selected);
   };
 
+  const clearSelectedAuthors = (deselct: boolean) => {
+    dashboardStore.availableAuthors.forEach((_, author) => {
+      dashboardStore.setAuthorSelected(author, deselct);
+    });
+  };
+
   return (
     <div
       className={`bg-white shadow-md p-4 min-h-screen transition-all duration-300 ease-in-out ${
@@ -192,10 +198,16 @@ const DashboardSidebar = observer(() => {
             </Popover>
             <br />
             {/* Author selection */}
-            <label className="block text-sm font-medium text-gray-700 mb-1 mt-3">
+            <label className="block text-sm font-medium text-gray-700 mb-0 mt-5">
               Authors:
             </label>
-            <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-md p-2">
+            <Button variant={"link"} className="mt-0 mb-2" onClick={() => clearSelectedAuthors(false)}>
+              Deselect All
+            </Button>
+            <Button variant={"link"} onClick={() => clearSelectedAuthors(true)}>
+              Select All
+            </Button>
+            <div className="max-h-70 overflow-y-auto border border-gray-200 rounded-md p-2">
               {Array.from(dashboardStore.availableAuthors.keys()).map(
                 (author) => (
                   <div key={author} className="flex items-center mb-1">
