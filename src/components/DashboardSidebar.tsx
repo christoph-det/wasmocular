@@ -201,7 +201,11 @@ const DashboardSidebar = observer(() => {
             <label className="block text-sm font-medium text-gray-700 mb-0 mt-5">
               Authors:
             </label>
-            <Button variant={"link"} className="mt-0 mb-2" onClick={() => clearSelectedAuthors(false)}>
+            <Button
+              variant={"link"}
+              className="mt-0 mb-2"
+              onClick={() => clearSelectedAuthors(false)}
+            >
               Deselect All
             </Button>
             <Button variant={"link"} onClick={() => clearSelectedAuthors(true)}>

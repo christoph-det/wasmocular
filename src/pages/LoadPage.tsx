@@ -132,7 +132,8 @@ const LoadPage = observer(() => {
               errorMessage
           );
           setProjectCreationError(
-            "Failed to clone the repository. Please check the URL and try again. Cause: " + errorMessage
+            "Failed to clone the repository. Please check the URL and try again. Cause: " +
+              errorMessage
           );
           setLoadingProgress(-1);
           setLoadingProgressMessage("");
@@ -165,8 +166,12 @@ const LoadPage = observer(() => {
    */
   function handleDirectoryPicker() {
     if (typeof globalThis.showDirectoryPicker !== "function") {
-      console.error("Directory Picker API is not supported in this browser. (Only Chromium-based browsers)");
-      showInfo("Directory Picker API is not available in this browser. Please use a Chromium-based browser to select a local repository.");
+      console.error(
+        "Directory Picker API is not supported in this browser. (Only Chromium-based browsers)"
+      );
+      showInfo(
+        "Directory Picker API is not available in this browser. Please use a Chromium-based browser to select a local repository."
+      );
       return;
     }
 
