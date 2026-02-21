@@ -288,8 +288,8 @@ fn commit_line_stats<'repo>(
     // configure diff to track renames and copies (compromise between accuracy and performance)
     let rewrites = gix::diff::Rewrites {
         copies: None,          // disable copy detection for performance
-        percentage: Some(0.8), // 80% similarity threshold for renames
-        limit: 1000,           // limit 1000 rewrite candidates for comparison
+        percentage: Some(0.5), // 50% similarity threshold for renames (same as git default: https://git-scm.com/docs/diff-options)
+        limit: 400,           // limit 400 rewrite candidates for comparison (same as git default: https://git-scm.com/docs/diff-options)
         track_empty: false,
     };
     diff_platform.options(|opts| {
