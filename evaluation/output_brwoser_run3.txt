@@ -1,0 +1,20 @@
+
+Firefox
+
+Test 3:
+https://github.com/withastro/astro.git
+
+wasm-git:
+[wasm-git] Repository clone finished for 19c56a11527619 in 37.51s
+[wasmgix] Repository remount finished for 19c56a11527619 in 0.09s
+Indexing completed successfully in 242.32s. Database insertion took 0.09s.
+
+
+
+Run2:
+[wasm-git] Repository clone finished for 19c56ca773fc88 in 35.40s
+[wasmgix] Repository remount finished for 19c56ca773fc88 in 0.56s
+Indexing completed successfully in 422.05s. Database insertion took 0.08s.
+
+wasm-gix:
+-

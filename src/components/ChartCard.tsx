@@ -1,5 +1,5 @@
 import { ChartType, DashboardElement } from "@/store/DashboardElement";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { Spinner } from "./ui/spinner";
 import TextDisplay from "./vizualisation/TextDisplay";
@@ -18,6 +18,7 @@ interface ChartCardProps {
 }
 
 const ChartCard = observer(({ dashboardElement }: ChartCardProps) => {
+  const [resetView, setresetView] = useState(0);
   const query = dashboardElement.sqlQuery;
   const fromTimestamp =
     dashboardElement.dashboardStore.activeDateFilterFrom?.getTime();
@@ -38,11 +39,20 @@ const ChartCard = observer(({ dashboardElement }: ChartCardProps) => {
     unselectedAuthorsString
   ]);
 
+  // workaround for resizing
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      window.dispatchEvent(new Event("resize"));
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [dashboardElement.chartWidth]);
+
   return (
     <div
       className={`bg-white h-full min-h-[25rem] flex flex-col rounded-xl shadow-lg border border-gray-200 p-4 transition-shadow duration-300 ${dashboardElement.chartWidth === "full" ? "col-span-1 lg:col-span-2" : "col-span-1"}`}
     >
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-start gap-3">
         <div>
           <h3 className="text-xl font-semibold mb-1">
             {dashboardElement.title}
@@ -51,20 +61,33 @@ const ChartCard = observer(({ dashboardElement }: ChartCardProps) => {
             {dashboardElement.description}
           </p>
         </div>
-        <CreateDashboardWidgetDialog
-          editMode={true}
-          dashboardElement={dashboardElement}
-          sqlQuery={""}
-          trigger={
+        <div className="flex items-center gap-2">
+          {dashboardElement.type === ChartType.STACKED_AREA_CHART && (
             <Button
               size="sm"
               type="button"
-              className=" bg-gray-100 hover:bg-gray-200 rounded-sm text-black"
+              variant="outline"
+              className="rounded-sm"
+              onClick={() => setresetView((value) => value + 1)}
             >
-              Edit
+              Reset view
             </Button>
-          }
-        />
+          )}
+          <CreateDashboardWidgetDialog
+            editMode={true}
+            dashboardElement={dashboardElement}
+            sqlQuery={""}
+            trigger={
+              <Button
+                size="sm"
+                type="button"
+                className=" bg-gray-100 hover:bg-gray-200 rounded-sm text-black"
+              >
+                Edit
+              </Button>
+            }
+          />
+        </div>
       </div>
 
       <div className="flex justify-center items-stretch m-0 p-0 flex-1 w-full">
@@ -76,7 +99,10 @@ const ChartCard = observer(({ dashboardElement }: ChartCardProps) => {
         ) : (
           <div className="w-full h-full overflow-auto">
             <ChartErrorBoundary>
-              <ChartRenderer dashboardElement={dashboardElement} />
+              <ChartRenderer
+                dashboardElement={dashboardElement}
+                resetView={resetView}
+              />
             </ChartErrorBoundary>
           </div>
         )}
@@ -87,9 +113,11 @@ const ChartCard = observer(({ dashboardElement }: ChartCardProps) => {
 
 interface ChartRendererProps {
   dashboardElement: DashboardElement;
+  resetView: number;
 }
 
-const ChartRenderer = observer(({ dashboardElement }: ChartRendererProps) => {
+const ChartRenderer = observer(
+  ({ dashboardElement, resetView }: ChartRendererProps) => {
   switch (dashboardElement.type) {
     case ChartType.TEXT:
       if (!dashboardElement.data || dashboardElement.data.length === 0) {
@@ -111,6 +139,7 @@ const ChartRenderer = observer(({ dashboardElement }: ChartRendererProps) => {
 
       return (
         <StackedAreaChart
+          key={`${dashboardElement.id}-${dashboardElement.chartWidth}-${resetView}`}
           content={stackedDataset.content}
           palette={generateColorPalette(stackedDataset.keys)}
           paddings={{ top: 10, right: 0, bottom: 10, left: 50 }}
