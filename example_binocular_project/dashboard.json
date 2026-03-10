@@ -6,7 +6,7 @@
       "title": "Additions / Deletions by author",
       "description": "",
       "chartWidth": "full",
-      "sqlQuery": "SELECT\n  authored_at AS date, author_signature || ' (additions)' AS series, CAST(additions AS INTEGER) AS value FROM commits\nUNION ALL\nSELECT\n  authored_at AS date, author_signature || ' (deletions)' AS series, -CAST(deletions AS INTEGER) AS value FROM commits",
+      "sqlQuery": "SELECT\n  authored_at AS date, 'additions: ' || author_signature AS series, CAST(additions AS INTEGER) AS value FROM commits\nUNION ALL\nSELECT\n  authored_at AS date, 'deletions: ' || author_signature AS series, -CAST(deletions AS INTEGER) AS value FROM commits",
       "type": "stacked_area_chart",
       "timeResolution": "months"
     },
@@ -24,7 +24,7 @@
       "title": "Issues opened / closed over time (no filtering)",
       "description": "",
       "chartWidth": "half",
-      "sqlQuery": "SELECT created_at AS date, author || '(opened)' AS series, 1 AS value FROM github_issues\nUNION ALL\nSELECT closed_at AS date, author || '(closed)' AS series, -1 AS value FROM github_issues WHERE closed_at IS NOT NULL",
+      "sqlQuery": "SELECT created_at AS date, 'opened: ' || author AS series, 1 AS value FROM github_issues\nUNION ALL\nSELECT closed_at AS date, 'closed: ' || author AS series, -1 AS value FROM github_issues WHERE closed_at IS NOT NULL",
       "type": "stacked_area_chart",
       "timeResolution": "months"
     }
