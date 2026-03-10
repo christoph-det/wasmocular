@@ -14,16 +14,16 @@ const sqlExamples = [
     description:
       "Shows the number of additions and deletions made by each author over time in a diverging stacked area chart.",
     query: `SELECT
-  authored_at AS date, author_signature || ' (additions)' AS series, CAST(additions AS INTEGER) AS value FROM commits
+  authored_at AS date, 'additions: ' || author_signature AS series, CAST(additions AS INTEGER) AS value FROM commits
 UNION ALL
 SELECT
-  authored_at AS date, author_signature || ' (deletions)' AS series, -CAST(deletions AS INTEGER) AS value FROM commits`
+  authored_at AS date, 'deletions: ' || author_signature AS series, -CAST(deletions AS INTEGER) AS value FROM commits`
   },
   {
     title: "Commit count by author (Stacked Area Chart)",
     description:
       "Displays the number of commits made by each author over time.",
-    query: `SELECT authored_at AS date, author_signature AS series, 1 AS value FROM commits`
+    query: `SELECT authored_at AS date, 'commits: ' || author_signature AS series, 1 AS value FROM commits`
   },
   {
     title: "Commits by Day of Week and Hour of Day (Heatmap)",
@@ -63,9 +63,9 @@ LIMIT 10;`
   {
     title: "Issues Opened / Closed Over Time (Stacked Area Chart)",
     description: "Shows the number of issues opened and closed over time.",
-    query: `SELECT created_at AS date, author || '(opened)' AS series, 1 AS value FROM github_issues
+    query: `SELECT created_at AS date, 'opened: ' || author AS series, 1 AS value FROM github_issues
 UNION ALL
-SELECT closed_at AS date, author || '(closed)' AS series, -1 AS value FROM github_issues WHERE closed_at IS NOT NULL`
+SELECT closed_at AS date, 'closed: ' || author AS series, -1 AS value FROM github_issues WHERE closed_at IS NOT NULL`
   }
 ];
 
