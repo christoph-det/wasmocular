@@ -118,103 +118,107 @@ interface ChartRendererProps {
 
 const ChartRenderer = observer(
   ({ dashboardElement, resetView }: ChartRendererProps) => {
-  switch (dashboardElement.type) {
-    case ChartType.TEXT:
-      if (!dashboardElement.data || dashboardElement.data.length === 0) {
-        throw new Error(
-          dashboardElement.error ?? "No data available for the selected chart."
+    switch (dashboardElement.type) {
+      case ChartType.TEXT:
+        if (!dashboardElement.data || dashboardElement.data.length === 0) {
+          throw new Error(
+            dashboardElement.error ??
+              "No data available for the selected chart."
+          );
+        }
+        return <TextDisplay data={dashboardElement.data ?? []} />;
+      case ChartType.STACKED_AREA_CHART: {
+        const resolution = dashboardElement.timeResolution;
+        const stackedDatasetConverter = new StackedAreaChartConverter(
+          resolution
+        );
+        const stackedDataset = stackedDatasetConverter.convert(
+          dashboardElement.data as GenericDataRow[]
+        );
+
+        if (stackedDataset.error) {
+          throw new Error(stackedDataset.error);
+        }
+
+        return (
+          <StackedAreaChart
+            key={`${dashboardElement.id}-${dashboardElement.chartWidth}-${resetView}`}
+            content={stackedDataset.content}
+            palette={generateColorPalette(stackedDataset.keys)}
+            paddings={{ top: 10, right: 0, bottom: 10, left: 50 }}
+            xAxisCenter={true}
+            yDims={stackedDataset.yDims}
+            d3offset={d3.stackOffsetDiverging}
+            resolution={resolution}
+            displayNegative={true}
+          />
         );
       }
-      return <TextDisplay data={dashboardElement.data ?? []} />;
-    case ChartType.STACKED_AREA_CHART: {
-      const resolution = dashboardElement.timeResolution;
-      const stackedDatasetConverter = new StackedAreaChartConverter(resolution);
-      const stackedDataset = stackedDatasetConverter.convert(
-        dashboardElement.data as GenericDataRow[]
-      );
+      case ChartType.HEATMAP: {
+        const heatmapDataConverter = new HeatmapConverter();
+        const heatmapData = heatmapDataConverter.convert(
+          dashboardElement.data as GenericDataRow[]
+        );
 
-      if (stackedDataset.error) {
-        throw new Error(stackedDataset.error);
-      }
-
-      return (
-        <StackedAreaChart
-          key={`${dashboardElement.id}-${dashboardElement.chartWidth}-${resetView}`}
-          content={stackedDataset.content}
-          palette={generateColorPalette(stackedDataset.keys)}
-          paddings={{ top: 10, right: 0, bottom: 10, left: 50 }}
-          xAxisCenter={true}
-          yDims={stackedDataset.yDims}
-          d3offset={d3.stackOffsetDiverging}
-          resolution={resolution}
-          displayNegative={true}
-        />
-      );
-    }
-    case ChartType.HEATMAP: {
-      const heatmapDataConverter = new HeatmapConverter();
-      const heatmapData = heatmapDataConverter.convert(
-        dashboardElement.data as GenericDataRow[]
-      );
-
-      const option = {
-        tooltip: {
-          confine: false,
-          appendToBody: true,
-          formatter: (params: { data: [number, number, number] }) => {
-            const [xIdx, yIdx, value] = params.data;
-            return `${heatmapData.xCategories[xIdx]}, ${heatmapData.yCategories[yIdx]}: <strong>${value}</strong>`;
-          }
-        },
-        grid: {
-          top: 0,
-          right: 0,
-          bottom: 60,
-          left: 0,
-          containLabel: true
-        },
-        xAxis: {
-          type: "category",
-          data: heatmapData.xCategories,
-          splitArea: { show: true },
-          axisLabel: { interval: 0 }
-        },
-        yAxis: {
-          type: "category",
-          data: heatmapData.yCategories,
-          splitArea: { show: true }
-        },
-        visualMap: {
-          min: 0,
-          max: Math.max(...heatmapData.formattedData.map((d) => d[2])),
-          calculable: true,
-          orient: "horizontal",
-          left: "center",
-          bottom: 0,
-          inRange: { color: ["#e0f7fa", "#006edd"] }
-        },
-        series: [
-          {
-            type: "heatmap",
-            data: heatmapData.formattedData,
-            label: { show: false },
-            emphasis: {
-              itemStyle: { shadowBlur: 10, shadowColor: "rgba(0, 0, 0, 0.5)" }
+        const option = {
+          tooltip: {
+            confine: false,
+            appendToBody: true,
+            formatter: (params: { data: [number, number, number] }) => {
+              const [xIdx, yIdx, value] = params.data;
+              return `${heatmapData.xCategories[xIdx]}, ${heatmapData.yCategories[yIdx]}: <strong>${value}</strong>`;
             }
-          }
-        ]
-      };
+          },
+          grid: {
+            top: 0,
+            right: 0,
+            bottom: 60,
+            left: 0,
+            containLabel: true
+          },
+          xAxis: {
+            type: "category",
+            data: heatmapData.xCategories,
+            splitArea: { show: true },
+            axisLabel: { interval: 0 }
+          },
+          yAxis: {
+            type: "category",
+            data: heatmapData.yCategories,
+            splitArea: { show: true }
+          },
+          visualMap: {
+            min: 0,
+            max: Math.max(...heatmapData.formattedData.map((d) => d[2])),
+            calculable: true,
+            orient: "horizontal",
+            left: "center",
+            bottom: 0,
+            inRange: { color: ["#e0f7fa", "#006edd"] }
+          },
+          series: [
+            {
+              type: "heatmap",
+              data: heatmapData.formattedData,
+              label: { show: false },
+              emphasis: {
+                itemStyle: { shadowBlur: 10, shadowColor: "rgba(0, 0, 0, 0.5)" }
+              }
+            }
+          ]
+        };
 
-      return (
-        <ReactECharts
-          option={option}
-          style={{ height: "100%", width: "100%" }}
-        />
-      );
+        return (
+          <ReactECharts
+            option={option}
+            style={{ height: "100%", width: "100%" }}
+          />
+        );
+      }
+      default:
+        return <span>Unknown Chart Type</span>;
     }
-    default:
-      return <span>Unknown Chart Type</span>;
   }
-});
+);
 
 export default ChartCard;
