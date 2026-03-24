@@ -26,6 +26,7 @@ export class DashboardElement {
   dataLoading = false;
   sqlQuery: string;
   data: object[] | undefined = undefined;
+  queryTimeMs: number | null = null;
   error: string | null = null;
   type: ChartType;
   timeResolution: TimeResolution;
@@ -64,9 +65,11 @@ export class DashboardElement {
     runInAction(() => {
       this.dataLoading = true;
       this.error = null;
+      this.queryTimeMs = null;
     });
     let queryToRun = this.sqlQuery;
     queryToRun = this.makeCTEQuery(this.sqlQuery);
+    const startTime = performance.now();
     const result = await this.dbStore.runQuery(queryToRun).catch((error) => {
       console.error("Failed to load data for DashboardElement:", error);
       runInAction(() => {
@@ -77,6 +80,7 @@ export class DashboardElement {
     });
     runInAction(() => {
       this.data = result as object[];
+      this.queryTimeMs = performance.now() - startTime;
       this.dataLoading = false;
     });
   }
