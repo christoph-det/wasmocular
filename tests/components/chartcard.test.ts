@@ -71,6 +71,7 @@ describe("ChartCard Component", () => {
     );
     dashboardElement.dataLoading = false;
     dashboardElement.data = [{ greeting: "hello" }];
+    dashboardElement.queryTimeMs = 12.3456;
 
     const html = renderToStaticMarkup(
       createElement(ChartCard, { dashboardElement: dashboardElement })
@@ -79,6 +80,7 @@ describe("ChartCard Component", () => {
     expect(html).toContain("Test chart");
     expect(html).toContain("Test description");
     expect(html).toContain("hello");
+    expect(html).toContain("12.35 ms");
   });
 
   test("chart card renders heatmap correctly", async () => {

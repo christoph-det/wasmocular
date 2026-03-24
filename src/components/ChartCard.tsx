@@ -61,7 +61,12 @@ const ChartCard = observer(({ dashboardElement }: ChartCardProps) => {
             {dashboardElement.description}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-start gap-2">
+          {dashboardElement.queryTimeMs && !dashboardElement.dataLoading && (
+            <span className="text-xs text-gray-500 whitespace-nowrap pt-2">
+              {dashboardElement.queryTimeMs.toFixed(2)} ms
+            </span>
+          )}
           {dashboardElement.type === ChartType.STACKED_AREA_CHART && (
             <Button
               size="sm"
