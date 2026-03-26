@@ -139,7 +139,7 @@ const CreateDashboardWidgetDialog = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl overflow-scroll max-h-screen">
         <DialogHeader>
           <DialogTitle>Add Widget to Dashboard</DialogTitle>
         </DialogHeader>
