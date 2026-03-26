@@ -88,8 +88,9 @@ const LoadOtherProjectDialog = ({
             <div className="space-y-2 max-h-[60vh] overflow-y-auto">
               {indexingStore.listAllStoredProjects().map((item) => {
                 // Skip current project and projects without identifier
-                const isCurrentProject = item.project?.repositoryIdentifier ===
-                    indexingStore.project?.repositoryIdentifier;
+                const isCurrentProject =
+                  item.project?.repositoryIdentifier ===
+                  indexingStore.project?.repositoryIdentifier;
                 return (
                   <div
                     key={item.project?.repositoryIdentifier}
@@ -100,23 +101,25 @@ const LoadOtherProjectDialog = ({
                       )
                     </span>
                     <div className="space-x-2 flex shrink-0">
-                      {!isCurrentProject &&<Button
-                        size="sm"
-                        variant={"outline"}
-                        onClick={() =>
-                          void handleDeleteClick(
-                            item.project?.repositoryIdentifier,
-                            item.project?.defaultDashboardId
-                          )
-                        }
-                      >
-                        <img
-                          src="./icons/trash-solid-full.svg"
-                          alt="Delete"
-                          width={16}
-                          height={16}
-                        />
-                      </Button>}
+                      {!isCurrentProject && (
+                        <Button
+                          size="sm"
+                          variant={"outline"}
+                          onClick={() =>
+                            void handleDeleteClick(
+                              item.project?.repositoryIdentifier,
+                              item.project?.defaultDashboardId
+                            )
+                          }
+                        >
+                          <img
+                            src="./icons/trash-solid-full.svg"
+                            alt="Delete"
+                            width={16}
+                            height={16}
+                          />
+                        </Button>
+                      )}
                       <Button
                         variant={isCurrentProject ? "outline" : "default"}
                         size="sm"

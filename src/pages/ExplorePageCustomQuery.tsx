@@ -46,7 +46,7 @@ const customSQLTheme = EditorView.theme(
       color: "#e2e8f0" // default text (affects punctuation that keeps the base color)
     },
     ".cm-selectionBackground, .cm-content ::selection": {
-      backgroundColor: "#1d4ed8 !important",
+      backgroundColor: "#1d4ed8 !important"
     },
     ".cm-activeLine": {
       backgroundColor: "transparent"
@@ -546,10 +546,7 @@ const ExplorePageCustomQuery = observer(() => {
                   >
                     <div ref={resultsTopSpacerRef} className="h-px"></div>
                   </div>
-                  <div
-                    ref={resultsBottomScrollRef}
-                    className="overflow-x-auto"
-                  >
+                  <div ref={resultsBottomScrollRef} className="overflow-x-auto">
                     <table
                       ref={resultsTableRef}
                       className="min-w-full table-auto border-collapse border border-gray-200"
