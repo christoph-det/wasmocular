@@ -11,6 +11,7 @@ import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { tags } from "@lezer/highlight";
 import CreateDashboardWidgetDialog from "@/components/CreateDashboardWidgetDialog";
 import { observer } from "mobx-react-lite";
+import { useToast } from "@/hooks/useToast";
 
 interface QueryBuilderState {
   select: string[];
@@ -43,6 +44,9 @@ const customSQLTheme = EditorView.theme(
     },
     ".cm-content, .cm-gutters": {
       color: "#e2e8f0" // default text (affects punctuation that keeps the base color)
+    },
+    ".cm-selectionBackground, .cm-content ::selection": {
+      backgroundColor: "#1d4ed8 !important",
     },
     ".cm-activeLine": {
       backgroundColor: "transparent"
@@ -81,6 +85,7 @@ const customSQLHighlighting = HighlightStyle.define([
 const ExplorePageCustomQuery = observer(() => {
   const databaseStore = useStores().dbStore;
   const indexingStore = useStores().indexingStore;
+  const { showError, showSuccess } = useToast();
 
   const [searchParams] = useSearchParams();
   const currentRepositoryIdentifier =
@@ -290,6 +295,11 @@ const ExplorePageCustomQuery = observer(() => {
     }
   }, [manualQueryMode, buildSqlQueryString]);
 
+  const handleCopyQuery = async (query: string) => {
+    await navigator.clipboard.writeText(query);
+    showSuccess("SQL query copied.");
+  };
+
   return (
     <div className="mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen">
       <ExploreNavigationBar />
@@ -422,10 +432,28 @@ const ExplorePageCustomQuery = observer(() => {
                     </div>
 
                     {/* Display SQL Query  CodeMirror*/}
-                    <div
-                      ref={sqlDisplayRef}
-                      className="border border-gray-300 rounded-md mt-5"
-                    ></div>
+                    <div className="relative">
+                      {navigator.clipboard && (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          className="absolute top-1 right-2 z-10 cursor-pointer text-white"
+                          onClick={() =>
+                            void handleCopyQuery(buildSqlQueryString()).catch(
+                              () => {
+                                showError("Failed to copy SQL query.");
+                              }
+                            )
+                          }
+                        >
+                          Copy
+                        </Button>
+                      )}
+                      <div
+                        ref={sqlDisplayRef}
+                        className="border border-gray-300 rounded-md mt-5"
+                      ></div>
+                    </div>
                   </div>
                 )}
                 <div className="flex justify-between space-x-4 mt-4">
