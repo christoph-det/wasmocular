@@ -88,13 +88,8 @@ const LoadOtherProjectDialog = ({
             <div className="space-y-2 max-h-[60vh] overflow-y-auto">
               {indexingStore.listAllStoredProjects().map((item) => {
                 // Skip current project and projects without identifier
-                if (
-                  item.project?.repositoryIdentifier ===
-                    indexingStore.project?.repositoryIdentifier ||
-                  !item.project?.repositoryIdentifier
-                ) {
-                  return null;
-                }
+                const isCurrentProject = item.project?.repositoryIdentifier ===
+                    indexingStore.project?.repositoryIdentifier;
                 return (
                   <div
                     key={item.project?.repositoryIdentifier}
@@ -105,7 +100,7 @@ const LoadOtherProjectDialog = ({
                       )
                     </span>
                     <div className="space-x-2 flex shrink-0">
-                      <Button
+                      {!isCurrentProject &&<Button
                         size="sm"
                         variant={"outline"}
                         onClick={() =>
@@ -121,8 +116,9 @@ const LoadOtherProjectDialog = ({
                           width={16}
                           height={16}
                         />
-                      </Button>
+                      </Button>}
                       <Button
+                        variant={isCurrentProject ? "outline" : "default"}
                         size="sm"
                         onClick={() =>
                           void handleLoadClick(
@@ -131,7 +127,7 @@ const LoadOtherProjectDialog = ({
                           )
                         }
                       >
-                        Load
+                        {isCurrentProject ? "Current" : "Load"}
                       </Button>
                     </div>
                   </div>
