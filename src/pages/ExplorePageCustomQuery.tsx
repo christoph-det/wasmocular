@@ -11,6 +11,7 @@ import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { tags } from "@lezer/highlight";
 import CreateDashboardWidgetDialog from "@/components/CreateDashboardWidgetDialog";
 import { observer } from "mobx-react-lite";
+import { useToast } from "@/hooks/useToast";
 
 interface QueryBuilderState {
   select: string[];
@@ -43,6 +44,9 @@ const customSQLTheme = EditorView.theme(
     },
     ".cm-content, .cm-gutters": {
       color: "#e2e8f0" // default text (affects punctuation that keeps the base color)
+    },
+    ".cm-selectionBackground, .cm-content ::selection": {
+      backgroundColor: "#1d4ed8 !important"
     },
     ".cm-activeLine": {
       backgroundColor: "transparent"
@@ -81,6 +85,7 @@ const customSQLHighlighting = HighlightStyle.define([
 const ExplorePageCustomQuery = observer(() => {
   const databaseStore = useStores().dbStore;
   const indexingStore = useStores().indexingStore;
+  const { showError, showSuccess } = useToast();
 
   const [searchParams] = useSearchParams();
   const currentRepositoryIdentifier =
@@ -121,6 +126,10 @@ const ExplorePageCustomQuery = observer(() => {
     useRef(null);
   const sqlDisplayViewRef: React.MutableRefObject<EditorView | null> =
     useRef(null);
+  const resultsTopScrollRef = useRef<HTMLDivElement | null>(null);
+  const resultsTopSpacerRef = useRef<HTMLDivElement | null>(null);
+  const resultsBottomScrollRef = useRef<HTMLDivElement | null>(null);
+  const resultsTableRef = useRef<HTMLTableElement | null>(null);
 
   // Exports the current query results to a CSV file and triggers a download.
   const handleExportCsv = () => {
@@ -290,6 +299,48 @@ const ExplorePageCustomQuery = observer(() => {
     }
   }, [manualQueryMode, buildSqlQueryString]);
 
+  const handleCopyQuery = async (query: string) => {
+    await navigator.clipboard.writeText(query);
+    showSuccess("SQL query copied.");
+  };
+
+  useEffect(() => {
+    const top = resultsTopScrollRef.current;
+    const topSpacer = resultsTopSpacerRef.current;
+    const bottom = resultsBottomScrollRef.current;
+    const table = resultsTableRef.current;
+
+    if (!top || !topSpacer || !bottom || !table) {
+      return;
+    }
+
+    const syncWidths = () => {
+      topSpacer.style.width = `${table.scrollWidth}px`;
+    };
+
+    syncWidths();
+
+    const resizeObserver = new ResizeObserver(syncWidths);
+    resizeObserver.observe(table);
+    resizeObserver.observe(bottom);
+
+    const syncTop = () => {
+      bottom.scrollLeft = top.scrollLeft;
+    };
+    const syncBottom = () => {
+      top.scrollLeft = bottom.scrollLeft;
+    };
+
+    top.addEventListener("scroll", syncTop);
+    bottom.addEventListener("scroll", syncBottom);
+
+    return () => {
+      resizeObserver.disconnect();
+      top.removeEventListener("scroll", syncTop);
+      bottom.removeEventListener("scroll", syncBottom);
+    };
+  }, [queryResult]);
+
   return (
     <div className="mx-0 bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen">
       <ExploreNavigationBar />
@@ -422,10 +473,28 @@ const ExplorePageCustomQuery = observer(() => {
                     </div>
 
                     {/* Display SQL Query  CodeMirror*/}
-                    <div
-                      ref={sqlDisplayRef}
-                      className="border border-gray-300 rounded-md mt-5"
-                    ></div>
+                    <div className="relative">
+                      {navigator.clipboard && (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          className="absolute top-1 right-2 z-10 cursor-pointer text-white"
+                          onClick={() =>
+                            void handleCopyQuery(buildSqlQueryString()).catch(
+                              () => {
+                                showError("Failed to copy SQL query.");
+                              }
+                            )
+                          }
+                        >
+                          Copy
+                        </Button>
+                      )}
+                      <div
+                        ref={sqlDisplayRef}
+                        className="border border-gray-300 rounded-md mt-5"
+                      ></div>
+                    </div>
                   </div>
                 )}
                 <div className="flex justify-between space-x-4 mt-4">
@@ -471,8 +540,17 @@ const ExplorePageCustomQuery = observer(() => {
                 )}
                 <div className="mt-4">
                   {/* Table to display results */}
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full table-auto border-collapse border border-gray-200">
+                  <div
+                    ref={resultsTopScrollRef}
+                    className="overflow-x-auto overflow-y-hidden pb-2"
+                  >
+                    <div ref={resultsTopSpacerRef} className="h-px"></div>
+                  </div>
+                  <div ref={resultsBottomScrollRef} className="overflow-x-auto">
+                    <table
+                      ref={resultsTableRef}
+                      className="min-w-full table-auto border-collapse border border-gray-200"
+                    >
                       <thead>
                         <tr>
                           {queryResult.length > 0 &&
