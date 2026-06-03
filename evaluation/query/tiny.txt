@@ -1,0 +1,36 @@
+1 row returned
+
+[RUN1]
+20.17 ms
+5.64 ms
+3.83 ms
+3.50 ms
+5.81 ms
+
+[RUN2]
+25.13 ms
+4.57 ms
+4.92 ms
+3.34 ms
+4.92 ms
+
+[RUN3]
+23.30 ms
+3.26 ms
+6.10 ms
+8.67 ms
+8.83 ms
+
+[RUN4]
+25.89 ms
+7.61 ms
+6.39 ms
+9.48 ms
+4.81 ms
+
+[RUN5]
+20.02 ms
+5.68 ms
+7.75 ms
+5.75 ms
+4.88 ms

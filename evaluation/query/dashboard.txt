@@ -1,0 +1,30 @@
+Additions / Deletions by author
+Commits by Day / Hour
+Issues opened / closed over time (no filtering)
+
+Cold: 
+67.30 ms
+84.08 ms
+110.91 ms
+
+
+65.07 ms
+78.36 ms
+116.55 ms
+
+61.42 ms
+73.59 ms
+109.70 ms
+
+67.53 ms
+81.17 ms
+102.70 ms
+
+
+60.23 ms
+72.60 ms
+108.37 ms
+
+61.21 ms
+74.77 ms
+96.91 ms
