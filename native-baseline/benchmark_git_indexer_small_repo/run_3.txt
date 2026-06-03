@@ -2,7 +2,7 @@
 running 1 test
 test api::performance_test::benchmark_git_indexer_small_repo ... Cloning repository: /Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/zustand
 [gitoxide] Starting commit indexing...
-[gitoxide] Commit count: 1340
+[gitoxide] Commit count: 1367
 [gitoxide] Indexed commits: 0
 [gitoxide] Indexed commits: 100
 [gitoxide] Indexed commits: 200
@@ -17,18 +17,18 @@ test api::performance_test::benchmark_git_indexer_small_repo ... Cloning reposit
 [gitoxide] Indexed commits: 1100
 [gitoxide] Indexed commits: 1200
 [gitoxide] Indexed commits: 1300
-[gitoxide] Finished, indexed 1340 commits
-Clone took 65.43ms, Git indexer completed in 915.63ms for repository /Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/zustand
+[gitoxide] Finished, indexed 1367 commits
+Clone took 58.80ms, Git indexer completed in 951.09ms for repository /Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/zustand
 ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.99s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 1.02s
 
-        0.99 real         0.90 user         0.07 sys
-            30965760  maximum resident set size
+        1.02 real         0.94 user         0.07 sys
+            33439744  maximum resident set size
                    0  average shared memory size
                    0  average unshared data size
                    0  average unshared stack size
-                4341  page reclaims
+                4444  page reclaims
                   18  page faults
                    0  swaps
                    0  block input operations
@@ -36,8 +36,8 @@ test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; fini
                    0  messages sent
                    0  messages received
                    0  signals received
-                  15  voluntary context switches
-                 463  involuntary context switches
-          8885813890  instructions retired
-          2967050301  cycles elapsed
-            16040392  peak memory footprint
+                  13  voluntary context switches
+                 257  involuntary context switches
+          9018330056  instructions retired
+          3017185132  cycles elapsed
+            18301408  peak memory footprint

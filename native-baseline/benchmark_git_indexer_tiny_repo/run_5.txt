@@ -5,17 +5,17 @@ test api::performance_test::benchmark_git_indexer_tiny_repo ... Cloning reposito
 [gitoxide] Commit count: 3
 [gitoxide] Indexed commits: 0
 [gitoxide] Finished, indexed 3 commits
-Clone took 46.67ms, Git indexer completed in 1.19ms for repository /Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/test-repo-wasmocular
+Clone took 36.15ms, Git indexer completed in 1.10ms for repository /Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/test-repo-wasmocular
 ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.05s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.04s
 
-        0.05 real         0.01 user         0.02 sys
-             9076736  maximum resident set size
+        0.04 real         0.01 user         0.02 sys
+             9060352  maximum resident set size
                    0  average shared memory size
                    0  average unshared data size
                    0  average unshared stack size
-                2761  page reclaims
+                2750  page reclaims
                   18  page faults
                    0  swaps
                    0  block input operations
@@ -23,8 +23,8 @@ test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; fini
                    0  messages sent
                    0  messages received
                    0  signals received
-                  11  voluntary context switches
-                  68  involuntary context switches
-            72777315  instructions retired
-            26856426  cycles elapsed
-             2392424  peak memory footprint
+                  13  voluntary context switches
+                  53  involuntary context switches
+            70413707  instructions retired
+            26882550  cycles elapsed
+             2408808  peak memory footprint

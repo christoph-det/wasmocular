@@ -1,59 +1,9 @@
-[wasm-git] Repository clone finished for 19d4b12d8bca76 in 4.37s
-[wasmgix] Repository remount finished for 19d4b12d8bca76 in 0.05s
-Indexing completed successfully in 3.00s. Database insertion took 0.12s.
+[wasm-git] Repository clone finished for 19e8fc0ed4927c in 5.54s
+[wasmgix] Repository remount finished for 19e8fc0ed4927c in 1.33s
+Indexing completed successfully in 2.58s. Database insertion took 0.43s.
 
 {
     "breakdown": [
-        {
-            "attribution": [
-                {
-                    "scope": "DedicatedWorkerGlobalScope",
-                    "url": "https://masterarbeit-production.up.railway.app/assets/wasmgixWorker-DEtH61oh.js"
-                }
-            ],
-            "bytes": 146745431,
-            "types": [
-                "JavaScript"
-            ]
-        },
-        {
-            "attribution": [
-                {
-                    "scope": "Window",
-                    "url": "https://masterarbeit-production.up.railway.app/#index"
-                }
-            ],
-            "bytes": 6783006,
-            "types": [
-                "JavaScript"
-            ]
-        },
-        {
-            "attribution": [],
-            "bytes": 343584,
-            "types": [
-                "DOM"
-            ]
-        },
-        {
-            "attribution": [],
-            "bytes": 13163017,
-            "types": [
-                "Shared"
-            ]
-        },
-        {
-            "attribution": [
-                {
-                    "scope": "DedicatedWorkerGlobalScope",
-                    "url": "https://masterarbeit-production.up.railway.app/assets/gitHubAPIWorker-fz-QzQiC.js"
-                }
-            ],
-            "bytes": 366422,
-            "types": [
-                "JavaScript"
-            ]
-        },
         {
             "attribution": [],
             "bytes": 0,
@@ -63,10 +13,10 @@ Indexing completed successfully in 3.00s. Database insertion took 0.12s.
             "attribution": [
                 {
                     "scope": "DedicatedWorkerGlobalScope",
-                    "url": "https://masterarbeit-production.up.railway.app/assets/wasmgitWorker-Djt-HPPB.js"
+                    "url": "https://masterarbeit-production.up.railway.app/assets/wasmgitWorker-BFD0AeeX.js"
                 }
             ],
-            "bytes": 55810033,
+            "bytes": 55985592,
             "types": [
                 "JavaScript"
             ]
@@ -78,11 +28,61 @@ Indexing completed successfully in 3.00s. Database insertion took 0.12s.
                     "url": "https://masterarbeit-production.up.railway.app/assets/dbWorker-DxHwqpYj.js"
                 }
             ],
-            "bytes": 1085604,
+            "bytes": 1082332,
+            "types": [
+                "JavaScript"
+            ]
+        },
+        {
+            "attribution": [],
+            "bytes": 13623905,
+            "types": [
+                "Shared"
+            ]
+        },
+        {
+            "attribution": [],
+            "bytes": 340768,
+            "types": [
+                "DOM"
+            ]
+        },
+        {
+            "attribution": [
+                {
+                    "scope": "DedicatedWorkerGlobalScope",
+                    "url": "https://masterarbeit-production.up.railway.app/assets/gitHubAPIWorker-fz-QzQiC.js"
+                }
+            ],
+            "bytes": 366362,
+            "types": [
+                "JavaScript"
+            ]
+        },
+        {
+            "attribution": [
+                {
+                    "scope": "Window",
+                    "url": "https://masterarbeit-production.up.railway.app/#index"
+                }
+            ],
+            "bytes": 6312805,
+            "types": [
+                "JavaScript"
+            ]
+        },
+        {
+            "attribution": [
+                {
+                    "scope": "DedicatedWorkerGlobalScope",
+                    "url": "https://masterarbeit-production.up.railway.app/assets/wasmgixWorker-qAUwhpxh.js"
+                }
+            ],
+            "bytes": 146726032,
             "types": [
                 "JavaScript"
             ]
         }
     ],
-    "bytes": 224297097
+    "bytes": 224437796
 }
