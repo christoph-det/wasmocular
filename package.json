@@ -18,6 +18,7 @@
     "bench:rust": "cargo test --release --manifest-path crates/wasm-gix/Cargo.toml -- --include-ignored --nocapture --test-threads=1 benchmark_git_indexer_tiny_repo benchmark_git_indexer_small_repo benchmark_git_indexer_large_repo > output.txt 2>&1",
     "build": "tsc && vite build",
     "build:wasm-gix": "cargo build --release --target wasm32-unknown-emscripten --bin wasm_gix --no-default-features --manifest-path crates/wasm-gix/Cargo.toml && cp crates/wasm-gix/target/wasm32-unknown-emscripten/release/wasm_gix.js crates/wasm-gix/target/wasm32-unknown-emscripten/release/wasm_gix.wasm src/workers/wasm-gix-library/",
+    "build:wasm-gix-debug": "cargo build --target wasm32-unknown-emscripten --bin wasm_gix --no-default-features --manifest-path crates/wasm-gix/Cargo.toml && cp crates/wasm-gix/target/wasm32-unknown-emscripten/debug/wasm_gix.js crates/wasm-gix/target/wasm32-unknown-emscripten/debug/wasm_gix.wasm src/workers/wasm-gix-library/",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "prettify": "prettier --write ."

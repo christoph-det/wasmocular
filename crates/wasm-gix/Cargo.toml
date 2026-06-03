@@ -24,4 +24,5 @@ tempfile = "3.24.0"
 # we need build optimizations also for debug, because diff runs into memory issues otherwise
 [profile.dev]
 opt-level = 1
+# debug = 1
 
