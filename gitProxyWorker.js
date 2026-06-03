@@ -1,5 +1,5 @@
 export default {
-  async fetch(request: Request, env: any): Promise<Response> {
+  async fetch(request, env) {
     const url = new URL(request.url);
 
     const allowedOrigins = [
@@ -8,9 +8,9 @@ export default {
       "http://localhost:5173"
     ];
 
-    const origin: string | null = request.headers.get("Origin");
+    const origin = request.headers.get("Origin");
 
-    const corsHeaders: Record<string, string> = {
+    const corsHeaders = {
       "Access-Control-Allow-Origin":
         origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0],
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
