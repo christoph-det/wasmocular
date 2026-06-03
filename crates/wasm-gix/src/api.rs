@@ -7,12 +7,22 @@ use std::path::Path;
 use std::sync::Arc;
 
 const BRANCH_PREFIX: &str = "refs/heads/";
+const GIX_INDEX_FLAGS: [&str; 2] = ["index.skipHash=true", "index.threads=1"];
+
+/// Opens repo, configoration overrides are needed because wasm environment was running into memory issues when the index was included and checked 
+/// but we still need it since otherwise diff will recompute it on every commit
+fn open_repo(repo_path: &Path) -> Result<gix::Repository> {
+    gix::open_opts(
+        repo_path,
+        gix::open::Options::default().config_overrides(GIX_INDEX_FLAGS),
+    )
+    .with_context(|| format!("[gitoxide] failed to open repository at {}", repo_path.display()))
+}
 
 /// Returns the SHA of the HEAD commit of the repository at the given path.
 pub fn repo_head(repo_path: &Path) -> Result<String> {
     // open repository
-    let repo = gix::open(repo_path)
-        .with_context(|| format!("[gitoxide] failed to open repository at {}", repo_path.display()))?;
+    let repo = open_repo(repo_path)?;
 
     let mut head = repo.head().context("[gitoxide] failed to read HEAD")?;
 
@@ -31,8 +41,7 @@ pub fn repo_head(repo_path: &Path) -> Result<String> {
 
 /// Returns a list of all tracked file paths in the repository at the given path.
 pub fn tracked_paths(repo_path: &Path) -> Result<Vec<String>> {
-    let repo = gix::open(repo_path)
-        .with_context(|| format!("[gitoxide]failed to open repository at {}", repo_path.display()))?;
+    let repo = open_repo(repo_path)?;
 
     collect_tracked_paths(&repo)
 }
@@ -70,8 +79,7 @@ fn collect_tracked_paths(repo: &gix::Repository) -> Result<Vec<String>> {
 
 /// Returns a list of all branch names in the repository at the given path.
 pub fn branches(repo_path: &Path) -> Result<Vec<String>> {
-    let repo = gix::open(repo_path)
-        .with_context(|| format!("[gitoxide] failed to open repository at {}", repo_path.display()))?;
+    let repo = open_repo(repo_path)?;
 
     let references = repo.references().context("[gitoxide] failed to access references")?;
     let refs = references
@@ -102,7 +110,7 @@ pub fn run_git_indexer(
     repo_path: &Path,
     last_indexed_commit_sha: Option<String>,
 ) -> Result<Vec<u8>> {
-    let repo = gix::open(repo_path)?;
+    let repo = open_repo(repo_path)?;
 
     // prepare rev walk from HEAD
     let mut head = repo.head()?;

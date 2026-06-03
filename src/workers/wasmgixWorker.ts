@@ -318,11 +318,6 @@ export class WasmGixWorker {
       for await (const entry of handle.values()) {
         const nextPath = `${path}/${entry.name}`;
         if (entry.kind === "file") {
-          // Avoid copying the Git index to the virtual FS. The index is large
-          // and not needed for read-only analytics operations.
-          if (nextPath === ".git/index") {
-            continue;
-          }
           try {
             const fileHandle = entry as FileSystemFileHandle;
             const file = await fileHandle.getFile();

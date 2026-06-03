@@ -66,21 +66,6 @@ export class WasmGitWorker {
 
       this.lg.callMain(["clone", this.repoURL, repoPath]);
 
-      try {
-        // remove git index to reduce memory usage and bc gitoxide runs into memory issues with it
-        this.FS.unlink(`${repoPath}/.git/index`);
-      } catch (error: unknown) {
-        const err = error as { code?: string | number } | undefined;
-        if (err?.code !== "ENOENT") {
-          console.error(
-            `${this.wasmGitLogPrefix} Failed to remove Git index`,
-            error
-          );
-          (error as Error).message += "Failed to remove Git index.";
-          throw error;
-        }
-      }
-
       if (!this.repositoryExists(repoPath)) {
         throw new Error(
           `Clone did not create a valid git repository at ${repoPath}.`
