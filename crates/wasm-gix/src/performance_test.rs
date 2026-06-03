@@ -7,8 +7,8 @@ use tempfile::TempDir;
 #[test]
 fn benchmark_git_indexer_tiny_repo() {
     // artifical repository with only 3 commits for testing and benchmarking, baseline
-    // let repo_url = "https://github.com/christoph-det/test-repo-wasmocular.git";
-    let repo_url = "/Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/test-repo-wasmocular";
+    let repo_url = "https://github.com/christoph-det/test-repo-wasmocular.git";
+    //let repo_url = "/Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/test-repo-wasmocular";
     run_benchmark(repo_url);
 }
 
@@ -16,8 +16,8 @@ fn benchmark_git_indexer_tiny_repo() {
 #[ignore] // for only running during performance evaluations
 fn benchmark_git_indexer_small_repo() {
     // clone smaller repo for performance testing, about 1350 commits at time of writing
-    //let repo_url = "https://github.com/pmndrs/zustand.git";
-    let repo_url = "/Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/zustand";
+    let repo_url = "https://github.com/pmndrs/zustand.git";
+    // let repo_url = "/Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/zustand";
     run_benchmark(repo_url);
 }
 
@@ -25,8 +25,8 @@ fn benchmark_git_indexer_small_repo() {
 #[ignore]
 fn benchmark_git_indexer_large_repo() {
     // clone large repo for performance testing, about 13500 commits at time of writing
-    //let repo_url = "https://github.com/withastro/astro.git";
-    let repo_url = "/Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/astro";
+    let repo_url = "https://github.com/withastro/astro.git";
+    // let repo_url = "/Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/astro";
     run_benchmark(repo_url);
 }
 
