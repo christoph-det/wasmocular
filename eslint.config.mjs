@@ -22,7 +22,8 @@ export default defineConfig([
     "**/dev-dist",
     "**/public",
     "**/coverage",
-    "**/tests"
+    "**/tests",
+    "**/evaluation"
   ]),
   {
     extends: fixupConfigRules(
