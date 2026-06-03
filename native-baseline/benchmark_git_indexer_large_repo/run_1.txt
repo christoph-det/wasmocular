@@ -1,81 +1,8 @@
 
 running 1 test
-test api::performance_test::benchmark_git_indexer_tiny_repo ... Cloning repository: https://github.com/christoph-det/test-repo-wasmocular.git
+test api::performance_test::benchmark_git_indexer_large_repo ... Cloning repository: /Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/astro
 [gitoxide] Starting commit indexing...
-[gitoxide] Commit count: 3
-[gitoxide] Indexed commits: 0
-[gitoxide] Finished, indexed 3 commits
-Clone took 830.49ms, Git indexer completed in 2.13ms for repository https://github.com/christoph-det/test-repo-wasmocular.git
-ok
-
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.84s
-
-        1.54 real         0.04 user         0.06 sys
-             8814592  maximum resident set size
-                   0  average shared memory size
-                   0  average unshared data size
-                   0  average unshared stack size
-                4020  page reclaims
-                 191  page faults
-                   0  swaps
-                   0  block input operations
-                   0  block output operations
-                  16  messages sent
-                  42  messages received
-                   0  signals received
-                 127  voluntary context switches
-                 203  involuntary context switches
-            75257023  instructions retired
-            36168417  cycles elapsed
-             2474880  peak memory footprint
-
-running 1 test
-test api::performance_test::benchmark_git_indexer_small_repo ... Cloning repository: https://github.com/pmndrs/zustand.git
-[gitoxide] Starting commit indexing...
-[gitoxide] Commit count: 1316
-[gitoxide] Indexed commits: 0
-[gitoxide] Indexed commits: 100
-[gitoxide] Indexed commits: 200
-[gitoxide] Indexed commits: 300
-[gitoxide] Indexed commits: 400
-[gitoxide] Indexed commits: 500
-[gitoxide] Indexed commits: 600
-[gitoxide] Indexed commits: 700
-[gitoxide] Indexed commits: 800
-[gitoxide] Indexed commits: 900
-[gitoxide] Indexed commits: 1000
-[gitoxide] Indexed commits: 1100
-[gitoxide] Indexed commits: 1200
-[gitoxide] Indexed commits: 1300
-[gitoxide] Finished, indexed 1316 commits
-Clone took 1.03s, Git indexer completed in 914.15ms for repository https://github.com/pmndrs/zustand.git
-ok
-
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 1.96s
-
-        1.96 real         1.28 user         0.16 sys
-            33210368  maximum resident set size
-                   0  average shared memory size
-                   0  average unshared data size
-                   0  average unshared stack size
-                6787  page reclaims
-                  32  page faults
-                   0  swaps
-                   0  block input operations
-                   0  block output operations
-                  17  messages sent
-               12151  messages received
-                   0  signals received
-                3073  voluntary context switches
-                3999  involuntary context switches
-          8778740550  instructions retired
-          2944826683  cycles elapsed
-            18662528  peak memory footprint
-
-running 1 test
-test api::performance_test::benchmark_git_indexer_large_repo ... Cloning repository: https://github.com/withastro/astro.git
-[gitoxide] Starting commit indexing...
-[gitoxide] Commit count: 13557
+[gitoxide] Commit count: 13961
 [gitoxide] Indexed commits: 0
 [gitoxide] Indexed commits: 100
 [gitoxide] Indexed commits: 200
@@ -212,27 +139,31 @@ test api::performance_test::benchmark_git_indexer_large_repo ... Cloning reposit
 [gitoxide] Indexed commits: 13300
 [gitoxide] Indexed commits: 13400
 [gitoxide] Indexed commits: 13500
-[gitoxide] Finished, indexed 13557 commits
-Clone took 11.56s, Git indexer completed in 53.84s for repository https://github.com/withastro/astro.git
+[gitoxide] Indexed commits: 13600
+[gitoxide] Indexed commits: 13700
+[gitoxide] Indexed commits: 13800
+[gitoxide] Indexed commits: 13900
+[gitoxide] Finished, indexed 13961 commits
+Clone took 1.04s, Git indexer completed in 55.85s for repository /Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/astro
 ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 65.96s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 57.41s
 
-       65.96 real        64.66 user         4.23 sys
-           307396608  maximum resident set size
+       57.42 real        55.04 user         1.73 sys
+           307691520  maximum resident set size
                    0  average shared memory size
                    0  average unshared data size
                    0  average unshared stack size
-               32386  page reclaims
-                7901  page faults
+               16025  page reclaims
+               13877  page faults
                    0  swaps
                    0  block input operations
                    0  block output operations
-                  62  messages sent
-              337217  messages received
+                   0  messages sent
+                   0  messages received
                    0  signals received
-               82127  voluntary context switches
-              183251  involuntary context switches
-        572095744569  instructions retired
-        173292679360  cycles elapsed
-            77792896  peak memory footprint
+                1018  voluntary context switches
+                4256  involuntary context switches
+        606659384952  instructions retired
+        179772663803  cycles elapsed
+            72237728  peak memory footprint

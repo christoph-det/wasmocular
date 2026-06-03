@@ -2,6 +2,10 @@
 linker = "../emsdk/upstream/emscripten/emcc"
 ar = "../emsdk/upstream/emscripten/emar"
 rustflags = [
+    #  PROFILING FLAGS
+    # "-C", "debuginfo=1",
+    # "-C", "link-arg=--profiling",
+
     "-C",
     "link-arg=-sEXPORT_ALL=1",
     "-C",

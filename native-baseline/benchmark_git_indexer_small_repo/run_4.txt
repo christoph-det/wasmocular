@@ -1,0 +1,43 @@
+
+running 1 test
+test api::performance_test::benchmark_git_indexer_small_repo ... Cloning repository: /Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/zustand
+[gitoxide] Starting commit indexing...
+[gitoxide] Commit count: 1340
+[gitoxide] Indexed commits: 0
+[gitoxide] Indexed commits: 100
+[gitoxide] Indexed commits: 200
+[gitoxide] Indexed commits: 300
+[gitoxide] Indexed commits: 400
+[gitoxide] Indexed commits: 500
+[gitoxide] Indexed commits: 600
+[gitoxide] Indexed commits: 700
+[gitoxide] Indexed commits: 800
+[gitoxide] Indexed commits: 900
+[gitoxide] Indexed commits: 1000
+[gitoxide] Indexed commits: 1100
+[gitoxide] Indexed commits: 1200
+[gitoxide] Indexed commits: 1300
+[gitoxide] Finished, indexed 1340 commits
+Clone took 68.84ms, Git indexer completed in 897.49ms for repository /Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/zustand
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.98s
+
+        0.98 real         0.89 user         0.07 sys
+            31342592  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                4351  page reclaims
+                  18  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   9  voluntary context switches
+                 226  involuntary context switches
+          8880960933  instructions retired
+          2924718362  cycles elapsed
+            16417224  peak memory footprint

@@ -1,0 +1,30 @@
+
+running 1 test
+test api::performance_test::benchmark_git_indexer_tiny_repo ... Cloning repository: /Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/test-repo-wasmocular
+[gitoxide] Starting commit indexing...
+[gitoxide] Commit count: 3
+[gitoxide] Indexed commits: 0
+[gitoxide] Finished, indexed 3 commits
+Clone took 46.44ms, Git indexer completed in 1.02ms for repository /Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/test-repo-wasmocular
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.05s
+
+        0.05 real         0.01 user         0.02 sys
+             9109504  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                2758  page reclaims
+                  18  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   9  voluntary context switches
+                  62  involuntary context switches
+            72696510  instructions retired
+            26519446  cycles elapsed
+             2425192  peak memory footprint

@@ -1,0 +1,169 @@
+
+running 1 test
+test api::performance_test::benchmark_git_indexer_large_repo ... Cloning repository: /Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/astro
+[gitoxide] Starting commit indexing...
+[gitoxide] Commit count: 13961
+[gitoxide] Indexed commits: 0
+[gitoxide] Indexed commits: 100
+[gitoxide] Indexed commits: 200
+[gitoxide] Indexed commits: 300
+[gitoxide] Indexed commits: 400
+[gitoxide] Indexed commits: 500
+[gitoxide] Indexed commits: 600
+[gitoxide] Indexed commits: 700
+[gitoxide] Indexed commits: 800
+[gitoxide] Indexed commits: 900
+[gitoxide] Indexed commits: 1000
+[gitoxide] Indexed commits: 1100
+[gitoxide] Indexed commits: 1200
+[gitoxide] Indexed commits: 1300
+[gitoxide] Indexed commits: 1400
+[gitoxide] Indexed commits: 1500
+[gitoxide] Indexed commits: 1600
+[gitoxide] Indexed commits: 1700
+[gitoxide] Indexed commits: 1800
+[gitoxide] Indexed commits: 1900
+[gitoxide] Indexed commits: 2000
+[gitoxide] Indexed commits: 2100
+[gitoxide] Indexed commits: 2200
+[gitoxide] Indexed commits: 2300
+[gitoxide] Indexed commits: 2400
+[gitoxide] Indexed commits: 2500
+[gitoxide] Indexed commits: 2600
+[gitoxide] Indexed commits: 2700
+[gitoxide] Indexed commits: 2800
+[gitoxide] Indexed commits: 2900
+[gitoxide] Indexed commits: 3000
+[gitoxide] Indexed commits: 3100
+[gitoxide] Indexed commits: 3200
+[gitoxide] Indexed commits: 3300
+[gitoxide] Indexed commits: 3400
+[gitoxide] Indexed commits: 3500
+[gitoxide] Indexed commits: 3600
+[gitoxide] Indexed commits: 3700
+[gitoxide] Indexed commits: 3800
+[gitoxide] Indexed commits: 3900
+[gitoxide] Indexed commits: 4000
+[gitoxide] Indexed commits: 4100
+[gitoxide] Indexed commits: 4200
+[gitoxide] Indexed commits: 4300
+[gitoxide] Indexed commits: 4400
+[gitoxide] Indexed commits: 4500
+[gitoxide] Indexed commits: 4600
+[gitoxide] Indexed commits: 4700
+[gitoxide] Indexed commits: 4800
+[gitoxide] Indexed commits: 4900
+[gitoxide] Indexed commits: 5000
+[gitoxide] Indexed commits: 5100
+[gitoxide] Indexed commits: 5200
+[gitoxide] Indexed commits: 5300
+[gitoxide] Indexed commits: 5400
+[gitoxide] Indexed commits: 5500
+[gitoxide] Indexed commits: 5600
+[gitoxide] Indexed commits: 5700
+[gitoxide] Indexed commits: 5800
+[gitoxide] Indexed commits: 5900
+[gitoxide] Indexed commits: 6000
+[gitoxide] Indexed commits: 6100
+[gitoxide] Indexed commits: 6200
+[gitoxide] Indexed commits: 6300
+[gitoxide] Indexed commits: 6400
+[gitoxide] Indexed commits: 6500
+[gitoxide] Indexed commits: 6600
+[gitoxide] Indexed commits: 6700
+[gitoxide] Indexed commits: 6800
+[gitoxide] Indexed commits: 6900
+[gitoxide] Indexed commits: 7000
+[gitoxide] Indexed commits: 7100
+[gitoxide] Indexed commits: 7200
+[gitoxide] Indexed commits: 7300
+[gitoxide] Indexed commits: 7400
+[gitoxide] Indexed commits: 7500
+[gitoxide] Indexed commits: 7600
+[gitoxide] Indexed commits: 7700
+[gitoxide] Indexed commits: 7800
+[gitoxide] Indexed commits: 7900
+[gitoxide] Indexed commits: 8000
+[gitoxide] Indexed commits: 8100
+[gitoxide] Indexed commits: 8200
+[gitoxide] Indexed commits: 8300
+[gitoxide] Indexed commits: 8400
+[gitoxide] Indexed commits: 8500
+[gitoxide] Indexed commits: 8600
+[gitoxide] Indexed commits: 8700
+[gitoxide] Indexed commits: 8800
+[gitoxide] Indexed commits: 8900
+[gitoxide] Indexed commits: 9000
+[gitoxide] Indexed commits: 9100
+[gitoxide] Indexed commits: 9200
+[gitoxide] Indexed commits: 9300
+[gitoxide] Indexed commits: 9400
+[gitoxide] Indexed commits: 9500
+[gitoxide] Indexed commits: 9600
+[gitoxide] Indexed commits: 9700
+[gitoxide] Indexed commits: 9800
+[gitoxide] Indexed commits: 9900
+[gitoxide] Indexed commits: 10000
+[gitoxide] Indexed commits: 10100
+[gitoxide] Indexed commits: 10200
+[gitoxide] Indexed commits: 10300
+[gitoxide] Indexed commits: 10400
+[gitoxide] Indexed commits: 10500
+[gitoxide] Indexed commits: 10600
+[gitoxide] Indexed commits: 10700
+[gitoxide] Indexed commits: 10800
+[gitoxide] Indexed commits: 10900
+[gitoxide] Indexed commits: 11000
+[gitoxide] Indexed commits: 11100
+[gitoxide] Indexed commits: 11200
+[gitoxide] Indexed commits: 11300
+[gitoxide] Indexed commits: 11400
+[gitoxide] Indexed commits: 11500
+[gitoxide] Indexed commits: 11600
+[gitoxide] Indexed commits: 11700
+[gitoxide] Indexed commits: 11800
+[gitoxide] Indexed commits: 11900
+[gitoxide] Indexed commits: 12000
+[gitoxide] Indexed commits: 12100
+[gitoxide] Indexed commits: 12200
+[gitoxide] Indexed commits: 12300
+[gitoxide] Indexed commits: 12400
+[gitoxide] Indexed commits: 12500
+[gitoxide] Indexed commits: 12600
+[gitoxide] Indexed commits: 12700
+[gitoxide] Indexed commits: 12800
+[gitoxide] Indexed commits: 12900
+[gitoxide] Indexed commits: 13000
+[gitoxide] Indexed commits: 13100
+[gitoxide] Indexed commits: 13200
+[gitoxide] Indexed commits: 13300
+[gitoxide] Indexed commits: 13400
+[gitoxide] Indexed commits: 13500
+[gitoxide] Indexed commits: 13600
+[gitoxide] Indexed commits: 13700
+[gitoxide] Indexed commits: 13800
+[gitoxide] Indexed commits: 13900
+[gitoxide] Finished, indexed 13961 commits
+Clone took 999.89ms, Git indexer completed in 55.02s for repository /Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/astro
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 56.54s
+
+       56.54 real        54.86 user         1.63 sys
+           310181888  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               30920  page reclaims
+                  18  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                 426  voluntary context switches
+                 610  involuntary context switches
+        606460240943  instructions retired
+        179105532690  cycles elapsed
+            70795936  peak memory footprint

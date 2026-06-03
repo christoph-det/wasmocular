@@ -40,3 +40,5 @@ coverage/
 # /src/workers/wasm-gix-library/wasm_gix.wasm
 # src/workers/wasm-gix-library/wasm_gix.js
     
+
+.pnpm-store

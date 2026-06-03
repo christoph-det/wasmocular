@@ -323,7 +323,7 @@ const LoadPage = observer(() => {
                   <br />
                   Cloudflare (
                   <a
-                    href={`${import.meta.env.BASE_URL}gitProxyWorker.ts`}
+                    href={`${import.meta.env.BASE_URL}gitProxyWorker.js`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline text-blue-600"

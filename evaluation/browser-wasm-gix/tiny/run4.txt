@@ -1,0 +1,88 @@
+[gitoxide] Mounted repository at /repos/19d4af0b0801a9 with 30 files.
+[wasmgix] Repository load finished for 19d4af0b0801a9 in 0.09s
+Indexing completed successfully in 0.04s. Database insertion took 0.11s.
+
+{
+    "breakdown": [
+        {
+            "attribution": [],
+            "bytes": 0,
+            "types": []
+        },
+        {
+            "attribution": [
+                {
+                    "scope": "DedicatedWorkerGlobalScope",
+                    "url": "https://masterarbeit-production.up.railway.app/assets/gitHubAPIWorker-fz-QzQiC.js"
+                }
+            ],
+            "bytes": 366422,
+            "types": [
+                "JavaScript"
+            ]
+        },
+        {
+            "attribution": [
+                {
+                    "scope": "DedicatedWorkerGlobalScope",
+                    "url": "https://masterarbeit-production.up.railway.app/assets/dbWorker-DxHwqpYj.js"
+                }
+            ],
+            "bytes": 1085604,
+            "types": [
+                "JavaScript"
+            ]
+        },
+        {
+            "attribution": [
+                {
+                    "scope": "DedicatedWorkerGlobalScope",
+                    "url": "https://masterarbeit-production.up.railway.app/assets/wasmgixWorker-DEtH61oh.js"
+                }
+            ],
+            "bytes": 135738417,
+            "types": [
+                "JavaScript"
+            ]
+        },
+        {
+            "attribution": [],
+            "bytes": 13229822,
+            "types": [
+                "Shared"
+            ]
+        },
+        {
+            "attribution": [],
+            "bytes": 356344,
+            "types": [
+                "DOM"
+            ]
+        },
+        {
+            "attribution": [
+                {
+                    "scope": "DedicatedWorkerGlobalScope",
+                    "url": "https://masterarbeit-production.up.railway.app/assets/wasmgitWorker-Djt-HPPB.js"
+                }
+            ],
+            "bytes": 517192,
+            "types": [
+                "JavaScript"
+            ]
+        },
+        {
+            "attribution": [
+                {
+                    "scope": "Window",
+                    "url": "https://masterarbeit-production.up.railway.app/#index"
+                }
+            ],
+            "bytes": 6598354,
+            "types": [
+                "JavaScript"
+            ]
+        }
+    ],
+    "bytes": 157892155
+}

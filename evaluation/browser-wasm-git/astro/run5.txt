@@ -1,0 +1,88 @@
+[wasm-git] Repository clone finished for 19d4a764c6a568 in 127.22s
+[wasmgix] Repository remount finished for 19d4a764c6a568 in 2.94s
+Indexing completed successfully in 500.93s. Database insertion took 0.16s.
+
+{
+    "breakdown": [
+        {
+            "attribution": [
+                {
+                    "scope": "DedicatedWorkerGlobalScope",
+                    "url": "https://masterarbeit-production.up.railway.app/assets/wasmgitWorker-Djt-HPPB.js"
+                }
+            ],
+            "bytes": 1016426710,
+            "types": [
+                "JavaScript"
+            ]
+        },
+        {
+            "attribution": [
+                {
+                    "scope": "DedicatedWorkerGlobalScope",
+                    "url": "https://masterarbeit-production.up.railway.app/assets/wasmgixWorker-DEtH61oh.js"
+                }
+            ],
+            "bytes": 624987837,
+            "types": [
+                "JavaScript"
+            ]
+        },
+        {
+            "attribution": [],
+            "bytes": 13232340,
+            "types": [
+                "Shared"
+            ]
+        },
+        {
+            "attribution": [],
+            "bytes": 0,
+            "types": []
+        },
+        {
+            "attribution": [
+                {
+                    "scope": "DedicatedWorkerGlobalScope",
+                    "url": "https://masterarbeit-production.up.railway.app/assets/dbWorker-DxHwqpYj.js"
+                }
+            ],
+            "bytes": 1083528,
+            "types": [
+                "JavaScript"
+            ]
+        },
+        {
+            "attribution": [
+                {
+                    "scope": "DedicatedWorkerGlobalScope",
+                    "url": "https://masterarbeit-production.up.railway.app/assets/gitHubAPIWorker-fz-QzQiC.js"
+                }
+            ],
+            "bytes": 364674,
+            "types": [
+                "JavaScript"
+            ]
+        },
+        {
+            "attribution": [],
+            "bytes": 335520,
+            "types": [
+                "DOM"
+            ]
+        },
+        {
+            "attribution": [
+                {
+                    "scope": "Window",
+                    "url": "https://masterarbeit-production.up.railway.app/#index"
+                }
+            ],
+            "bytes": 6324124,
+            "types": [
+                "JavaScript"
+            ]
+        }
+    ],
+    "bytes": 1662754733
+}
