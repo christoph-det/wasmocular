@@ -1,24 +1,12 @@
-[wasm-git] Repository clone finished for 19d4aaa42182d5 in 4.55s
-[wasmgix] Repository remount finished for 19d4aaa42182d5 in 0.05s
-Indexing completed successfully in 3.00s. Database insertion took 0.12s.
+[wasm-git] Repository clone finished for 19e8fbf7bb8977 in 5.35s
+[wasmgix] Repository remount finished for 19e8fbf7bb8977 in 1.29s
+Indexing completed successfully in 2.33s. Database insertion took 0.12s.
 
 {
     "breakdown": [
         {
-            "attribution": [
-                {
-                    "scope": "Window",
-                    "url": "https://masterarbeit-production.up.railway.app/#index"
-                }
-            ],
-            "bytes": 6819259,
-            "types": [
-                "JavaScript"
-            ]
-        },
-        {
             "attribution": [],
-            "bytes": 13131732,
+            "bytes": 13538069,
             "types": [
                 "Shared"
             ]
@@ -27,10 +15,10 @@ Indexing completed successfully in 3.00s. Database insertion took 0.12s.
             "attribution": [
                 {
                     "scope": "DedicatedWorkerGlobalScope",
-                    "url": "https://masterarbeit-production.up.railway.app/assets/wasmgitWorker-Djt-HPPB.js"
+                    "url": "https://masterarbeit-production.up.railway.app/assets/gitHubAPIWorker-fz-QzQiC.js"
                 }
             ],
-            "bytes": 50105155,
+            "bytes": 366362,
             "types": [
                 "JavaScript"
             ]
@@ -38,11 +26,11 @@ Indexing completed successfully in 3.00s. Database insertion took 0.12s.
         {
             "attribution": [
                 {
-                    "scope": "DedicatedWorkerGlobalScope",
-                    "url": "https://masterarbeit-production.up.railway.app/assets/wasmgixWorker-DEtH61oh.js"
+                    "scope": "Window",
+                    "url": "https://masterarbeit-production.up.railway.app/#index"
                 }
             ],
-            "bytes": 146746329,
+            "bytes": 6773136,
             "types": [
                 "JavaScript"
             ]
@@ -56,33 +44,45 @@ Indexing completed successfully in 3.00s. Database insertion took 0.12s.
             "attribution": [
                 {
                     "scope": "DedicatedWorkerGlobalScope",
-                    "url": "https://masterarbeit-production.up.railway.app/assets/dbWorker-DxHwqpYj.js"
+                    "url": "https://masterarbeit-production.up.railway.app/assets/wasmgixWorker-qAUwhpxh.js"
                 }
             ],
-            "bytes": 1085604,
+            "bytes": 147185849,
             "types": [
                 "JavaScript"
-            ]
-        },
-        {
-            "attribution": [],
-            "bytes": 337080,
-            "types": [
-                "DOM"
             ]
         },
         {
             "attribution": [
                 {
                     "scope": "DedicatedWorkerGlobalScope",
-                    "url": "https://masterarbeit-production.up.railway.app/assets/gitHubAPIWorker-fz-QzQiC.js"
+                    "url": "https://masterarbeit-production.up.railway.app/assets/dbWorker-DxHwqpYj.js"
                 }
             ],
-            "bytes": 366422,
+            "bytes": 1085572,
             "types": [
                 "JavaScript"
             ]
+        },
+        {
+            "attribution": [
+                {
+                    "scope": "DedicatedWorkerGlobalScope",
+                    "url": "https://masterarbeit-production.up.railway.app/assets/wasmgitWorker-BFD0AeeX.js"
+                }
+            ],
+            "bytes": 56443517,
+            "types": [
+                "JavaScript"
+            ]
+        },
+        {
+            "attribution": [],
+            "bytes": 328680,
+            "types": [
+                "DOM"
+            ]
         }
     ],
-    "bytes": 218591581
+    "bytes": 225721185
 }

@@ -2,7 +2,7 @@
 running 1 test
 test api::performance_test::benchmark_git_indexer_large_repo ... Cloning repository: /Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/astro
 [gitoxide] Starting commit indexing...
-[gitoxide] Commit count: 13961
+[gitoxide] Commit count: 14417
 [gitoxide] Indexed commits: 0
 [gitoxide] Indexed commits: 100
 [gitoxide] Indexed commits: 200
@@ -143,27 +143,32 @@ test api::performance_test::benchmark_git_indexer_large_repo ... Cloning reposit
 [gitoxide] Indexed commits: 13700
 [gitoxide] Indexed commits: 13800
 [gitoxide] Indexed commits: 13900
-[gitoxide] Finished, indexed 13961 commits
-Clone took 1.04s, Git indexer completed in 55.85s for repository /Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/astro
+[gitoxide] Indexed commits: 14000
+[gitoxide] Indexed commits: 14100
+[gitoxide] Indexed commits: 14200
+[gitoxide] Indexed commits: 14300
+[gitoxide] Indexed commits: 14400
+[gitoxide] Finished, indexed 14417 commits
+Clone took 1.27s, Git indexer completed in 64.37s for repository /Users/christoph/Documents/01Uni/Master/Masterarbeit/01thesis-project-code/masterarbeit/evaluation/repos/astro
 ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 57.41s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 66.33s
 
-       57.42 real        55.04 user         1.73 sys
-           307691520  maximum resident set size
+       66.34 real        61.71 user         2.39 sys
+           314621952  maximum resident set size
                    0  average shared memory size
                    0  average unshared data size
                    0  average unshared stack size
-               16025  page reclaims
-               13877  page faults
+               22049  page reclaims
+               14567  page faults
                    0  swaps
                    0  block input operations
                    0  block output operations
                    0  messages sent
                    0  messages received
-                   0  signals received
-                1018  voluntary context switches
-                4256  involuntary context switches
-        606659384952  instructions retired
-        179772663803  cycles elapsed
-            72237728  peak memory footprint
+                   1  signals received
+                 687  voluntary context switches
+               55148  involuntary context switches
+        643752325822  instructions retired
+        199123028724  cycles elapsed
+            86770336  peak memory footprint
