@@ -31,11 +31,12 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@1.96.0
 
       - name: Install Emscripten
         uses: mymindstorm/setup-emsdk@v14
         with:
+          version: 5.0.7
           path: emsdk
 
       - name: Add wasm32-unknown-emscripten target
